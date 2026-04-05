@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "ironhold:block/stripped_ebony_log_top",
+    "side": "ironhold:block/stripped_ebony_log"
+  }
+}

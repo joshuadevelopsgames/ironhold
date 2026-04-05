@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_bottom_right_open",
+  "textures": {
+    "top": "ironhold:block/ebony_door_top",
+    "bottom": "ironhold:block/ebony_door_bottom"
+  }
+}

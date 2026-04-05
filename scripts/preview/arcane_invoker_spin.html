@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MC model preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #0e0e12; font-family: system-ui, sans-serif; }
+    #hint { position: fixed; left: 12px; bottom: 12px; color: #9a9aaa; font-size: 13px; pointer-events: none; max-width: 70%; }
+    #modelPick { position: fixed; top: 12px; left: 12px; z-index: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid #333; background: #1a1a22; color: #ddd; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <select id="modelPick" aria-label="Model">
+    <option value="invoker">Arcane Invoker (illager)</option>
+    <option value="zombie">Zombie (64×32)</option>
+  </select>
+  <div id="hint">Drag to orbit · scroll to zoom · right-drag to pan · <code>?model=zombie</code></div>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const SCALE = 1 / 16;
+
+    const INVOKER_TEX = 'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAALUUlEQVR4nO2bTYhsRxXH773vTs/0TPfM5JkYMKCIBgLB7MSN+BRcBVyKAcGFiKsoZJuY/SPrQMjehctkKSQigoiiBMlCcCEREzPk42X6Y/q7p+VX1b/76g2ZTPek53WPvIKe231vVd06n3XO/9Tk2QXt9q9emp2enmYnJydZrVbL+D4ej7OiKLKtra3sL2/9ORsMBtnu7m42HA5DH/rmeR7G/+6Pb4YvP/rBT2aMeevtv2bb29vZ3//xt9hhza1cpNNkMsnq9Xr1HcIhuN1uB0JhCsRB/HQ6Df14fuPGjWoO7vN8b28v9N2UVl7UAanOZrPwgQg+MIDfBwcHWa/XCwT5DGZAJFfG3vrW92fcv3P8cdaYNLKbh18IGvPtb353VpZl9vs/vbFWTSgu6sAiJQ7p8xvC+M210WiEezCCK1KXKTCBfvv7+6EfTOv3+8EE+E6/dbfiog5IS7Xd2dkJTIBItEBNUKWVOv263W4YB/E0xsAMTGk0GgU/wtiNN4GdOTE0CJUZnU4nEMQz7R1/wHOcIONg3k9/2P/UeV/5db2ad+OdYFmWlYR1iBAKE3wO8ai0/gLtoO8zz/5hI7z9pU2g1+sFlaVp4xCOFqDeSBq1hwHYNg0GaTKb3vKf/fjns9R2kZwEI8Gd7UiEzg61ZTuDYBxaXsQr97gyh1sh40963cAQmIap+C59yeu/fW29u8BgMAjEIE2+o77u53znPguHeIjQHGAUDYYgefd5zUQm2prNZvANPKPBKPquu5UQctZ+3cJ0gEgK5sAM+kGEv9uddpgoaEOeh7F8IJg5+oNeYA7j3DlgjoHTulsBwYa5EMr2hIoiab7DBFQYLaDRn+9IHUZAKMRo95oKDY1hXpjFlTEwQulvBANqtVqQCtIzrNUsIMr9WynCALSCMRAM82iMgUDCY561Wq3ADDXD4Ik5eSfPzBfWyoBOpxOIYjFIFOnq5AxWJALCYBBSpzEWot33DYPpD6H8dgyM1AdwNYZYdytYuBEeREIUi0ZiEg5RenYIgSn0gxGqN/15ZkCEnevp3T7pTz/mQ5s2QQNKCECVWaB+AAlBJGqqR0fSLl4PryNEU5C4ZgCzYCrzjsbDMA7i3QrdaTbCB2zNbdkF8d1MD0ZArA5R6esIuU8fkx5xA5nDGD4wyTAaZuAn6IufWHcrn771r3Me/WclL3jtjceCFpk5oiFq3eHh4Ure8aA9aJdveXZF7dHmkyHZd1cwmtR/fHDn38FxmkdgEpiKW2Z78P592SKKq5rYXMIsEcIgnN0Ax2hIrGM1mjTwWhse8Ejz8Zl7d4C2tkbZces4K/KY/n7UenchyZhZKnmkC+E0CA6ZZoIwmSTBMJzlyScfZGthwNYcyEA12baOPvwwazaa4fcy2Zshs7BXGnKzVSJtnjEnmsB9+9xPqKw4ewMpobIsxmgN4ifTydKqacADUSZIzMk9NcLcQI0zyrxfrTx7QxTHUJYFoaLY6DIoLsxijCiR6bC/IZp3qAHmDgZa96vljz70tYAI+dJ+b1gVPrjf7hwHmyR6I3AZT4aVFGHM6TgixNq38Pd4fBcVknA9PBo1Hg/Dc/qmYEleRP8gQwigiEr1Fe/f+We+chMYDAaVdNPyl3apNFmk980eBUHoh/Ywj/3O5v3C50hcpjAeJkCw2oezlXgYyhV/chV1hHyneDh4fV4eih6DcVXf44rEzebCYrNYIBECy6Z3U+S0ijSZnCbaENNq+jEHY3d3I9okc0ybmd+6gX2Z23C6O15tfFBWnMjzqOYHNyvUNxBeRifonl3ciPCXalmfb2U6TIMbrimyhElJGIzBBDSdFISZTEdVYuY2avaJxnSjpa2OAc1mM9ry3A+waF7EwiMYEhfGPRZSq23fA53hA9gu+a1WxO8xCOIeBMNUtExordMZBCalZsTz/mBWIcuagQ4zjO1eASLU7XbDiwRCxABYmHasRtBfHwEjWJQ4gMAIYyyJmTJbY0TL9P6aBAzUVFhDWoD1twJYdSv4YxmbFykNFgNhem6YpIq7vblzpPU+GuaAGQh+MAf9ZRq/YZDFVs8bmDMIrbv9ql2sZ+UMODw8rGJxzEHbQ4p6aZFhS+RKz4UjVaQoMx1n5GhUKJMFTpgzBUzVPOcXnVL7rEWslAGD5HSHNqfKI0mdEwtQ6voHkR4YdHx8HBioNtHXZ8LlHrJwvJI1Q6SvOCHv1m8YPF3FwYqCF5qmshgWZ2FEgoXJRH+RlHg/H52bCLOAqoSk+YU2LUO5KgAPWgiwyjBN7SoqSQWLco/XERoYqYrWBEKlZ95fwrnCGLFF7VYHZ0SX7vfch2i0RrV3+7Sv6TJr4qOQVt3y37z8naVmffaFd6pQmAW9+tLjK13QL194L1zVAk0ixADdbtYevrfSQCg/78HDu0/MsGmkgv3ycr09i/mk899qb8YJWulBUmhMf/rR+kH/BVpx3gNNQpgKQs0BYIbIrvUDt08PT1yXVp73QDtEmjg36wQQF0CNYcTwxP1hiKHvdWrFeQ9wcEZ6aShqYEODGRZC6W8lyXD3WjOgMz8EJTDi3m1ckO73MMKo0YrwtWdAI2RsMVPzZJj5gcdkDWLc8riPfxDgvA4tf6T59VkahLiHN5sHFQNMTgQs4lmgiOul2ABacty6E0zAYAe/YSTHddWIzudthaot8AAh5Afc16Or7kg3ze3p4y5h3V9NMHAxlPWA1aa10pDXsz2iwY1G9OwiM6p9WumBQMvlYnvdk3bQEMvm6ZmgVbRvfPV7M8EZrq3+UXU6DU3uDI+W0rBSezXlVapiejBBdEc4Oz0aw/d0d5BQU2OcqWcHwhb5OVN6cUqxxNo07lCsPxzejFjrcidERnOgwcNPxvUQLfHm6fZH2sb1mA8EW/cX6RETMD5YRcnLcwVcBUkN0hTK0hpQlmWF1KZIMPfYDdz3jf8jOBHzAXN6D1KB9TmesR62tk97SQmdbZojTKUJxCi4bMn5S/6I8ZnqRoT2LlKk2sNxiIlBUjwHpCoKYddOy0A03wU3MC1RoGXbV7741ExoLJw9mvSz02yc9edatb8dQdwy38qmszx7qP7l8J8pQnTvHL39mT6hcPvjBRAoCOKBJ8EKtzWIcasU29dPoPKqpRCWDtY5lm3GGGaFMFrN9KyiSZolOOG3RTDEkgmQqsfe0+KFVVwWbtna2l2tVoaXSbw4wqct3LGXORRljFLVJeZIlIw+ncV5yVUCrDaNOQprWmTbLVi4BQq3PZowmAVMrvyG8xZBPDtIM47wSF1Qz/396p8rGH+ZEFmheGo9Dc1lMPeY2/jDrXeRnKQUqdWzC2HDaV/mkVhfoqeHccHu504vqOc4YozGD8JnVomWdYKsxQwzmGM9lu5cx2gYzUHt01+5M104/2huT6i1ACnbTL2+V5XE0n+J0fb16jS3H8NhvbJa4v8JXQbX950esqjv7N2DQeh7LL+drTFc1Aokq7qwSKXsPm4cr/2J+IDn6QAZa8JkVKbJCKZoPss2Q27/5Y6PcUYKkuonhNINzi5kQKvVqqTsdgNhHpMx/nchaoMVXGsABEHWBz0LzCLF8gRVl2282wOVOuUUuhe1NhiKYXw0t0WQqUInYm3QwoW2Zx3AUNbymff9/wErzB50Mmgyi/Tw9bLN7c9apFurcxkQuUOpdYv6gMKDENqRSY9wNM91ZL7QvF911yY1ATUozQt0kss21Zg5/e80awbGLwZv1incwheJOwq9plWetORFswYgYzz9xUf/IViS5goCI4bCtMtAZenROWsImoJJlqU3/ZSmuQjDy5dvP7bAMg4WXvAvnn+3iiANojw9fhkTuP3iwTnvN6j60j13n3vx6J7Kdrb6euqDlv0/tf8BgZus2AsRzm8AAAAASUVORK5CYII=';
+    const ZOMBIE_TEX = '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';
+
+    function mcFacePixels(u, v, w, h, d) {
+      return {
+        top:    { x: u + d,     y: v,       pw: w, ph: d },
+        bottom: { x: u + d + w, y: v,       pw: w, ph: d },
+        west:   { x: u,         y: v + d,   pw: d, ph: h },
+        south:  { x: u + d,     y: v + d,   pw: w, ph: h },
+        east:   { x: u + d + w + d, y: v + d, pw: d, ph: h },
+        north:  { x: u + d + w, y: v + d,   pw: w, ph: h },
+      };
+    }
+
+    function quadUVs(px, py, pw, ph, texW, texH, mirrorU) {
+      const u0 = px / texW;
+      const u1 = (px + pw) / texW;
+      const vTop = 1 - py / texH;
+      const vBot = 1 - (py + ph) / texH;
+      const a = [u0, vBot, u1, vBot, u1, vTop, u0, vTop];
+      if (mirrorU) return [u1, vBot, u0, vBot, u0, vTop, u1, vTop];
+      return a;
+    }
+
+    function buildGeometry(cubes, texW, texH) {
+      const vertices = [];
+      const uvs = [];
+      const indices = [];
+
+      for (const c of cubes) {
+        const [ox, oy, oz] = c.origin;
+        const [sx, sy, sz] = c.size;
+        const [uu, vv] = c.uv;
+        const inf = c.inflate || 0;
+        const mirrorU = !!c.mirror;
+        const w = sx + 2 * inf;
+        const h = sy + 2 * inf;
+        const d = sz + 2 * inf;
+        const faces = mcFacePixels(uu, vv, w, h, d);
+        const cx = ox + sx / 2;
+        const cy = oy + sy / 2;
+        const cz = oz + sz / 2;
+        const hx = w / 2;
+        const hy = h / 2;
+        const hz = d / 2;
+
+        const pushQuad = (p0, p1, p2, p3, faceKey) => {
+          const f = faces[faceKey];
+          const q = quadUVs(f.x, f.y, f.pw, f.ph, texW, texH, mirrorU);
+          const base = vertices.length / 3;
+          for (let k = 0; k < 4; k++) {
+            const p = [p0, p1, p2, p3][k];
+            vertices.push(p[0] * SCALE, p[1] * SCALE, p[2] * SCALE);
+            uvs.push(q[k * 2], q[k * 2 + 1]);
+          }
+          indices.push(base, base + 1, base + 2, base, base + 2, base + 3);
+        };
+
+        pushQuad([cx + hx, cy - hy, cz + hz], [cx + hx, cy - hy, cz - hz], [cx + hx, cy + hy, cz - hz], [cx + hx, cy + hy, cz + hz], 'east');
+        pushQuad([cx - hx, cy - hy, cz - hz], [cx - hx, cy - hy, cz + hz], [cx - hx, cy + hy, cz + hz], [cx - hx, cy + hy, cz - hz], 'west');
+        pushQuad([cx - hx, cy + hy, cz + hz], [cx + hx, cy + hy, cz + hz], [cx + hx, cy + hy, cz - hz], [cx - hx, cy + hy, cz - hz], 'top');
+        pushQuad([cx - hx, cy - hy, cz - hz], [cx + hx, cy - hy, cz - hz], [cx + hx, cy - hy, cz + hz], [cx - hx, cy - hy, cz + hz], 'bottom');
+        pushQuad([cx - hx, cy - hy, cz + hz], [cx + hx, cy - hy, cz + hz], [cx + hx, cy + hy, cz + hz], [cx - hx, cy + hy, cz + hz], 'south');
+        pushQuad([cx + hx, cy - hy, cz - hz], [cx - hx, cy - hy, cz - hz], [cx - hx, cy + hy, cz - hz], [cx + hx, cy + hy, cz - hz], 'north');
+      }
+
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      g.setIndex(indices);
+      g.computeVertexNormals();
+      return g;
+    }
+
+    const CUBES_INVOKER = [
+      { origin: [-4, 12, -3], size: [8, 12, 6], uv: [16, 20] },
+      { origin: [-4, 6, -3], size: [8, 18, 6], uv: [0, 38], inflate: 0.5 },
+      { origin: [-4, 24, -4], size: [8, 10, 8], uv: [0, 0] },
+      { origin: [-1, 23, -6], size: [2, 4, 2], uv: [24, 0] },
+      { origin: [-8, 12, -2], size: [4, 12, 4], uv: [40, 46] },
+      { origin: [4, 12, -2], size: [4, 12, 4], uv: [40, 46] },
+      { origin: [-4, 0, -2], size: [4, 12, 4], uv: [0, 22] },
+      { origin: [0, 0, -2], size: [4, 12, 4], uv: [0, 22] },
+    ];
+
+    const CUBES_ZOMBIE = [
+      { origin: [-4, 12, -2], size: [8, 12, 4], uv: [16, 16] },
+      { origin: [-4, 24, -4], size: [8, 8, 8], uv: [0, 0] },
+      { origin: [-8, 12, -2], size: [4, 12, 4], uv: [40, 16] },
+      { origin: [4, 12, -2], size: [4, 12, 4], uv: [40, 16], mirror: true },
+      { origin: [-4, 0, -2], size: [4, 12, 4], uv: [0, 16] },
+      { origin: [0, 0, -2], size: [4, 12, 4], uv: [0, 16], mirror: true },
+    ];
+
+    const CONFIG = {
+      invoker: { texW: 64, texH: 64, cubes: CUBES_INVOKER, targetY: 0.9, cam: [1.2, 1.0, 1.8] },
+      zombie: { texW: 64, texH: 32, cubes: CUBES_ZOMBIE, targetY: 0.85, cam: [1.1, 0.95, 1.6] },
+    };
+
+    function loadTex(dataUrl, onDone) {
+      new THREE.TextureLoader().load(dataUrl, (t) => {
+        t.magFilter = THREE.NearestFilter;
+        t.minFilter = THREE.NearestFilter;
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.flipY = false;
+        onDone(t);
+      });
+    }
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e0e12);
+
+    const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 200);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(devicePixelRatio);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const mat = new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.85, metalness: 0.05 });
+    const mesh = new THREE.Mesh(new THREE.BufferGeometry(), mat);
+    scene.add(mesh);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key = new THREE.DirectionalLight(0xffffff, 0.9);
+    key.position.set(2, 4, 3);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xaabbff, 0.35);
+    fill.position.set(-3, 2, -2);
+    scene.add(fill);
+
+    const grid = new THREE.GridHelper(4, 16, 0x333340, 0x22222a);
+    scene.add(grid);
+
+    let textures = {};
+
+    function applyModel(key) {
+      const cfg = CONFIG[key];
+      if (!cfg || !textures[key]) return;
+      mesh.geometry.dispose();
+      mesh.geometry = buildGeometry(cfg.cubes, cfg.texW, cfg.texH);
+      mat.map = textures[key];
+      mat.needsUpdate = true;
+      controls.target.set(0, cfg.targetY, 0);
+      camera.position.set(...cfg.cam);
+      controls.update();
+      document.title = key === 'zombie' ? 'Zombie — 3D preview' : 'Arcane Invoker — 3D preview';
+    }
+
+    const pick = document.getElementById('modelPick');
+    pick.addEventListener('change', () => {
+      const v = pick.value;
+      history.replaceState(null, '', v === 'invoker' ? location.pathname : '?model=' + v);
+      applyModel(v);
+    });
+
+    function onResize() {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    }
+    addEventListener('resize', onResize);
+
+    function tick() {
+      requestAnimationFrame(tick);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    const invokerUrl = 'data:image/png;base64,' + INVOKER_TEX;
+    const zombieUrl = 'data:image/png;base64,' + ZOMBIE_TEX;
+    let loaded = 0;
+    function tryStart() {
+      loaded++;
+      if (loaded < 2) return;
+      const q = new URLSearchParams(location.search).get('model');
+      const initial = q === 'zombie' ? 'zombie' : 'invoker';
+      pick.value = initial;
+      applyModel(initial);
+      tick();
+    }
+    loadTex(invokerUrl, (t) => { textures.invoker = t; tryStart(); });
+    loadTex(zombieUrl, (t) => { textures.zombie = t; tryStart(); });
+  </script>
+</body>
+</html>

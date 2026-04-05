@@ -1,0 +1,126 @@
+[
+  {
+    "timestamp": 1774373695103,
+    "nodes": 21,
+    "edges": 15,
+    "pageRankSum": 0.9999999999999999,
+    "confidences": [
+      0.53,
+      0.5,
+      0.5,
+      0.56,
+      0.56,
+      0.5900000000000001,
+      0.5,
+      0.5,
+      0.53,
+      0.6100000000000001,
+      0.6400000000000001,
+      0.6100000000000001,
+      0.6400000000000001,
+      0.5,
+      0.5,
+      0.53,
+      0.56,
+      0.5,
+      0.5,
+      0.6100000000000001,
+      0.5
+    ],
+    "accessCounts": [
+      1,
+      0,
+      0,
+      2,
+      2,
+      3,
+      0,
+      0,
+      1,
+      3,
+      4,
+      3,
+      4,
+      0,
+      0,
+      1,
+      2,
+      0,
+      0,
+      3,
+      0
+    ],
+    "topPatterns": [
+      {
+        "id": "mem-worldbuilding-assistant-rules",
+        "summary": "Assistant Rules",
+        "confidence": 0.6400000000000001,
+        "pageRank": 0.08893775790146376,
+        "accessCount": 4
+      },
+      {
+        "id": "mem-worldbuilding-scene-design-principles",
+        "summary": "Scene Design Principles",
+        "confidence": 0.6400000000000001,
+        "pageRank": 0.07281989259276628,
+        "accessCount": 4
+      },
+      {
+        "id": "mem-worldbuilding-open-design-space--not-locked-",
+        "summary": "Open Design Space (NOT locked canon)",
+        "confidence": 0.6100000000000001,
+        "pageRank": 0.08153224162276942,
+        "accessCount": 3
+      },
+      {
+        "id": "mem-MEMORY-key-directories",
+        "summary": "Key Directories",
+        "confidence": 0.5900000000000001,
+        "pageRank": 0.08153224162276942,
+        "accessCount": 3
+      },
+      {
+        "id": "mem-worldbuilding-realm-naming-convention",
+        "summary": "Realm Naming Convention",
+        "confidence": 0.6100000000000001,
+        "pageRank": 0.06257014455572114,
+        "accessCount": 3
+      },
+      {
+        "id": "mem-project_db_schema-how-to-add-a-user-to-a-workspa",
+        "summary": "How to add a user to a workspace manually (SQL Editor)",
+        "confidence": 0.6100000000000001,
+        "pageRank": 0.06257014455572114,
+        "accessCount": 3
+      },
+      {
+        "id": "mem-MEMORY-animation---sprite-spec--64-64",
+        "summary": "Animation / Sprite Spec (64×64)",
+        "confidence": 0.56,
+        "pageRank": 0.07281989259276628,
+        "accessCount": 2
+      },
+      {
+        "id": "mem-MEMORY-key-systems",
+        "summary": "Key Systems",
+        "confidence": 0.56,
+        "pageRank": 0.06257014455572114,
+        "accessCount": 2
+      },
+      {
+        "id": "mem-worldbuilding-confirmed-canon",
+        "summary": "Confirmed Canon",
+        "confidence": 0.53,
+        "pageRank": 0.050511675389214014,
+        "accessCount": 1
+      },
+      {
+        "id": "mem-project_db_schema----",
+        "summary": "---",
+        "confidence": 0.56,
+        "pageRank": 0.01963526523241947,
+        "accessCount": 2
+      }
+    ]
+  }
+]

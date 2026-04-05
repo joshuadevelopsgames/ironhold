@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "snowy=false": [
+      {"model": "ironhold:block/ebonwood_grass"},
+      {"model": "ironhold:block/ebonwood_grass", "y": 90},
+      {"model": "ironhold:block/ebonwood_grass", "y": 180},
+      {"model": "ironhold:block/ebonwood_grass", "y": 270}
+    ],
+    "snowy=true": {
+      "model": "ironhold:block/ebonwood_grass_snow"
+    }
+  }
+}

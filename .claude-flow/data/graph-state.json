@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "updatedAt": 1774373695101,
+  "nodeCount": 21,
+  "nodes": {
+    "mem-MEMORY-echoes-of-the-realms---project": {
+      "id": "mem-MEMORY-echoes-of-the-realms---project",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-world-bible---lore": {
+      "id": "mem-MEMORY-world-bible---lore",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-tech-stack": {
+      "id": "mem-MEMORY-tech-stack",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-key-systems": {
+      "id": "mem-MEMORY-key-systems",
+      "category": "core",
+      "confidence": 0.56,
+      "accessCount": 2,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-animation---sprite-spec--64-64": {
+      "id": "mem-MEMORY-animation---sprite-spec--64-64",
+      "category": "core",
+      "confidence": 0.56,
+      "accessCount": 2,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-key-directories": {
+      "id": "mem-MEMORY-key-directories",
+      "category": "core",
+      "confidence": 0.5900000000000001,
+      "accessCount": 3,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-core-concept": {
+      "id": "mem-worldbuilding-core-concept",
+      "category": "worldbuilding",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-design-pillars": {
+      "id": "mem-worldbuilding-design-pillars",
+      "category": "worldbuilding",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-confirmed-canon": {
+      "id": "mem-worldbuilding-confirmed-canon",
+      "category": "worldbuilding",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-realm-naming-convention": {
+      "id": "mem-worldbuilding-realm-naming-convention",
+      "category": "worldbuilding",
+      "confidence": 0.6100000000000001,
+      "accessCount": 3,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-scene-design-principles": {
+      "id": "mem-worldbuilding-scene-design-principles",
+      "category": "worldbuilding",
+      "confidence": 0.6400000000000001,
+      "accessCount": 4,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-open-design-space--not-locked-": {
+      "id": "mem-worldbuilding-open-design-space--not-locked-",
+      "category": "worldbuilding",
+      "confidence": 0.6100000000000001,
+      "accessCount": 3,
+      "createdAt": 1774371171356
+    },
+    "mem-worldbuilding-assistant-rules": {
+      "id": "mem-worldbuilding-assistant-rules",
+      "category": "worldbuilding",
+      "confidence": 0.6400000000000001,
+      "accessCount": 4,
+      "createdAt": 1774371171356
+    },
+    "mem-MEMORY-project-overview": {
+      "id": "mem-MEMORY-project-overview",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171358
+    },
+    "mem-MEMORY-key-lessons": {
+      "id": "mem-MEMORY-key-lessons",
+      "category": "core",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171358
+    },
+    "mem-MEMORY-memory-index": {
+      "id": "mem-MEMORY-memory-index",
+      "category": "core",
+      "confidence": 0.53,
+      "accessCount": 1,
+      "createdAt": 1774371171359
+    },
+    "mem-project_db_schema----": {
+      "id": "mem-project_db_schema----",
+      "category": "project_db_schema",
+      "confidence": 0.56,
+      "accessCount": 2,
+      "createdAt": 1774371171359
+    },
+    "mem-project_db_schema-triggers-on-auth-users-insert": {
+      "id": "mem-project_db_schema-triggers-on-auth-users-insert",
+      "category": "project_db_schema",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171359
+    },
+    "mem-project_db_schema-key-ids--production-": {
+      "id": "mem-project_db_schema-key-ids--production-",
+      "category": "project_db_schema",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774371171359
+    },
+    "mem-project_db_schema-how-to-add-a-user-to-a-workspa": {
+      "id": "mem-project_db_schema-how-to-add-a-user-to-a-workspa",
+      "category": "project_db_schema",
+      "confidence": 0.6100000000000001,
+      "accessCount": 3,
+      "createdAt": 1774371171359
+    },
+    "insight-1774373695098-blkx": {
+      "id": "insight-1774373695098-blkx",
+      "category": "insights",
+      "confidence": 0.5,
+      "accessCount": 0,
+      "createdAt": 1774373695098
+    }
+  },
+  "edges": [
+    {
+      "sourceId": "mem-MEMORY-echoes-of-the-realms---project",
+      "targetId": "mem-MEMORY-world-bible---lore",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-world-bible---lore",
+      "targetId": "mem-MEMORY-tech-stack",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-tech-stack",
+      "targetId": "mem-MEMORY-key-systems",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-key-systems",
+      "targetId": "mem-MEMORY-animation---sprite-spec--64-64",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-animation---sprite-spec--64-64",
+      "targetId": "mem-MEMORY-key-directories",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-core-concept",
+      "targetId": "mem-worldbuilding-design-pillars",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-design-pillars",
+      "targetId": "mem-worldbuilding-confirmed-canon",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-confirmed-canon",
+      "targetId": "mem-worldbuilding-realm-naming-convention",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-realm-naming-convention",
+      "targetId": "mem-worldbuilding-scene-design-principles",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-scene-design-principles",
+      "targetId": "mem-worldbuilding-open-design-space--not-locked-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-worldbuilding-open-design-space--not-locked-",
+      "targetId": "mem-worldbuilding-assistant-rules",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-MEMORY-project-overview",
+      "targetId": "mem-MEMORY-key-lessons",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_db_schema----",
+      "targetId": "mem-project_db_schema-triggers-on-auth-users-insert",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_db_schema-triggers-on-auth-users-insert",
+      "targetId": "mem-project_db_schema-key-ids--production-",
+      "type": "temporal",
+      "weight": 0.5
+    },
+    {
+      "sourceId": "mem-project_db_schema-key-ids--production-",
+      "targetId": "mem-project_db_schema-how-to-add-a-user-to-a-workspa",
+      "type": "temporal",
+      "weight": 0.5
+    }
+  ],
+  "pageRanks": {
+    "mem-MEMORY-echoes-of-the-realms---project": 0.01963526523241947,
+    "mem-MEMORY-world-bible---lore": 0.03632523060953566,
+    "mem-MEMORY-tech-stack": 0.050511675389214014,
+    "mem-MEMORY-key-systems": 0.06257014455572114,
+    "mem-MEMORY-animation---sprite-spec--64-64": 0.07281989259276628,
+    "mem-MEMORY-key-directories": 0.08153224162276942,
+    "mem-worldbuilding-core-concept": 0.01963526523241947,
+    "mem-worldbuilding-design-pillars": 0.03632523060953566,
+    "mem-worldbuilding-confirmed-canon": 0.050511675389214014,
+    "mem-worldbuilding-realm-naming-convention": 0.06257014455572114,
+    "mem-worldbuilding-scene-design-principles": 0.07281989259276628,
+    "mem-worldbuilding-open-design-space--not-locked-": 0.08153224162276942,
+    "mem-worldbuilding-assistant-rules": 0.08893775790146376,
+    "mem-MEMORY-project-overview": 0.01963526523241947,
+    "mem-MEMORY-key-lessons": 0.03632523060953566,
+    "mem-MEMORY-memory-index": 0.01963526523241947,
+    "mem-project_db_schema----": 0.01963526523241947,
+    "mem-project_db_schema-triggers-on-auth-users-insert": 0.03632523060953566,
+    "mem-project_db_schema-key-ids--production-": 0.050511675389214014,
+    "mem-project_db_schema-how-to-add-a-user-to-a-workspa": 0.06257014455572114,
+    "insight-1774373695098-blkx": 0.01963526523241947
+  }
+}

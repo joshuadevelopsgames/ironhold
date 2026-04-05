@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:random_selector",
+  "config": {
+    "features": [
+      {
+        "chance": 0.25,
+        "feature": "ironhold:ebony_tree_short_placed"
+      },
+      {
+        "chance": 0.2,
+        "feature": "ironhold:ebony_tree_fancy_placed"
+      },
+      {
+        "chance": 0.15,
+        "feature": "ironhold:ebony_tree_dark_oak_placed"
+      }
+    ],
+    "default": "ironhold:ebony_tree_base_placed"
+  }
+}

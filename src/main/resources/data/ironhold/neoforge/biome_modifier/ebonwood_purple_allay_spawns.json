@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "ironhold:ebonwood_hollow",
+  "spawners": [
+    {
+      "type": "ironhold:purple_allay",
+      "weight": 15,
+      "minCount": 1,
+      "maxCount": 3
+    }
+  ]
+}

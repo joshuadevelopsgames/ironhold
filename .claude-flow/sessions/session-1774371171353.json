@@ -1,0 +1,23 @@
+{
+  "id": "session-1774371171353",
+  "startedAt": "2026-03-24T16:52:51.353Z",
+  "cwd": "/Users/joshua/Kingdom SMP/kingdom20",
+  "context": {
+    "lastMatchedPatterns": [
+      "mem-MEMORY-key-systems",
+      "mem-MEMORY-animation---sprite-spec--64-64",
+      "mem-worldbuilding-assistant-rules",
+      "mem-project_db_schema----",
+      "mem-MEMORY-key-directories"
+    ]
+  },
+  "metrics": {
+    "edits": 9,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "updatedAt": "2026-03-24T17:31:45.470Z",
+  "endedAt": "2026-03-24T17:34:55.105Z",
+  "duration": 2523752
+}

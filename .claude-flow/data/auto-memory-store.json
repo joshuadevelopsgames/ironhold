@@ -1,0 +1,276 @@
+[
+  {
+    "id": "mem-MEMORY-echoes-of-the-realms---project",
+    "key": "echoes-of-the-realms-project-overview",
+    "content": "**Project**: 2.5D action-adventure engine and vertical slice by Echoes Studio (v0.2.0)",
+    "summary": "Echoes of the Realms - Project Overview",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-world-bible---lore",
+    "key": "world-bible-lore",
+    "content": "See [worldbuilding.md](worldbuilding.md) for confirmed canon, design philosophy, and assistant rules.",
+    "summary": "World Bible & Lore",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-tech-stack",
+    "key": "tech-stack",
+    "content": "- **Build**: Vite + TypeScript\n- **Desktop**: Electron (Mac, Windows, Linux)\n- **Architecture**: ECS (Entity Component System) based game engine",
+    "summary": "Tech Stack",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-key-systems",
+    "key": "key-systems",
+    "content": "- Game loop and core ECS engine\n- Input handling and A* pathfinding\n- Animation system (legacy + directional spritesheet system)\n- Dialogue system with data management\n- Combat FSM (Finite State Machine)\n- Enemy AI\n- Save system\n- Restraint system\n- Scene management (tutorial-fields, etc.)",
+    "summary": "Key Systems",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-animation---sprite-spec--64-64",
+    "key": "animation-sprite-spec-64-64-",
+    "content": "- **Directional system**: `src/engine/animation/sprite-animation.ts`\n- 4-direction support (S, N, E, W) with west-mirrors-east optimization\n- Riley spritesheet layout: 8 cols × 24 rows (512×1536 texture)\n- Animations: idle(6f), walk(8f), run(8f), attack(8f), roll(6f), block(5f)\n- FPS targets: 10fps idle/walk/block, 12fps run/attack/roll\n- FSM output names mapped to spritesheet anims via AnimationMap\n- Procedural placeholder art active; ready for real PNG drop-in via `TextureManager.loadImage()`\n",
+    "summary": "Animation / Sprite Spec (64×64)",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-key-directories",
+    "key": "key-directories",
+    "content": "- `src/engine/` - Core game engine\n- `src/game/` - Game-specific logic and scenes\n- `src/game/systems/` - Game systems (dialogue, combat, AI, etc.)\n- `assets/` - Game resources\n- `electron/` - Electron main process code",
+    "summary": "Key Directories",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-core-concept",
+    "key": "core-concept",
+    "content": "Narrative-driven fantasy game across multiple distinct realms (planes of reality tied to cosmic forces, not just biomes). Tone: mythic fantasy with mysterious undertones.",
+    "summary": "Core Concept",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-design-pillars",
+    "key": "design-pillars",
+    "content": "1. Sense of discovery\n2. Mythological scale\n3. Interconnected mysteries\n4. Environmental narrative over exposition\n5. Gradual revelation of cosmic truth",
+    "summary": "Design Pillars",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-confirmed-canon",
+    "key": "confirmed-canon",
+    "content": "- Universe divided into separate realms, each with unique identity, environment, and metaphysical role\n- Each realm: culturally distinct, visually unique, tied to a fundamental natural/cosmic force\n- **Ocean Realm** exists. Working name direction: **Avelion** (mythic, Avalon-like tone preferred)\n  - Evokes: deep myth, ancient seas, vast mystery, possible submerged civilizations",
+    "summary": "Confirmed Canon",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-realm-naming-convention",
+    "key": "realm-naming-convention",
+    "content": "- Mythological, timeless, slightly ancient\n- NOT modern, sci-fi, or strongly tied to one real-world culture\n- Tone reference: Avalon-like names with mythic weight",
+    "summary": "Realm Naming Convention",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-scene-design-principles",
+    "key": "scene-design-principles",
+    "content": "- Opening teaches through play, not exposition\n- World feels ancient and alive before the player arrives\n- Early moments emphasize mystery and atmosphere",
+    "summary": "Scene Design Principles",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-open-design-space--not-locked-",
+    "key": "open-design-space-not-locked-canon-",
+    "content": "- Exact number of realms\n- Full realm names list\n- Pantheon or cosmic hierarchy\n- Precise storyline structure\n- Player character identity\n- Gameplay systems and progression mechanics",
+    "summary": "Open Design Space (NOT locked canon)",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-worldbuilding-assistant-rules",
+    "key": "assistant-rules",
+    "content": "1. Never overwrite or contradict locked lore\n2. Label major new ideas as proposals, not canon\n3. Maintain mythic fantasy tone\n4. Prioritize worldbuilding depth over generic fantasy tropes\n5. Avoid cliche RPG systems unless requested\n6. Treat project as a serious game dev world bible",
+    "summary": "Assistant Rules",
+    "namespace": "worldbuilding",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-Echoes-of-the-Realms/memory/worldbuilding.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171356
+  },
+  {
+    "id": "mem-MEMORY-project-overview",
+    "key": "project-overview",
+    "content": "- Electron + Three.js voxel sandbox game\n- ~40 files across 8 subsystems\n- No external assets - all textures/sounds procedurally generated\n- ES Modules via import maps in HTML",
+    "summary": "Project Overview",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-minecraft-mimic/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171358
+  },
+  {
+    "id": "mem-MEMORY-key-lessons",
+    "key": "key-lessons",
+    "content": "### Face Winding Order (Critical)\nThree.js `FrontSide` culling requires CCW vertex winding when viewed from outside.\nIndex pattern `0,1,2, 2,3,0` means corners must be listed CCW from the viewer's perspective.\nGot this wrong initially → half the block faces were invisible.\n\n### GameState Initialization\nDon't initialize `GameState.current` to a value if you plan to `transition()` to it on start.\n`transition()` has an early return `if (newState === current)` which silently skips the event emit.\nFi",
+    "summary": "Key Lessons",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-minecraft-mimic/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171358
+  },
+  {
+    "id": "mem-MEMORY-memory-index",
+    "key": "memory-index",
+    "content": "- [project_db_schema.md](project_db_schema.md) — Full DB table structures, key IDs, trigger behavior, and correct SQL patterns for user provisioning",
+    "summary": "Memory Index",
+    "namespace": "core",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-slack-mimic/memory/MEMORY.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171359
+  },
+  {
+    "id": "mem-project_db_schema----",
+    "key": "-",
+    "content": "name: Database schema\ndescription: Full table structures for the Tension Supabase database — consult before writing any SQL\ntype: project\n---\n\nKey tables and their columns (derived from supabase/migrations/):\n\n**workspaces** (id, name, slug, created_at)\n\n**workspace_members** (id, workspace_id→workspaces, user_id→auth.users, role ['owner'|'admin'|'member'], created_at) — unique(workspace_id, user_id)\n\n**channels** (id, workspace_id→workspaces, name, slug, topic, is_private, client_tag, campaign_",
+    "summary": "---",
+    "namespace": "project_db_schema",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-slack-mimic/memory/project_db_schema.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171359
+  },
+  {
+    "id": "mem-project_db_schema-triggers-on-auth-users-insert",
+    "key": "triggers-on-auth-users-insert",
+    "content": "- `on_auth_user_created` → `handle_new_user()`: creates public.users row first (ON CONFLICT DO NOTHING), then auto-provisions a personal workspace, adds user as owner, creates #general channel\n- `on_auth_user_created_profile` → `handle_new_user_profile()`: also inserts into public.users (ON CONFLICT DO NOTHING) — redundant with above but both exist",
+    "summary": "Triggers on auth.users INSERT",
+    "namespace": "project_db_schema",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-slack-mimic/memory/project_db_schema.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171359
+  },
+  {
+    "id": "mem-project_db_schema-key-ids--production-",
+    "key": "key-ids-production-",
+    "content": "- Joshua's workspace: `2cb478bc-5c6c-414b-8e5d-fbbf4029192e`\n- Joshua's user ID: `bf7fab65-e20c-4ffe-a67d-b8bc912fe077`\n- Zachary's user ID: `ec417a53-454d-4565-93be-05b896b9e6d0`\n- AI bot user ID: `00000000-0000-0000-0000-000000000001`",
+    "summary": "Key IDs (production)",
+    "namespace": "project_db_schema",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-slack-mimic/memory/project_db_schema.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171359
+  },
+  {
+    "id": "mem-project_db_schema-how-to-add-a-user-to-a-workspa",
+    "key": "how-to-add-a-user-to-a-workspace-manually-sql-edit",
+    "content": "```sql\n-- workspace_members has role; channel_members does NOT\nINSERT INTO public.workspace_members (workspace_id, user_id, role)\nVALUES ('<ws_id>', '<user_id>', 'member') ON CONFLICT DO NOTHING;\n\nINSERT INTO public.channel_members (channel_id, user_id)\nSELECT c.id, '<user_id>'\nFROM public.channels c\nWHERE c.workspace_id = '<ws_id>'\nON CONFLICT DO NOTHING;\n```",
+    "summary": "How to add a user to a workspace manually (SQL Editor)",
+    "namespace": "project_db_schema",
+    "type": "semantic",
+    "metadata": {
+      "sourceFile": "/Users/joshua/.claude/projects/-Users-joshua-slack-mimic/memory/project_db_schema.md",
+      "bootstrapped": true
+    },
+    "createdAt": 1774371171359
+  },
+  {
+    "id": "insight-1774373695098-blkx",
+    "key": "frequent-edit-unknown",
+    "content": "File unknown was edited 9 times this session — likely a hot path worth monitoring.",
+    "summary": "Frequently edited: unknown (9x)",
+    "namespace": "insights",
+    "type": "procedural",
+    "metadata": {
+      "sourceFile": "unknown",
+      "editCount": 9,
+      "autoGenerated": true
+    },
+    "createdAt": 1774373695098
+  }
+]

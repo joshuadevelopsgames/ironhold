@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": "ironhold:raw_tanzanite",
+  "result": {
+    "id": "ironhold:tanzanite_gem"
+  },
+  "experience": 1.5,
+  "cookingtime": 200
+}

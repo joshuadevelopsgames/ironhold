@@ -1,0 +1,18 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": {
+    "type": "neoforge:or",
+    "values": [
+      "#minecraft:is_forest",
+      "#minecraft:is_mountain"
+    ]
+  },
+  "spawners": [
+    {
+      "type": "ironhold:filcher",
+      "weight": 20,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}
