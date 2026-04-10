@@ -509,24 +509,6 @@ public class Ironhold {
         kingdom.smp.item.WraithsSigilItem::new,
         props -> props.rarity(net.minecraft.world.item.Rarity.EPIC));
 
-    /** Crafting ingredients for {@link #MAGIC_MINECART_ITEM} (see recipe JSON). */
-    public static final DeferredItem<Item> RAILWRIGHT_CORE = ITEMS.registerSimpleItem(
-        "railwright_core",
-        props -> props.rarity(net.minecraft.world.item.Rarity.EPIC));
-
-    public static final DeferredItem<Item> ARCANUM_COUPLING = ITEMS.registerSimpleItem(
-        "arcanum_coupling",
-        props -> props.rarity(net.minecraft.world.item.Rarity.EPIC));
-
-    /** Pickaxe with amethyst-style texture; uses diamond tool stats. */
-    public static final DeferredItem<Item> AMETHYST_PICKAXE =
-        ITEMS.registerItem(
-            "amethyst_pickaxe",
-            Item::new,
-            props ->
-                props
-                    .pickaxe(ToolMaterial.DIAMOND, 1.0F, -2.8F)
-                    .rarity(net.minecraft.world.item.Rarity.RARE));
 
     public static final DeferredItem<Item> MAGIC_MINECART_ITEM = ITEMS.registerItem(
         "magic_minecart",
@@ -947,9 +929,6 @@ public class Ironhold {
                 output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
                 output.accept(MOM_PINK_DEER_SPAWN_EGG.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
-                output.accept(RAILWRIGHT_CORE.get());
-                output.accept(ARCANUM_COUPLING.get());
-                output.accept(AMETHYST_PICKAXE.get());
                 output.accept(TEMPEST_BOW.get());
                 output.accept(TEMPEST_ARROW.get());
                 output.accept(ANKH_SHIELD.get());
@@ -1125,9 +1104,6 @@ public class Ironhold {
     private static void addCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(MAGIC_MINECART_ITEM.get());
-            event.accept(RAILWRIGHT_CORE.get());
-            event.accept(ARCANUM_COUPLING.get());
-            event.accept(AMETHYST_PICKAXE.get());
         }
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ARCANE_MAGE_SPAWN_EGG.get());

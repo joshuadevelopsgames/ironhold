@@ -1,9 +1,0 @@
-{
-  "type": "minecraft:crafting_shapeless",
-  "category": "misc",
-  "ingredients": [
-    { "item": "ironhold:railwright_core" },
-    { "item": "ironhold:arcanum_coupling" }
-  ],
-  "result": { "id": "ironhold:magic_minecart", "count": 1 }
-}
