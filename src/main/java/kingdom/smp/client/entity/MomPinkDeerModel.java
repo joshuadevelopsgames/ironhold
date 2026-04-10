@@ -83,20 +83,20 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         // Bedrock Y=0 is ground, entity Y=24 is ground. Entity Y is inverted.
         // Bedrock X is offset by +8 from center, Z offset by -8.
 
-        // Body: origin(3.5, 16.5, -15.5) size(9, 7.5, 15) uv(0, 0)
-        // Body pivot moved down 4.5 so body bottom meets leg tops at entity y=12.
+        // Body pivot at y=8.25 so body bottom (y=12) meets leg tops.
+        // addBox extends 0.01 past y=12 to eliminate sub-pixel seam with legs.
         PartDefinition body = root.addOrReplaceChild("body",
             CubeListBuilder.create()
                 .texOffs(0, 0)
-                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.5F, 15, CubeDeformation.NONE),
+                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.76F, 15, CubeDeformation.NONE),
             PartPose.offset(0.0F, 8.25F, 0.0F));
 
-        // Neck: offset compensated (-6.75 instead of -2.25) so neck stays at correct height
+        // Neck: attaches to body top, original offset relative to body
         PartDefinition neck = body.addOrReplaceChild("neck",
             CubeListBuilder.create()
                 .texOffs(26, 22)
                 .addBox(-2.25F, -7.5F, -2.25F, 4.5F, 7.5F, 4.5F, CubeDeformation.NONE),
-            PartPose.offsetAndRotation(0.0F, -6.75F, -6.75F,
+            PartPose.offsetAndRotation(0.0F, -2.25F, -6.75F,
                 -0.2F, 0.0F, 0.0F));
 
         // Head: origin(5, 28.5, -20.75) size(6, 6, 7.5) uv(0, 22)
@@ -135,12 +135,12 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
 
         // Tail: origin(7.25, 21, -0.5) size(1.5, 4.5, 1.5) uv(48, 14)
         // pivot(8, 21, -0.5) rot(-34.38, 0, 0) → entity rot(0.6, 0, 0)
-        // Tail offset compensated for body pivot shift (-5.25 instead of -0.75)
+        // Tail: attaches to body back, original offset relative to body
         body.addOrReplaceChild("tail",
             CubeListBuilder.create()
                 .texOffs(48, 14)
                 .addBox(-0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 1.5F, CubeDeformation.NONE),
-            PartPose.offsetAndRotation(0.0F, -5.25F, 7.5F,
+            PartPose.offsetAndRotation(0.0F, -0.75F, 7.5F,
                 0.6F, 0.0F, 0.0F));
 
         // Right front leg: origin(9.5, 0, -14.75) size(3, 12, 3) uv(26, 33)
