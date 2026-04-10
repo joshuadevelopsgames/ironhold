@@ -22,8 +22,6 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
 
     private static final Identifier TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/filcher.png");
-    private static final Identifier KING_TEXTURE =
-        Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/filcher_king.png");
 
     public FilcherRenderer(EntityRendererProvider.Context ctx) {
         super(
@@ -37,7 +35,7 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
 
     @Override
     public Identifier getTextureLocation(FilcherRenderState state) {
-        return state.isKing ? KING_TEXTURE : TEXTURE;
+        return TEXTURE;
     }
 
     @Override
