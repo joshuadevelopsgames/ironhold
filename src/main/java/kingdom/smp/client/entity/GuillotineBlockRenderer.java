@@ -26,6 +26,13 @@ public class GuillotineBlockRenderer extends GeoBlockRenderer<GuillotineBlockEnt
     }
 
     @Override
+    public boolean shouldRenderOffScreen() {
+        // The guillotine model extends ~5 blocks tall — always render even when
+        // the base block is outside the view frustum.
+        return true;
+    }
+
+    @Override
     public void captureDefaultRenderState(GuillotineBlockEntity blockEntity, Void unused,
                                            BlockEntityRenderState state, float partialTick) {
         super.captureDefaultRenderState(blockEntity, unused, state, partialTick);
