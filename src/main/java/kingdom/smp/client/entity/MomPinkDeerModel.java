@@ -78,84 +78,95 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
 
-        // Body: bb size 9×7.5×15 → UV ceiled to 9×8×15
-        // Dimensions ceiled to integers to match Blockbench's box_uv texture allocation.
-        // Offsets use the exact float positions so the 3D shape stays true to the bbmodel.
+        // Geometry from "Mother Deer COMPLETED - Converted.geo.json"
+        // All cubes converted from Bedrock coords (pivot at 8,0,-8) to entity model coords.
+        // Bedrock Y=0 is ground, entity Y=24 is ground. Entity Y is inverted.
+        // Bedrock X is offset by +8 from center, Z offset by -8.
+
+        // Body: origin(3.5, 16.5, -15.5) size(9, 7.5, 15) uv(0, 0)
         PartDefinition body = root.addOrReplaceChild("body",
             CubeListBuilder.create()
                 .texOffs(0, 0)
-                .addBox(-4.5F, -4.0F, -7.5F, 9, 8, 15, CubeDeformation.NONE),
+                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.5F, 15, CubeDeformation.NONE),
             PartPose.offset(0.0F, 3.75F, 0.0F));
 
-        // Neck: bb size 4.5×7.5×4.5 → 5×8×5
+        // Neck: origin(5.75, 22.5, -17) size(4.5, 7.5, 4.5) uv(26, 22)
+        // pivot(8, 22.5, -14.75) rot(11.46, 0, 0) → entity rot(-0.2, 0, 0)
         PartDefinition neck = body.addOrReplaceChild("neck",
             CubeListBuilder.create()
-                .texOffs(32, 0)
-                .addBox(-2.5F, -8.0F, -2.5F, 5, 8, 5, CubeDeformation.NONE),
+                .texOffs(26, 22)
+                .addBox(-2.25F, -7.5F, -2.25F, 4.5F, 7.5F, 4.5F, CubeDeformation.NONE),
             PartPose.offsetAndRotation(0.0F, -2.25F, -6.75F,
                 -0.2F, 0.0F, 0.0F));
 
-        // Head: bb size 6×6×7.5 → 6×6×8
+        // Head: origin(5, 28.5, -20.75) size(6, 6, 7.5) uv(0, 22)
+        // pivot(8, 30, -14.75) rot(-8.59, 0, 0) → entity rot(0.15, 0, 0)
         PartDefinition head = neck.addOrReplaceChild("head",
             CubeListBuilder.create()
-                .texOffs(0, 16)
-                .addBox(-3.0F, -5.0F, -6.0F, 6, 6, 8, CubeDeformation.NONE),
+                .texOffs(0, 22)
+                .addBox(-3.0F, -4.5F, -6.0F, 6, 6, 7.5F, CubeDeformation.NONE),
             PartPose.offsetAndRotation(0.0F, -7.5F, 0.0F,
                 0.15F, 0.0F, 0.0F));
 
-        // Nose: bb size 3×3×4.5 → 3×3×5
+        // Nose: origin(6.5, 29.25, -25.25) size(3, 3, 4.5) uv(42, 22)
         head.addOrReplaceChild("nose",
             CubeListBuilder.create()
-                .texOffs(18, 16)
-                .addBox(-1.5F, -1.5F, -5.0F, 3, 3, 5, CubeDeformation.NONE),
+                .texOffs(42, 22)
+                .addBox(-1.5F, -1.5F, -4.5F, 3, 3, 4.5F, CubeDeformation.NONE),
             PartPose.offset(0.0F, -0.75F, -6.0F));
 
-        // Right ear: bb size 1.5×4.5×3 → 2×5×3
+        // Right ear: origin(11, 34.5, -16.25) size(1.5, 4.5, 3) uv(48, 0)
+        // pivot(10.25, 34.5, -16.25) rot(0, 0, -20.05) → entity rot(0, 0, -0.35)
         head.addOrReplaceChild("right_ear",
             CubeListBuilder.create()
-                .texOffs(0, 26)
-                .addBox(-2.0F, -5.0F, 0.0F, 2, 5, 3, CubeDeformation.NONE),
+                .texOffs(48, 0)
+                .addBox(-2.25F, -4.5F, 0.0F, 1.5F, 4.5F, 3, CubeDeformation.NONE),
             PartPose.offsetAndRotation(-2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, -0.35F));
 
-        // Left ear: bb size 1.5×4.5×3 → 2×5×3
+        // Left ear: origin(3.5, 34.5, -16.25) size(1.5, 4.5, 3) uv(48, 7)
+        // pivot(5.75, 34.5, -16.25) rot(0, 0, 20.05) → entity rot(0, 0, 0.35)
         head.addOrReplaceChild("left_ear",
             CubeListBuilder.create()
-                .texOffs(6, 26)
-                .addBox(0.0F, -5.0F, 0.0F, 2, 5, 3, CubeDeformation.NONE),
+                .texOffs(48, 7)
+                .addBox(0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 3, CubeDeformation.NONE),
             PartPose.offsetAndRotation(2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, 0.35F));
 
-        // Tail: bb size 1.5×4.5×1.5 → 2×5×2
+        // Tail: origin(7.25, 21, -0.5) size(1.5, 4.5, 1.5) uv(48, 14)
+        // pivot(8, 21, -0.5) rot(-34.38, 0, 0) → entity rot(0.6, 0, 0)
         body.addOrReplaceChild("tail",
             CubeListBuilder.create()
-                .texOffs(44, 0)
-                .addBox(-1.0F, -5.0F, 0.0F, 2, 5, 2, CubeDeformation.NONE),
+                .texOffs(48, 14)
+                .addBox(-0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 1.5F, CubeDeformation.NONE),
             PartPose.offsetAndRotation(0.0F, -0.75F, 7.5F,
                 0.6F, 0.0F, 0.0F));
 
-        // Legs: 3×12×3 (already integers)
+        // Right front leg: origin(9.5, 0, -14.75) size(3, 12, 3) uv(26, 33)
         root.addOrReplaceChild("right_front_leg",
             CubeListBuilder.create()
-                .texOffs(32, 8)
+                .texOffs(26, 33)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(-3.0F, 12.0F, -5.25F));
 
+        // Left front leg: origin(3.5, 0, -14.75) size(3, 12, 3) uv(0, 35)
         root.addOrReplaceChild("left_front_leg",
             CubeListBuilder.create()
-                .texOffs(40, 8)
+                .texOffs(0, 35)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(3.0F, 12.0F, -5.25F));
 
+        // Right back leg: origin(9.5, 0, -4.25) size(3, 12, 3) uv(12, 35)
         root.addOrReplaceChild("right_back_leg",
             CubeListBuilder.create()
-                .texOffs(48, 8)
+                .texOffs(12, 35)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(-3.0F, 12.0F, 5.25F));
 
+        // Left back leg: origin(3.5, 0, -4.25) size(3, 12, 3) uv(38, 33)
         root.addOrReplaceChild("left_back_leg",
             CubeListBuilder.create()
-                .texOffs(56, 8)
+                .texOffs(38, 33)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(3.0F, 12.0F, 5.25F));
 

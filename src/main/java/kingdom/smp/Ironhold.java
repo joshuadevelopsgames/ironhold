@@ -34,7 +34,6 @@ import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.game.CloudDoubleJumpHandler;
 import kingdom.smp.game.AnkhShieldHandler;
 import kingdom.smp.game.ClassXpKillRewards;
-import kingdom.smp.game.KingdomPatrolSpawnHandler;
 import kingdom.smp.item.AnkhShieldItem;
 import kingdom.smp.item.BandOfRegenerationItem;
 import kingdom.smp.item.CloudInABottleItem;
@@ -43,8 +42,6 @@ import kingdom.smp.item.MagicMinecartItem;
 import kingdom.smp.item.MimicKeyItem;
 import kingdom.smp.item.TempestArrowItem;
 import kingdom.smp.item.TempestBowItem;
-import kingdom.smp.item.gear.ClassArmor;
-import kingdom.smp.item.gear.ClassWeapons;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -64,7 +61,6 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
-import kingdom.smp.game.EquipRestriction;
 import kingdom.smp.game.TanzaniteWorldgenFluidHandler;
 import kingdom.smp.net.ModNetworking;
 import net.minecraft.sounds.SoundEvent;
@@ -563,6 +559,16 @@ public class Ironhold {
         props -> props.rarity(net.minecraft.world.item.Rarity.RARE)
     );
 
+    public static final DeferredItem<Item> STEEL_INGOT = ITEMS.registerSimpleItem(
+        "steel_ingot",
+        props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+    );
+
+    public static final DeferredItem<Item> TANZANITE_GEM = ITEMS.registerSimpleItem(
+        "tanzanite_gem",
+        props -> props.rarity(net.minecraft.world.item.Rarity.RARE)
+    );
+
     // ── Ebony wood (near-black dark oak variants) ─────────────────────────────
 
     public static final DeferredBlock<Block> EBONY_LOG = BLOCKS.register(
@@ -948,8 +954,6 @@ public class Ironhold {
                 output.accept(TEMPEST_ARROW.get());
                 output.accept(ANKH_SHIELD.get());
                 output.accept(ARCANE_SCEPTER.get());
-                for (var piece : ClassArmor.ALL) output.accept(piece.get());
-                for (var weapon : ClassWeapons.ALL) output.accept(weapon.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
@@ -957,8 +961,8 @@ public class Ironhold {
                 output.accept(VENGEFUL_HALBERD.get());
                 output.accept(ARMOR_POLISH.get());
                 output.accept(RAW_TANZANITE.get());
-                output.accept(ClassWeapons.TANZANITE_GEM.get());
-                output.accept(ClassWeapons.STEEL_INGOT.get());
+                output.accept(TANZANITE_GEM.get());
+                output.accept(STEEL_INGOT.get());
                 output.accept(FOOLS_GOLD.get());
                 output.accept(FILCHER_CROWN.get());
                 output.accept(TANZANITE_ORE_ITEM.get());
@@ -984,8 +988,6 @@ public class Ironhold {
             .build());
 
     public Ironhold(IEventBus modEventBus, ModContainer modContainer) {
-        ClassArmor.register(ITEMS);
-        ClassWeapons.register(ITEMS);
 
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.COMMON, Config.SPEC);
 
@@ -1010,10 +1012,8 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
         NeoForge.EVENT_BUS.register(AnkhShieldHandler.class);
         NeoForge.EVENT_BUS.register(ClassXpKillRewards.class);
-        NeoForge.EVENT_BUS.register(KingdomPatrolSpawnHandler.class);
         NeoForge.EVENT_BUS.register(AccessoryTickHandler.class);
         NeoForge.EVENT_BUS.register(CloudDoubleJumpHandler.class);
-        NeoForge.EVENT_BUS.register(EquipRestriction.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
         NeoForge.EVENT_BUS.register(EncumbranceHandler.class);
 
@@ -1155,9 +1155,6 @@ public class Ironhold {
             event.accept(BAND_OF_REGENERATION.get());
             event.accept(CLOUD_IN_A_BOTTLE.get());
             event.accept(MIMIC_KEY.get());
-            // Class armor & weapons
-            for (var piece : ClassArmor.ALL) event.accept(piece.get());
-            for (var weapon : ClassWeapons.ALL) event.accept(weapon.get());
         }
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(TANZANITE_ORE_ITEM.get());
@@ -1181,8 +1178,8 @@ public class Ironhold {
         }
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(RAW_TANZANITE.get());
-            event.accept(ClassWeapons.TANZANITE_GEM.get());
-            event.accept(ClassWeapons.STEEL_INGOT.get());
+            event.accept(TANZANITE_GEM.get());
+            event.accept(STEEL_INGOT.get());
             event.accept(FOOLS_GOLD.get());
             event.accept(FILCHER_CROWN.get());
         }
