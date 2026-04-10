@@ -24,8 +24,11 @@ public class FilcherModel extends ZombieModel<FilcherRenderState> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
         Identifier.fromNamespaceAndPath("ironhold", "filcher"), "main");
 
+    private final ModelPart hat;
+
     public FilcherModel(ModelPart root) {
         super(root);
+        this.hat = root.getChild("head").getChild("hat");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -113,6 +116,9 @@ public class FilcherModel extends ZombieModel<FilcherRenderState> {
     @Override
     public void setupAnim(FilcherRenderState state) {
         super.setupAnim(state);
+
+        // Crown hat overlay only visible for king filchers
+        hat.visible = state.isKing;
 
         float t         = state.ageInTicks;
         float walkSpeed = state.walkAnimationSpeed;

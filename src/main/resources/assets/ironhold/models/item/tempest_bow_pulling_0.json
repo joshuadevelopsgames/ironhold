@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/bow_pulling_0",
   "textures": {
-    "layer0": "minecraft:item/bow_pulling_0"
+    "layer0": "ironhold:item/tempest_bow_pulling_0"
   }
 }

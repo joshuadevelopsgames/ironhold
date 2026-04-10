@@ -12,7 +12,6 @@ import kingdom.smp.client.entity.ShipwreckMimicRenderer;
 import kingdom.smp.client.entity.SirenModel;
 import kingdom.smp.client.entity.SirenRenderer;
 import kingdom.smp.client.entity.SolarOrbRenderer;
-import kingdom.smp.client.entity.FilcherKingModel;
 import kingdom.smp.client.entity.FilcherModel;
 import kingdom.smp.client.entity.FilcherRenderer;
 import kingdom.smp.client.entity.HexBoltRenderer;
@@ -65,7 +64,6 @@ public class IronholdClient {
 
     private static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(FilcherModel.LAYER_LOCATION, FilcherModel::createBodyLayer);
-        event.registerLayerDefinition(FilcherKingModel.LAYER_LOCATION, FilcherKingModel::createBodyLayer);
         event.registerLayerDefinition(MimicModel.LAYER_LOCATION, MimicModel::createBodyLayer);
         event.registerLayerDefinition(BabyMimicModel.LAYER_LOCATION, BabyMimicModel::createBodyLayer);
         event.registerLayerDefinition(PinkDeerModel.LAYER_LOCATION, PinkDeerModel::createBodyLayer);
