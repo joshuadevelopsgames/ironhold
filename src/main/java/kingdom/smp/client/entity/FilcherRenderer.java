@@ -25,6 +25,9 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
     private static final Identifier KING_TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/filcher_king.png");
 
+    private final ZombieModel<FilcherRenderState> normalModel;
+    private final ZombieModel<FilcherRenderState> kingModel;
+
     public FilcherRenderer(EntityRendererProvider.Context ctx) {
         super(
             ctx,
@@ -33,6 +36,8 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
             ArmorModelSet.bake(ModelLayers.ZOMBIE_ARMOR,      ctx.getModelSet(), ZombieModel::new),
             ArmorModelSet.bake(ModelLayers.ZOMBIE_BABY_ARMOR, ctx.getModelSet(), BabyZombieModel::new)
         );
+        this.normalModel = this.model;
+        this.kingModel = new FilcherKingModel(ctx.bakeLayer(FilcherKingModel.LAYER_LOCATION));
     }
 
     @Override
@@ -41,17 +46,19 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
     }
 
     @Override
-    public FilcherRenderState createRenderState() {
-        return new FilcherRenderState();
-    }
-
-    @Override
     public void extractRenderState(FilcherEntity entity, FilcherRenderState state, float partialTick) {
+        // Swap model BEFORE super so the correct model is used for rendering
+        this.model = entity.isKing() ? kingModel : normalModel;
         super.extractRenderState(entity, state, partialTick);
         state.isStalking   = entity.getTarget() instanceof Player
                              && entity.getMainHandItem().isEmpty()
                              && !entity.isShowingOff();
         state.isShowingOff = entity.isShowingOff();
         state.isKing = entity.isKing();
+    }
+
+    @Override
+    public FilcherRenderState createRenderState() {
+        return new FilcherRenderState();
     }
 }
