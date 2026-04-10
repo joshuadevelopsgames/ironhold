@@ -71,13 +71,7 @@ public class FilcherModel extends ZombieModel<FilcherRenderState> {
             CubeListBuilder.create()
                 // Main body: 8x9x4 — UV(0, 0)
                 .texOffs(0, 0)
-                .addBox(-4.0F, 0.0F, -2.0F, 8, 9, 4, CubeDeformation.NONE)
-                // Left shoulder nub: 1x1x1 — UV(32, 8)
-                .texOffs(32, 8)
-                .addBox(-3.0F, 0.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE)
-                // Right shoulder nub: 1x1x1 — UV(32, 10)
-                .texOffs(32, 10)
-                .addBox(2.0F, 0.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE),
+                .addBox(-4.0F, 0.0F, -2.0F, 8, 9, 4, CubeDeformation.NONE),
             PartPose.offsetAndRotation(0.0F, 15.0F, 0.0F, 0.08F, 0.0F, 0.0F));
 
         // ── Arms ─────────────────────────────────────────────────────────────

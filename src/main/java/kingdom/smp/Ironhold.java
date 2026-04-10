@@ -933,6 +933,8 @@ public class Ironhold {
                 output.accept(TEMPEST_ARROW.get());
                 output.accept(ANKH_SHIELD.get());
                 output.accept(ARCANE_SCEPTER.get());
+                output.accept(SOLUNA_STAFF.get());
+                output.accept(PITCHFORK.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
@@ -1126,6 +1128,9 @@ public class Ironhold {
             event.accept(TEMPEST_ARROW.get());
             event.accept(ANKH_SHIELD.get());
             event.accept(ARCANE_SCEPTER.get());
+            event.accept(SOLUNA_STAFF.get());
+            event.accept(PITCHFORK.get());
+            event.accept(VENGEFUL_HALBERD.get());
             // Accessories
             event.accept(HERMES_BOOTS.get());
             event.accept(BAND_OF_REGENERATION.get());
