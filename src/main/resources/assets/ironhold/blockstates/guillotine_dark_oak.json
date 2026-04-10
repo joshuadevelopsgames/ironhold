@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ironhold:block/guillotine_dark_oak" },
+    "facing=south": { "model": "ironhold:block/guillotine_dark_oak", "y": 180 },
+    "facing=west":  { "model": "ironhold:block/guillotine_dark_oak", "y": 270 },
+    "facing=east":  { "model": "ironhold:block/guillotine_dark_oak", "y": 90 }
+  }
+}

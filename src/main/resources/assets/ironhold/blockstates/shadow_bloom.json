@@ -1,6 +1,0 @@
-{
-  "variants": {
-    "half=lower": { "model": "ironhold:block/shadow_bloom_bottom" },
-    "half=upper": { "model": "ironhold:block/shadow_bloom_top" }
-  }
-}

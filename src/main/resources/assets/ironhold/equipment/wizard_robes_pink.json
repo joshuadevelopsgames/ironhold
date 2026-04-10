@@ -1,6 +1,0 @@
-{
-  "layers": {
-    "humanoid": [{ "texture": "ironhold:wizard_robes_pink" }],
-    "humanoid_leggings": [{ "texture": "ironhold:wizard_robes_pink" }]
-  }
-}

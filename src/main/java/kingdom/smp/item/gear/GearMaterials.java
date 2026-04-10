@@ -116,6 +116,7 @@ public final class GearMaterials {
             case ROGUE   -> switch (t) { case IRON -> new int[]{1,3,4,1}; case STEEL -> new int[]{2,4,5,2}; default -> new int[]{2,5,6,2}; };
             case WIZARD  -> switch (t) { case IRON -> new int[]{1,2,3,1}; case STEEL -> new int[]{1,3,4,1}; default -> new int[]{2,4,5,2}; };
             case PEASANT -> new int[]{1,2,3,1};
+            default -> new int[]{1,3,4,1};
         };
         Map<ArmorType, Integer> m = new EnumMap<>(ArmorType.class);
         m.put(ArmorType.BOOTS,      bchh[0]);
@@ -139,6 +140,7 @@ public final class GearMaterials {
             case RANGER         -> t == GearTier.STEEL ? 0.5f : 1.0f;
             case ROGUE, WIZARD  -> t == GearTier.STEEL ? 0.0f : 0.5f;
             case PEASANT        -> 0.0f;
+            default             -> t == GearTier.STEEL ? 0.5f : 1.0f;
         };
     }
 
@@ -176,6 +178,7 @@ public final class GearMaterials {
             case CLERIC  -> switch (t) { case IRON -> CLERIC_IRON;  case STEEL -> CLERIC_STEEL;  default -> CLERIC_TANZANITE; };
             case WIZARD  -> switch (t) { case IRON -> WIZARD_IRON;  case STEEL -> WIZARD_STEEL;  default -> WIZARD_TANZANITE; };
             case PEASANT -> KNIGHT_IRON; // fallback
+            default -> KNIGHT_IRON;
         };
     }
 }

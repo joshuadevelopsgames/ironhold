@@ -75,15 +75,11 @@ public class KingdomVillagerEntity extends PathfinderMob {
     private long lastInteractTick = 0;
     private final Map<UUID, Long> perPlayerCooldown = new HashMap<>();
     private long lastEmoteTick = 0;
-    private long lastUnpromptedTick = 0;
 
     // ── Guard follow state ───────────────────────────────────────────────────
     private Player followTarget;
     private int followTicksRemaining;
 
-    // ── Mood tick counter ────────────────────────────────────────────────────
-    private int moodTickCounter = 0;
-    private int emoteTickCounter = 0;
 
     public KingdomVillagerEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
@@ -144,13 +140,6 @@ public class KingdomVillagerEntity extends PathfinderMob {
 
         initIfNeeded();
 
-        // Mood decay every 100 ticks (5 seconds)
-        if (++moodTickCounter >= 100) {
-            moodTickCounter = 0;
-            personality.decayMood();
-            applyEnvironmentalMood();
-        }
-
         // Guard follow timer
         if (followTarget != null && followTicksRemaining > 0) {
             followTicksRemaining--;
@@ -158,94 +147,8 @@ public class KingdomVillagerEntity extends PathfinderMob {
                 clearFollowTarget();
             }
         }
-
-        // Periodic emotes based on personality and mood
-        if (++emoteTickCounter >= 200) { // every 10 seconds
-            emoteTickCounter = 0;
-            tickEmotes();
-        }
-
-        // Unprompted comments (talkers only, once per 5 min)
-        if (profession.canTalk() && level() instanceof ServerLevel) {
-            long now = level().getGameTime();
-            if (now - lastUnpromptedTick > 6000) { // 5 minutes
-                if (getRandom().nextInt(20) == 0) {
-                    lastUnpromptedTick = now;
-                    tickUnpromptedComment();
-                }
-            }
-        }
     }
 
-    private void applyEnvironmentalMood() {
-        long dayTime = level().getGameTime() % 24000;
-
-        // Night: nervous villagers get scared
-        if (dayTime > 13000 && dayTime < 23000) {
-            if (personality.boldness() < 0.4f) {
-                personality.shiftMood(-0.05f);
-            }
-        }
-
-        // Dawn: slight mood boost for everyone
-        if (dayTime > 0 && dayTime < 1000) {
-            personality.shiftMood(0.03f);
-        }
-
-        // Rain: some don't like it
-        if (level().isRaining() && isInWaterOrRain()) {
-            if (personality.temperament() == VillagerTemperament.GRUMPY) {
-                personality.shiftMood(-0.03f);
-            }
-        }
-    }
-
-    private void tickEmotes() {
-        float mood = personality.mood();
-        float energy = personality.energy();
-
-        // High energy + good mood = happy emotes
-        if (mood > 0.4f && energy > 0.6f && getRandom().nextFloat() < 0.3f) {
-            sendEmote(EmoteType.HEART);
-            return;
-        }
-
-        // Grumpy + bad mood = anger
-        if (mood < -0.3f && personality.temperament() == VillagerTemperament.GRUMPY) {
-            sendEmote(EmoteType.ANGER);
-            return;
-        }
-
-        // Night + nervous = zzz or sweat
-        long dayTime = level().getGameTime() % 24000;
-        if (dayTime > 13000 && dayTime < 23000) {
-            if (personality.boldness() < 0.3f) {
-                sendEmote(EmoteType.SWEAT);
-            } else if (energy < 0.4f) {
-                sendEmote(EmoteType.ZZZ);
-            }
-            return;
-        }
-
-        // Eccentric = random question marks
-        if (personality.temperament() == VillagerTemperament.ECCENTRIC && getRandom().nextFloat() < 0.2f) {
-            sendEmote(EmoteType.QUESTION);
-            return;
-        }
-
-        // Content worker
-        if (mood > -0.1f && energy > 0.3f && getRandom().nextFloat() < 0.15f) {
-            sendEmote(EmoteType.MUSIC);
-        }
-    }
-
-    private void tickUnpromptedComment() {
-        Player nearest = level().getNearestPlayer(this, 16.0);
-        if (nearest == null) return;
-
-        String comment = profession.randomFallback(getRandom());
-        sendDialogue(comment);
-    }
 
     // ── Emote sending ────────────────────────────────────────────────────────
 
@@ -254,13 +157,9 @@ public class KingdomVillagerEntity extends PathfinderMob {
         if (now - lastEmoteTick < 60) return; // 3 second cooldown
         lastEmoteTick = now;
 
-        if (level() instanceof ServerLevel serverLevel) {
+        if (level() instanceof ServerLevel) {
             VillagerEmotePayload payload = new VillagerEmotePayload(getId(), emote.ordinal());
-            for (ServerPlayer sp : serverLevel.players()) {
-                if (sp.distanceToSqr(this) < 48 * 48) {
-                    PacketDistributor.sendToPlayer(sp, payload);
-                }
-            }
+            PacketDistributor.sendToPlayersTrackingEntity(this, payload);
         }
     }
 
@@ -530,10 +429,9 @@ public class KingdomVillagerEntity extends PathfinderMob {
             default -> new MobEffectInstance(MobEffects.LUCK, 2400, 0);
         };
 
-        for (ServerPlayer nearby : serverLevel.players()) {
-            if (nearby.distanceToSqr(this) < 16 * 16) {
-                nearby.addEffect(new MobEffectInstance(buff));
-            }
+        for (Player nearby : serverLevel.getEntitiesOfClass(Player.class,
+                getBoundingBox().inflate(16.0), p -> p instanceof ServerPlayer)) {
+            ((ServerPlayer) nearby).addEffect(new MobEffectInstance(buff));
         }
 
         playSound(SoundEvents.NOTE_BLOCK_HARP.value(), 1.5F, 1.0F);
@@ -543,14 +441,10 @@ public class KingdomVillagerEntity extends PathfinderMob {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private void sendDialogue(String text) {
-        if (!(level() instanceof ServerLevel serverLevel)) return;
+        if (!(level() instanceof ServerLevel)) return;
         VillagerDialoguePayload payload = new VillagerDialoguePayload(
             getId(), personality.name(), profession.id(), text);
-        for (ServerPlayer sp : serverLevel.players()) {
-            if (sp.distanceToSqr(this) < 48 * 48) {
-                PacketDistributor.sendToPlayer(sp, payload);
-            }
-        }
+        PacketDistributor.sendToPlayersTrackingEntity(this, payload);
     }
 
     private boolean removeEmeralds(ServerPlayer player, int count) {

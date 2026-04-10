@@ -52,6 +52,7 @@ public final class ClassFavoredKillXp {
             case KNIGHT -> t.builtInRegistryHolder().is(KingdomEntityTags.KNIGHT_FAVORED);
             case ROGUE -> t.builtInRegistryHolder().is(KingdomEntityTags.ROGUE_FAVORED);
             case PEASANT -> false;
+            default -> false;
         };
     }
 }

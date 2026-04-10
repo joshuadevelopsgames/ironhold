@@ -1,16 +1,19 @@
 package kingdom.smp.client;
 
+import kingdom.smp.Ironhold;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.item.AnkhShieldItem;
 import kingdom.smp.net.CloudDoubleJumpPayload;
 import kingdom.smp.net.MagicMinecartInputPayload;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -88,6 +91,11 @@ public final class ClientNeoForgeEvents {
     private static final ResourceKey<Biome> EBONWOOD_HOLLOW = ResourceKey.create(
             Registries.BIOME, Identifier.fromNamespaceAndPath("ironhold", "ebonwood_hollow"));
 
+    // ── Ebonwood ambient sound ─────────────────────────────────────────────
+    // Sound: pale-garden.ogg by CreativeMD / AmbientSounds mod (LGPL-3.0)
+    // https://github.com/CreativeMD/AmbientSounds
+    private static FadingAmbientSound ebonwoodAmbientSound = null;
+
     // ── Smooth fog/sky transition ────────────────────────────────────────────
     // Blend factor 0.0 = normal biome, 1.0 = fully in ebonwood
     private static float ebonwoodBlend = 0.0f;
@@ -101,13 +109,33 @@ public final class ClientNeoForgeEvents {
         return biome.is(EBONWOOD_HOLLOW);
     }
 
-    /** Called each tick to update the blend factor smoothly. */
+    /** Called each tick to update the blend factor smoothly and manage ambient sound. */
     private static void tickEbonwoodBlend() {
         boolean inBiome = isInEbonwoodHollow();
         if (inBiome && ebonwoodBlend < 1.0f) {
             ebonwoodBlend = Math.min(1.0f, ebonwoodBlend + BLEND_SPEED);
         } else if (!inBiome && ebonwoodBlend > 0.0f) {
             ebonwoodBlend = Math.max(0.0f, ebonwoodBlend - BLEND_SPEED);
+        }
+
+        // Fade ambient sound in/out when entering/leaving ebonwood
+        Minecraft mc = Minecraft.getInstance();
+        if (inBiome) {
+            // Start a new fading sound if we don't have one (or the old one was fading out)
+            if (ebonwoodAmbientSound == null || ebonwoodAmbientSound.isStopped() || ebonwoodAmbientSound.isFadingOut()) {
+                ebonwoodAmbientSound = new FadingAmbientSound(
+                    Identifier.fromNamespaceAndPath(Ironhold.MODID, "ambient.ebonwood_hollow"),
+                    0.8F, 0.02F); // fade in over ~2 seconds (0.02 * 40 ticks = 0.8)
+                mc.getSoundManager().play(ebonwoodAmbientSound);
+            }
+        } else {
+            // Fade out when leaving
+            if (ebonwoodAmbientSound != null && !ebonwoodAmbientSound.isFadingOut()) {
+                ebonwoodAmbientSound.fadeOut();
+            }
+            if (ebonwoodAmbientSound != null && ebonwoodAmbientSound.isStopped()) {
+                ebonwoodAmbientSound = null;
+            }
         }
     }
 
@@ -144,30 +172,39 @@ public final class ClientNeoForgeEvents {
         return from + (to - from) * t;
     }
 
+    /** Max distance (squared) at which ankh shield particles are visible to the local player. */
+    private static final double ANKH_PARTICLE_RANGE_SQ = 30.0 * 30.0;
+
     @SubscribeEvent
     public static void onClientTickPost(ClientTickEvent.Post event) {
         VillagerDialogueCache.tick();
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level != null) {
+        if (mc.level != null && mc.player != null) {
             long gt = mc.level.getGameTime();
-            for (Player p : mc.level.players()) {
-                if (!AnkhShieldItem.isBlockingWithAnkh(p)) {
-                    continue;
-                }
-                double cx = p.getX();
-                double cz = p.getZ();
-                double r = 1.42;
-                int n = 26;
-                for (int ring = 0; ring < 2; ring++) {
-                    double cy = p.getY() + 0.28 + ring * 0.82 + Math.sin((gt + ring * 7) * 0.07) * 0.06;
-                    double phase = gt * 0.042 + ring * 0.6;
-                    for (int i = 0; i < n; i++) {
-                        double ang = (Math.PI * 2 * i) / n + phase;
-                        double x = cx + Math.cos(ang) * r;
-                        double z = cz + Math.sin(ang) * r;
-                        mc.level.addParticle(ParticleTypes.ENCHANT, x, cy, z, 0.0, 0.02, 0.0);
-                        if ((i + ring) % 3 == 0) {
-                            mc.level.addParticle(ParticleTypes.TOTEM_OF_UNDYING, x, cy, z, 0.0, 0.0, 0.0);
+            // Only render every 2 ticks to halve particle cost
+            if (gt % 2 == 0) {
+                for (Player p : mc.level.players()) {
+                    if (!AnkhShieldItem.isBlockingWithAnkh(p)) {
+                        continue;
+                    }
+                    if (mc.player.distanceToSqr(p) > ANKH_PARTICLE_RANGE_SQ) {
+                        continue;
+                    }
+                    double cx = p.getX();
+                    double cz = p.getZ();
+                    double r = 1.42;
+                    int n = 26;
+                    for (int ring = 0; ring < 2; ring++) {
+                        double cy = p.getY() + 0.28 + ring * 0.82 + Math.sin((gt + ring * 7) * 0.07) * 0.06;
+                        double phase = gt * 0.042 + ring * 0.6;
+                        for (int i = 0; i < n; i++) {
+                            double ang = (Math.PI * 2 * i) / n + phase;
+                            double x = cx + Math.cos(ang) * r;
+                            double z = cz + Math.sin(ang) * r;
+                            mc.level.addParticle(ParticleTypes.ENCHANT, x, cy, z, 0.0, 0.02, 0.0);
+                            if ((i + ring) % 3 == 0) {
+                                mc.level.addParticle(ParticleTypes.TOTEM_OF_UNDYING, x, cy, z, 0.0, 0.0, 0.0);
+                            }
                         }
                     }
                 }

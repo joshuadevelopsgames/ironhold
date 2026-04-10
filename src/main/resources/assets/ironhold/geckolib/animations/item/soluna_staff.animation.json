@@ -1,0 +1,21 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.soluna_staff.spin": {
+      "loop": true,
+      "animation_length": 3.2083,
+      "bones": {
+        "ORB": {
+          "rotation": {
+            "0.0": {
+              "vector": [0, 0, 0]
+            },
+            "3.2083": {
+              "vector": [0, -1080, 1080]
+            }
+          }
+        }
+      }
+    }
+  }
+}

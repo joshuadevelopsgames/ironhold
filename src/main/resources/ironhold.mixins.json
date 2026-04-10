@@ -4,14 +4,23 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "AttachmentHolderInvoker",
+    "BatFlowerMixin",
+    "BatSpawnMixin",
+    "MapEbonwoodMixin",
+    "MonsterSpawnEbonwoodMixin",
     "InventoryMenuMixin",
     "OverworldBiomeBuilderMixin",
+    "ServerPlayerDeathMixin",
+    "SpiderEbonwoodMixin",
     "SurfaceSystemMixin",
     "VanillaRegistriesMixin"
   ],
   "client": [
     "LevelRendererMixin",
     "LivingEntityVanityMixin",
+    "CompassEbonwoodMixin",
+    "MusicManagerMixin",
+    "ScepterAnimationMixin",
     "InventoryScreenMixin",
     "CreativeModeInventoryScreenMixin"
   ],

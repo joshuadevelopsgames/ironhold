@@ -1,0 +1,81 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:time",
+          "source": "daytime",
+          "wobble": false,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/soluna_staff_moon"
+          },
+          "entries": [
+            {
+              "threshold": 0.5,
+              "model": {
+                "type": "minecraft:model",
+                "model": "ironhold:item/soluna_staff"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "when": "ground",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:time",
+          "source": "daytime",
+          "wobble": false,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/soluna_staff_moon"
+          },
+          "entries": [
+            {
+              "threshold": 0.5,
+              "model": {
+                "type": "minecraft:model",
+                "model": "ironhold:item/soluna_staff"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "when": "fixed",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:time",
+          "source": "daytime",
+          "wobble": false,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/soluna_staff_moon"
+          },
+          "entries": [
+            {
+              "threshold": 0.5,
+              "model": {
+                "type": "minecraft:model",
+                "model": "ironhold:item/soluna_staff"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "ironhold:item/soluna_staff",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
+    }
+  }
+}

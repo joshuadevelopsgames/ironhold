@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "ironhold:item/purple_allay_spawn_egg"
+  }
+}

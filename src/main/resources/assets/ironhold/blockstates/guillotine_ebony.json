@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ironhold:block/guillotine_ebony" },
+    "facing=south": { "model": "ironhold:block/guillotine_ebony", "y": 180 },
+    "facing=west":  { "model": "ironhold:block/guillotine_ebony", "y": 270 },
+    "facing=east":  { "model": "ironhold:block/guillotine_ebony", "y": 90 }
+  }
+}

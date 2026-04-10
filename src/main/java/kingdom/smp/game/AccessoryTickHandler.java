@@ -4,6 +4,7 @@ import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryItem;
+import kingdom.smp.item.MimicKeyItem;
 import kingdom.smp.net.SyncVanityPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,14 +39,23 @@ public final class AccessoryTickHandler {
 
         AccessoryInventory inv = player.getData(ModAttachments.ACCESSORY_INV.get());
         boolean hermesEquipped = false;
+        boolean mimicKeyEquipped = false;
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             ItemStack stack = inv.getItem(i);
             if (stack.is(Ironhold.HERMES_BOOTS.get())) {
                 hermesEquipped = true;
             }
+            if (stack.getItem() instanceof MimicKeyItem) {
+                mimicKeyEquipped = true;
+            }
             if (!stack.isEmpty() && stack.getItem() instanceof AccessoryItem acc) {
                 acc.onAccessoryTick(player, stack);
             }
+        }
+
+        // If the mimic key is NOT equipped, remove any baby mimics the player owns
+        if (!mimicKeyEquipped && player.tickCount % 10 == 0) {
+            MimicKeyItem.removeAllCompanions(player);
         }
 
         var move = player.getAttribute(Attributes.MOVEMENT_SPEED);
@@ -102,11 +112,14 @@ public final class AccessoryTickHandler {
         }
     }
 
-    /** When a player respawns (death/end), keep vanity in sync. */
+    /** When a player respawns (death/end), keep vanity in sync and clean up baby mimics. */
     @SubscribeEvent
     public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
         if (event.getEntity() instanceof ServerPlayer sp) {
             broadcastVanity(sp);
+            // Remove any leftover baby mimics near the player's respawn point.
+            // Use a bounded search instead of world-border bounds to avoid freezing the server.
+            MimicKeyItem.removeAllCompanions(sp);
         }
     }
 }

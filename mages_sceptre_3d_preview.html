@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mage's Sceptre - 3D Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111122; color: #ddd; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+  #container { display: flex; height: 100vh; }
+  #viewer { flex: 1; position: relative; }
+  #sidebar { width: 280px; padding: 20px; background: #1a1a2e; border-left: 1px solid #333; overflow-y: auto; }
+  h2 { color: #c9a0f0; font-size: 18px; margin-bottom: 12px; }
+  h3 { color: #daa520; font-size: 13px; margin: 16px 0 6px; }
+  .texture-box { background: #0d0d1a; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 16px; }
+  .texture-box img { image-rendering: pixelated; border: 1px solid #333; }
+  .label { font-size: 11px; color: #888; margin-top: 4px; }
+  .info { font-size: 12px; color: #aaa; line-height: 1.7; }
+  .file { font-family: monospace; font-size: 11px; color: #7a7; }
+  .controls { font-size: 11px; color: #666; position: absolute; bottom: 15px; left: 15px; }
+  canvas { display: block; }
+  .slot { width: 64px; height: 64px; background: #8b8b8b; border: 3px solid; border-color: #555 #fff #fff #555;
+    display: inline-flex; align-items: center; justify-content: center; margin: 4px; }
+  .slot img { image-rendering: pixelated; width: 48px; height: 48px; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div id="viewer">
+    <canvas id="c"></canvas>
+    <div class="controls">Drag to rotate &bull; Scroll to zoom</div>
+  </div>
+  <div id="sidebar">
+    <h2>Mage's Sceptre</h2>
+    <p class="info">Ironhold &mdash; Arcane/Purple &mdash; Wizard Weapon</p>
+
+    <h3>2D Item Texture</h3>
+    <div class="texture-box">
+      <div class="slot"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAApklEQVR4nGNgGFJg58SH/1NMpvxHFmMiVnNf1IH/qvbSDFpqOgx2MilwQ1iINUDbXJGhLWUGw60XFxhefLlLrDYIWNEk8z/FZMp/NQHH/2oCjv8J60ADXx/m/F/RJEO6RgYGBgYTA7f/DAwMDPGOXKQb4O0S/5+BgYFBQc6AdM0wTWRphtkMcz5J4OvDHPJt1pURIj/AktwgNnoYKJBvM4wmC5CrGQCmfzs28idEmAAAAABJRU5ErkJggg=="></div>
+      <div class="slot" style="background:#222;border-color:#333 #444 #444 #333"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAApklEQVR4nGNgGFJg58SH/1NMpvxHFmMiVnNf1IH/qvbSDFpqOgx2MilwQ1iINUDbXJGhLWUGw60XFxhefLlLrDYIWNEk8z/FZMp/NQHH/2oCjv8J60ADXx/m/F/RJEO6RgYGBgYTA7f/DAwMDPGOXKQb4O0S/5+BgYFBQc6AdM0wTWRphtkMcz5J4OvDHPJt1pURIj/AktwgNnoYKJBvM4wmC5CrGQCmfzs28idEmAAAAABJRU5ErkJggg=="></div>
+      <div class="label">Inventory slot (light &amp; dark)</div>
+    </div>
+    <div class="texture-box">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAApklEQVR4nGNgGFJg58SH/1NMpvxHFmMiVnNf1IH/qvbSDFpqOgx2MilwQ1iINUDbXJGhLWUGw60XFxhefLlLrDYIWNEk8z/FZMp/NQHH/2oCjv8J60ADXx/m/F/RJEO6RgYGBgYTA7f/DAwMDPGOXKQb4O0S/5+BgYFBQc6AdM0wTWRphtkMcz5J4OvDHPJt1pURIj/AktwgNnoYKJBvM4wmC5CrGQCmfzs28idEmAAAAABJRU5ErkJggg==" width="128" height="128">
+      <div class="label">128x detail (diagonal handheld)</div>
+    </div>
+
+    <h3>3D Model Info</h3>
+    <div class="info">
+      <strong>Elements:</strong> 8 cuboids<br>
+      Crystal body (4x5x4) + tip (2x1x2)<br>
+      Gold setting (4x2x4) + 2 prongs<br>
+      Iron shaft (2x6x2)<br>
+      Gold ferrule (2x1x2)<br>
+      Leather grip (2x3x2)
+    </div>
+
+    <h3>Files</h3>
+    <div class="file">
+      textures/item/mages_sceptre.png<br>
+      textures/item/mages_sceptre_3d.png<br>
+      models/item/mages_sceptre.json<br>
+      models/item/mages_sceptre_3d.json<br>
+      items/mages_sceptre.json<br>
+      lang/en_us.json
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const canvas = document.getElementById('c');
+const viewer = document.getElementById('viewer');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+camera.position.set(12, 14, 20);
+camera.lookAt(0, 6, 0);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setClearColor(0x111122);
+renderer.setPixelRatio(window.devicePixelRatio);
+
+function resize() {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Lighting
+const amb = new THREE.AmbientLight(0x404060, 0.6);
+scene.add(amb);
+const dir = new THREE.DirectionalLight(0xffeedd, 1.0);
+dir.position.set(-3, 5, 4);
+scene.add(dir);
+const dir2 = new THREE.DirectionalLight(0x8888cc, 0.3);
+dir2.position.set(3, -1, -2);
+scene.add(dir2);
+
+// Materials with Minecraft-style flat shading
+function mat(color) {
+  return new THREE.MeshLambertMaterial({ color, flatShading: true });
+}
+
+// Crystal materials (gradient from dark to light)
+const crystDeep  = mat(0x261041);
+const crystDark  = mat(0x3e1c64);
+const crystMid   = mat(0x643494);
+const crystLight = mat(0x8e5ac0);
+const crystHi    = mat(0xb991e1);
+const crystSpec  = mat(0xded0fc);
+
+// Gold
+const goldDark  = mat(0x5f410a);
+const goldMid   = mat(0xa8821c);
+const goldBright= mat(0xdab934);
+const goldHi    = mat(0xf5e16c);
+
+// Shaft
+const shaftDark = mat(0x201e30);
+const shaftMid  = mat(0x343046);
+const shaftLit  = mat(0x4b445f);
+
+// Grip
+const gripDark = mat(0x2d1c12);
+const gripMid  = mat(0x483020);
+const gripLit  = mat(0x624630);
+
+const group = new THREE.Group();
+
+function box(w, h, d, material, x, y, z) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mesh = new THREE.Mesh(geo, material);
+  mesh.position.set(x, y, z);
+  group.add(mesh);
+  return mesh;
+}
+
+// Multi-material box: [+x, -x, +y, -y, +z, -z]
+function mbox(w, h, d, mats, x, y, z) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mesh = new THREE.Mesh(geo, mats);
+  mesh.position.set(x, y, z);
+  group.add(mesh);
+  return mesh;
+}
+
+// Build the sceptre (centered, Y-up)
+// === GRIP (bottom) ===
+mbox(2, 1, 2, [gripDark, gripLit, gripDark, gripDark, gripLit, gripDark], 0, 0.5, 0);   // pommel
+mbox(2, 1, 2, [gripDark, gripLit, gripMid, gripDark, gripLit, gripDark],  0, 1.5, 0);   // grip mid
+mbox(2, 1, 2, [gripMid, gripLit, gripLit, gripMid, gripLit, gripMid],    0, 2.5, 0);    // grip top
+
+// === LOWER GOLD FERRULE ===
+mbox(2, 1, 2, [goldDark, goldBright, goldHi, goldDark, goldBright, goldDark], 0, 3.5, 0);
+
+// === IRON SHAFT ===
+mbox(2, 1, 2, [shaftDark, shaftLit, shaftLit, shaftMid, shaftLit, shaftDark],  0, 4.5, 0);
+mbox(2, 1, 2, [shaftDark, shaftMid, shaftMid, shaftDark, shaftMid, shaftDark], 0, 5.5, 0);
+mbox(2, 1, 2, [shaftDark, shaftLit, shaftLit, shaftDark, shaftLit, shaftDark], 0, 6.5, 0);
+mbox(2, 1, 2, [shaftDark, shaftMid, shaftMid, shaftMid, shaftMid, shaftDark],  0, 7.5, 0);
+mbox(2, 1, 2, [shaftDark, shaftLit, shaftLit, shaftDark, shaftLit, shaftDark], 0, 8.5, 0);
+mbox(2, 1, 2, [shaftDark, shaftMid, shaftMid, shaftMid, shaftMid, shaftDark],  0, 9.5, 0);
+
+// === UPPER GOLD SETTING ===
+mbox(4, 1, 4, [goldDark, goldBright, goldHi, goldDark, goldBright, goldDark], 0, 10.5, 0);
+mbox(4, 1, 4, [goldDark, goldMid, goldBright, goldDark, goldMid, goldDark],   0, 11.5, 0);
+
+// Gold prongs (left and right)
+mbox(1, 2, 1, [goldDark, goldHi, goldHi, goldDark, goldBright, goldDark], -2.5, 12.5, 0);
+mbox(1, 2, 1, [goldDark, goldMid, goldBright, goldDark, goldMid, goldDark], 2.5, 12.5, 0);
+
+// === CRYSTAL ORB ===
+// Main body
+const crystFaces = [crystDark, crystHi, crystSpec, crystDeep, crystHi, crystDark];
+mbox(4, 4, 4, crystFaces, 0, 14, 0);
+
+// Crystal tip (tapered)
+const tipFaces = [crystDark, crystLight, crystSpec, crystMid, crystLight, crystDark];
+mbox(2, 1.5, 2, tipFaces, 0, 16.75, 0);
+
+// Subtle inner glow (slightly smaller, emissive)
+const glowMat = new THREE.MeshBasicMaterial({ color: 0x8855cc, transparent: true, opacity: 0.15 });
+box(3.5, 3.5, 3.5, glowMat, 0, 14, 0);
+
+group.position.y = -8;
+scene.add(group);
+
+// Grid floor
+const gridHelper = new THREE.GridHelper(20, 20, 0x222244, 0x181830);
+gridHelper.position.y = -8.5;
+scene.add(gridHelper);
+
+// Mouse rotation
+let isDragging = false, prevX = 0, prevY = 0;
+let rotY = 0.4, rotX = 0.1;
+
+canvas.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('mouseleave', () => isDragging = false);
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  rotY += (e.clientX - prevX) * 0.008;
+  rotX += (e.clientY - prevY) * 0.008;
+  rotX = Math.max(-1.2, Math.min(1.2, rotX));
+  prevX = e.clientX; prevY = e.clientY;
+});
+canvas.addEventListener('wheel', e => {
+  camera.position.multiplyScalar(e.deltaY > 0 ? 1.05 : 0.95);
+  camera.lookAt(0, 6, 0);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  group.rotation.y = rotY;
+  group.rotation.x = rotX;
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

@@ -138,17 +138,13 @@ public class FilcherEndermanStealGoal extends Goal {
         target.setCarriedBlock(null);
 
         filcher.setItemSlot(EquipmentSlot.MAINHAND, loot);
-        target.hurt(target.damageSources().mobAttack(filcher), 2.0F);
 
-        // Slightly lower pitch than the villager-steal squeak — a more cautious grab.
+        // Quiet grab — no damage, so the enderman doesn't aggro and kill the filcher.
         filcher.level().playSound(
             null, filcher.blockPosition(),
             SoundEvents.BAT_AMBIENT, SoundSource.HOSTILE,
             1.0F, 0.45F
         );
-
-        // Provoking an enderman: it will now chase the filcher.
-        target.setTarget(filcher);
 
         this.stolen    = true;
         this.fleeTicks = FLEE_DURATION;

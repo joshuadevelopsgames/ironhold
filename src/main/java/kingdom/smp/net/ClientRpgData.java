@@ -4,8 +4,12 @@ import kingdom.smp.client.screen.ClassSelectionScreen;
 import kingdom.smp.client.screen.KingdomSelectionScreen;
 import kingdom.smp.client.screen.MainMenuScreen;
 import kingdom.smp.client.screen.ProfileScreen;
+import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerClass;
 import net.minecraft.client.Minecraft;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Client-side cache of RPG data received from the server.
@@ -23,6 +27,7 @@ public final class ClientRpgData {
     private static int xpToNext       = 70;
     private static int carryWeight    = 0;
     private static int maxCarryWeight = 120;
+    private static CompletedClasses completedClasses = CompletedClasses.empty();
 
     // ── Client-only preferences ───────────────────────────────────────────────
     private static boolean classHudEnabled    = true;
@@ -38,6 +43,7 @@ public final class ClientRpgData {
         xpToNext       = payload.xpToNext();
         carryWeight    = payload.carryWeight();
         maxCarryWeight = payload.maxCarryWeight();
+        completedClasses = new CompletedClasses(List.copyOf(payload.completedClassOrdinals()));
     }
 
     // ── Screen openers ────────────────────────────────────────────────────────
@@ -57,6 +63,8 @@ public final class ClientRpgData {
     public static int         maxCarryWeight() { return maxCarryWeight; }
     public static float       xpProgress()    { return xpToNext <= 0 ? 0f : (float) xpIntoLevel / xpToNext; }
     public static boolean     isOverEncumbered() { return carryWeight > maxCarryWeight; }
+    public static CompletedClasses completedClasses() { return completedClasses; }
+    public static Set<PlayerClass> completedClassSet() { return completedClasses.asSet(); }
 
     // ── Preference getters ────────────────────────────────────────────────────
     public static boolean classHudEnabled()   { return classHudEnabled; }

@@ -26,6 +26,7 @@ public final class IronholdGameEvents {
     /** Sync interval: send RPG data packet every N ticks (not every tick). */
     private static final int SYNC_INTERVAL = 10;
 
+
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         IronholdCommands.register(event);

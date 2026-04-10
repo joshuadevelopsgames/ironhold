@@ -348,8 +348,8 @@ public class FilcherEntity extends Zombie {
     /** Quiet chirp for idle chatter between filchers. */
     public void playChatter() {
         level().playSound(null, blockPosition(),
-            SoundEvents.ALLAY_AMBIENT_WITHOUT_ITEM, SoundSource.HOSTILE,
-            0.4F, 1.2F + random.nextFloat() * 0.6F);
+            SoundEvents.FOX_SLEEP, SoundSource.HOSTILE,
+            0.4F, 1.4F + random.nextFloat() * 0.6F);
     }
 
     /** Triumphant squeak after a successful steal. */
@@ -362,7 +362,7 @@ public class FilcherEntity extends Zombie {
     /** Happy chirp for show-off / contentment. */
     public void playContentment() {
         level().playSound(null, blockPosition(),
-            SoundEvents.ALLAY_AMBIENT_WITHOUT_ITEM, SoundSource.HOSTILE,
+            SoundEvents.FOX_SNIFF, SoundSource.HOSTILE,
             0.5F, 1.6F + random.nextFloat() * 0.4F);
     }
 
@@ -397,8 +397,8 @@ public class FilcherEntity extends Zombie {
     /** Soft gift-giving sound. */
     public void playGift() {
         level().playSound(null, blockPosition(),
-            SoundEvents.ALLAY_ITEM_GIVEN, SoundSource.HOSTILE,
-            0.5F, 1.0F + random.nextFloat() * 0.4F);
+            SoundEvents.BUNDLE_INSERT, SoundSource.HOSTILE,
+            0.6F, 1.2F + random.nextFloat() * 0.4F);
     }
 
     // ── AI ────────────────────────────────────────────────────────────────────
@@ -407,43 +407,24 @@ public class FilcherEntity extends Zombie {
     protected void registerGoals() {
         // --- Survival ---
         this.goalSelector.addGoal(0,  new FloatGoal(this));
+        this.goalSelector.addGoal(1,  new FilcherFleeAndStalkGoal(this));       // flee on hurt, stalk back
 
-        // --- King's LLM brain (only active when this filcher wears the crown) ---
-        this.goalSelector.addGoal(1,  new FilcherKingBrainGoal(this));
+        // --- Core loop: steal → flee with loot → return to den ---
+        this.goalSelector.addGoal(2,  new FilcherCarryFleeGoal(this));          // run home with loot
+        this.goalSelector.addGoal(3,  new FilcherStealGoal(this, 1.05D));       // solo player steal (behind back)
+        this.goalSelector.addGoal(4,  new FilcherVillagerStealGoal(this, 1.5D));// pickpocket villager
+        this.goalSelector.addGoal(5,  new FilcherEndermanStealGoal(this, 1.5D));// snatch from enderman
 
-        // --- Priority: carrying loot → head home → swarm distraction ---
-        this.goalSelector.addGoal(2,  new FilcherCarryFleeGoal(this));
-        this.goalSelector.addGoal(3,  new FilcherHomeboundGoal(this));          // return when >65 blocks from den
-        this.goalSelector.addGoal(4,  new FilcherSwarmGoal(this));              // distraction crowding (recruited by mastermind)
+        // --- Den & idle ---
+        this.goalSelector.addGoal(6,  new EbonwoodBoundaryGoal(this));          // stay in ebonwood biome
+        this.goalSelector.addGoal(7,  new FilcherHomeboundGoal(this));          // return when >65 blocks from den
+        this.goalSelector.addGoal(8,  new FilcherDenGoal(this));
+        this.goalSelector.addGoal(9,  new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(11, new RandomLookAroundGoal(this));
 
-        // --- Stealing (from most to least preferred target) ---
-        this.goalSelector.addGoal(5,  new FilcherKingSpawnGoal(this));          // king: spawn reinforcements
-        this.goalSelector.addGoal(5,  new FilcherRecruitGoal(this));            // coordinated distraction heist
-        this.goalSelector.addGoal(6,  new FilcherStealGoal(this, 1.05D));       // solo player steal (behind back)
-        this.goalSelector.addGoal(6,  new FilcherShadowGoal(this));             // non-bold: hide in shadows
-        this.goalSelector.addGoal(7,  new FilcherLookoutGoal(this));            // watch while another steals
-        this.goalSelector.addGoal(8,  new FilcherVillagerStealGoal(this, 1.5D));// pickpocket villager
-        this.goalSelector.addGoal(9,  new FilcherEndermanStealGoal(this, 1.5D));// snatch from enderman
-
-        // --- Community interactions ---
-        this.goalSelector.addGoal(10, new FilcherTradeGoal(this));
-        this.goalSelector.addGoal(11, new FilcherGiftGoal(this));
-        this.goalSelector.addGoal(12, new FilcherShowOffGoal(this));
-
-        // --- Pack behavior ---
-        this.goalSelector.addGoal(13, new FilcherFollowAlphaGoal(this));
-        this.goalSelector.addGoal(14, new FilcherDenGoal(this));
-        this.goalSelector.addGoal(15, new FilcherHuddleGoal(this));
-
-        // --- Fallback idle ---
-        this.goalSelector.addGoal(16, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(17, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(18, new RandomLookAroundGoal(this));
-
-        // Target only players within 75 blocks of den
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<Player>(this, Player.class, 10, true, false,
-            (entity, serverLevel) -> denPos == null
-                || net.minecraft.world.phys.Vec3.atCenterOf(denPos).distanceToSqr(entity.position()) <= 75.0 * 75.0));
+        // Target nearby players
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     // ── Attributes ───────────────────────────────────────────────────────────

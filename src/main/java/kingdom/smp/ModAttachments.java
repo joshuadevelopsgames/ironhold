@@ -2,6 +2,7 @@ package kingdom.smp;
 
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.game.CloudJumpState;
+import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -47,6 +48,14 @@ public final class ModAttachments {
                 .serialize(AccessoryInventory.MAP_CODEC)
                 .copyOnDeath()
                 .sync(AccessoryInventory.STREAM_CODEC)
+                .build());
+
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<CompletedClasses>> COMPLETED_CLASSES =
+        ATTACHMENT_TYPES.register(
+            "completed_classes",
+            () -> AttachmentType.builder(CompletedClasses::empty)
+                .serialize(CompletedClasses.CODEC)
+                .copyOnDeath()
                 .build());
 
     /** Mid-air cloud jump charge (server-side; resets on ground). */

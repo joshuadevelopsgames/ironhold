@@ -1,0 +1,12 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#ironhold:pink_deer_biomes",
+  "spawners": [
+    {
+      "type": "ironhold:pink_deer",
+      "weight": 100,
+      "minCount": 1,
+      "maxCount": 3
+    }
+  ]
+}

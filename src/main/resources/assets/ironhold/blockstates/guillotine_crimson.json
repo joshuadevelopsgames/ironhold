@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ironhold:block/guillotine_crimson" },
+    "facing=south": { "model": "ironhold:block/guillotine_crimson", "y": 180 },
+    "facing=west":  { "model": "ironhold:block/guillotine_crimson", "y": 270 },
+    "facing=east":  { "model": "ironhold:block/guillotine_crimson", "y": 90 }
+  }
+}

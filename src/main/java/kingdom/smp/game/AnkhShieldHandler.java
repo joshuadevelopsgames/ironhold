@@ -88,6 +88,10 @@ public final class AnkhShieldHandler {
         if (!AnkhShieldItem.isBlockingWithAnkh(player)) {
             return;
         }
+        // Throttle entity search to every 4 ticks (~200ms) — still responsive for projectiles
+        if (player.tickCount % 4 != 0) {
+            return;
+        }
         ServerLevel sl = (ServerLevel) player.level();
         Vec3 center = AnkhShieldBarrier.barrierCenter(player);
         AABB search = player.getBoundingBox().inflate(AnkhShieldBarrier.RADIUS + 1.0);

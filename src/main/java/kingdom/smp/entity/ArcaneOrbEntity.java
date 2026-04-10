@@ -33,16 +33,18 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
 
     private int lifeTicks;
     private @org.jspecify.annotations.Nullable UUID targetUuid;
+    private int targetEntityId = -1;
 
     public ArcaneOrbEntity(EntityType<? extends ArcaneOrbEntity> type, Level level) {
         super(type, level);
     }
 
-    public ArcaneOrbEntity(LivingEntity owner, LivingEntity homingTarget, Vec3 initialDirection, Level level) {
+    public ArcaneOrbEntity(LivingEntity owner, Entity homingTarget, Vec3 initialDirection, Level level) {
         super(Ironhold.ARCANE_ORB.get(), owner, initialDirection, level);
         this.accelerationPower = 0.04;
         if (homingTarget != null) {
             this.targetUuid = homingTarget.getUUID();
+            this.targetEntityId = homingTarget.getId();
         }
     }
 
@@ -61,31 +63,57 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
         return ParticleTypes.REVERSE_PORTAL;
     }
 
-    private @org.jspecify.annotations.Nullable LivingEntity resolveTarget() {
-        if (this.targetUuid == null || !(this.level() instanceof ServerLevel sl)) return null;
-        Entity e = sl.getEntity(this.targetUuid);
-        return e instanceof LivingEntity living && living.isAlive() ? living : null;
+    private @org.jspecify.annotations.Nullable Entity resolveTarget() {
+        if (this.targetEntityId < 0 && this.targetUuid == null) return null;
+        // Try by integer ID first (reliable on server)
+        if (this.targetEntityId >= 0) {
+            Entity e = this.level().getEntity(this.targetEntityId);
+            if (e != null && e.isAlive()) return e;
+        }
+        // Fallback to UUID
+        if (this.targetUuid != null) {
+            Entity e = this.level().getEntity(this.targetUuid);
+            if (e != null && e.isAlive()) {
+                this.targetEntityId = e.getId();
+                return e;
+            }
+        }
+        return null;
     }
 
     @Override
     public void tick() {
-        super.tick();
         this.lifeTicks++;
 
-        LivingEntity target = this.resolveTarget();
-        Vec3 motion = this.getDeltaMovement();
-        if (target != null) {
+        Entity target = this.resolveTarget();
+        if (target != null && target.isAlive()) {
+            // Skip super.tick() — we drive movement directly toward target
+            this.baseTick();
+
             Vec3 aim = target.position().add(0, target.getBbHeight() * 0.45, 0).subtract(this.position());
-            if (aim.lengthSqr() > 1.0e-4) {
-                Vec3 desired = aim.normalize().scale(0.42);
-                motion = motion.scale(0.22).add(desired.scale(0.78));
-                if (motion.lengthSqr() > 0.18) {
-                    motion = motion.normalize().scale(0.42);
-                }
+            double dist = aim.length();
+            if (dist > 0.01) {
+                Vec3 motion = aim.normalize().scale(0.55);
                 this.setDeltaMovement(motion);
+                this.setPos(this.getX() + motion.x, this.getY() + motion.y, this.getZ() + motion.z);
             }
+            // Hit detection — if close enough to target, deal damage
+            if (dist < 1.2 && this.level() instanceof ServerLevel sl) {
+                if (target instanceof LivingEntity living) {
+                    living.hurtServer(sl, sl.damageSources().indirectMagic(this, this.getOwner()), DAMAGE);
+                } else {
+                    target.hurt(sl.damageSources().indirectMagic(this, this.getOwner()), DAMAGE);
+                }
+                this.impactBurst(sl, this.position());
+                this.discard();
+                return;
+            }
+        } else {
+            // No homing target — use vanilla fireball physics
+            super.tick();
         }
 
+        Vec3 vel = this.getDeltaMovement();
         if (this.level() instanceof ServerLevel sl) {
             Vec3 pos = this.position();
             sl.sendParticles(CORE_DUST, pos.x, pos.y, pos.z, 2, 0.04, 0.04, 0.04, 0);
@@ -99,13 +127,13 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
                 pos.z + Math.sin(a) * r,
                 1, 0, 0, 0, 0);
             sl.sendParticles(ParticleTypes.REVERSE_PORTAL,
-                pos.x - motion.x * 0.15,
-                pos.y - motion.y * 0.15,
-                pos.z - motion.z * 0.15,
-                0, -motion.x * 0.08, -motion.y * 0.08, -motion.z * 0.08, 0.02);
+                pos.x - vel.x * 0.15,
+                pos.y - vel.y * 0.15,
+                pos.z - vel.z * 0.15,
+                0, -vel.x * 0.08, -vel.y * 0.08, -vel.z * 0.08, 0.02);
         }
 
-        if (this.lifeTicks > 100) {
+        if (this.lifeTicks > (this.targetEntityId >= 0 ? 200 : 100)) {
             this.discard();
         }
     }
@@ -137,11 +165,24 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
     }
 
     private void impactBurst(ServerLevel sl, Vec3 pos) {
+        boolean playerShot = this.getOwner() instanceof net.minecraft.world.entity.player.Player;
+        double scale = playerShot ? 1.8 : 1.0;
         sl.sendParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-        sphereOut(sl, pos, ParticleTypes.END_ROD, 28, 0.85, 0.22);
-        sphereOut(sl, pos, ParticleTypes.REVERSE_PORTAL, 22, 1.0, 0.28);
-        burst(sl, pos, dust(128, 52, 240, 1.8F), 14, 0.35, 0.35, 0.35, 0.04);
-        this.playSound(SoundEvents.WITHER_SHOOT, 0.35F, 1.5F);
+        sphereOut(sl, pos, ParticleTypes.END_ROD, (int)(28 * scale), 0.85 * scale, 0.22);
+        sphereOut(sl, pos, ParticleTypes.REVERSE_PORTAL, (int)(22 * scale), 1.0 * scale, 0.28);
+        burst(sl, pos, dust(128, 52, 240, 1.8F), (int)(14 * scale), 0.35 * scale, 0.35 * scale, 0.35 * scale, 0.04);
+        this.playSound(SoundEvents.WITHER_SHOOT, playerShot ? 0.5F : 0.35F, 1.5F);
+        // Player-shot orbs also damage entities in an area
+        if (playerShot) {
+            for (var e : sl.getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class,
+                    this.getBoundingBox().inflate(3.0), e -> e != this.getOwner() && e.isAlive())) {
+                double dist = e.distanceToSqr(pos.x, pos.y, pos.z);
+                if (dist < 9.0) { // 3 block radius
+                    float dmg = (float)(DAMAGE * (1.0 - Math.sqrt(dist) / 3.0));
+                    e.hurtServer(sl, sl.damageSources().indirectMagic(this, this.getOwner()), dmg);
+                }
+            }
+        }
     }
 
     private static void sphereOut(ServerLevel sl, Vec3 c, ParticleOptions p, int count, double radius, double speed) {

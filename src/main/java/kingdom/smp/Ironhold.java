@@ -8,6 +8,11 @@ import kingdom.smp.accessory.AccessoryMenuTypes;
 import kingdom.smp.entity.ArcaneBoltEntity;
 import kingdom.smp.entity.ArcaneInvokerEntity;
 import kingdom.smp.entity.ArcaneOrbEntity;
+import kingdom.smp.entity.LunarOrbEntity;
+import kingdom.smp.entity.PossessedArmorEntity;
+import kingdom.smp.entity.ShipwreckMimicEntity;
+import kingdom.smp.entity.SirenEntity;
+import kingdom.smp.entity.SolarOrbEntity;
 import kingdom.smp.entity.ArcaneWizardEntity;
 import kingdom.smp.entity.HexBoltEntity;
 import kingdom.smp.entity.MagicMinecartEntity;
@@ -15,10 +20,17 @@ import kingdom.smp.entity.TempestArrowEntity;
 import kingdom.smp.entity.ArcaneMageEntity;
 import kingdom.smp.entity.FilcherEntity;
 import kingdom.smp.entity.KingdomVillagerEntity;
+import kingdom.smp.entity.MomPinkDeerEntity;
+import kingdom.smp.entity.PinkDeerEntity;
+import kingdom.smp.entity.RarePinkDeerEntity;
 import kingdom.smp.entity.PurpleAllayEntity;
 import kingdom.smp.entity.VoidInvokerEntity;
+import kingdom.smp.entity.BabyMimicEntity;
+import kingdom.smp.entity.MimicEntity;
 import kingdom.smp.entity.NullStalkerEntity;
 import kingdom.smp.game.AccessoryTickHandler;
+import kingdom.smp.item.ArcaneScepterItem;
+import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.game.CloudDoubleJumpHandler;
 import kingdom.smp.game.AnkhShieldHandler;
 import kingdom.smp.game.ClassXpKillRewards;
@@ -28,11 +40,11 @@ import kingdom.smp.item.BandOfRegenerationItem;
 import kingdom.smp.item.CloudInABottleItem;
 import kingdom.smp.item.HermesBootsItem;
 import kingdom.smp.item.MagicMinecartItem;
+import kingdom.smp.item.MimicKeyItem;
 import kingdom.smp.item.TempestArrowItem;
 import kingdom.smp.item.TempestBowItem;
 import kingdom.smp.item.gear.ClassArmor;
 import kingdom.smp.item.gear.ClassWeapons;
-import kingdom.smp.item.wizard.WizardRobes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -55,10 +67,12 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import kingdom.smp.game.EquipRestriction;
 import kingdom.smp.game.TanzaniteWorldgenFluidHandler;
 import kingdom.smp.net.ModNetworking;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.illager.Illusioner;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -92,6 +106,27 @@ public class Ironhold {
     public static final DeferredRegister.Entities ENTITY_TYPES = DeferredRegister.createEntities(MODID);
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, MODID);
+
+    // ── Sound events ─────────────────────────────────────────────────────────
+    // Ebonwood Hollow ambient loop — sound by CreativeMD / AmbientSounds mod (LGPL-3.0)
+    // https://github.com/CreativeMD/AmbientSounds — credit required
+    public static final DeferredHolder<SoundEvent, SoundEvent> EBONWOOD_AMBIENT =
+        SOUND_EVENTS.register("ambient.ebonwood_hollow",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "ambient.ebonwood_hollow")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_AMBIENT =
+        SOUND_EVENTS.register("entity.pink_deer.ambient",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.ambient")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_HURT =
+        SOUND_EVENTS.register("entity.pink_deer.hurt",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.hurt")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_DEATH =
+        SOUND_EVENTS.register("entity.pink_deer.death",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.death")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_MOM_HURT =
+        SOUND_EVENTS.register("entity.pink_deer.mom.hurt",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.mom.hurt")));
 
     // ── Worldgen feature keys ─────────────────────────────────────────────────
     public static final DeferredHolder<Feature<?>, CaveMouthFeature> CAVE_MOUTH_FEATURE =
@@ -155,6 +190,20 @@ public class Ironhold {
             MobCategory.MISC,
             b -> b.sized(0.3F, 0.3F).clientTrackingRange(4).updateInterval(2));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<SolarOrbEntity>> SOLAR_ORB =
+        ENTITY_TYPES.registerEntityType(
+            "solar_orb",
+            SolarOrbEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.35F, 0.35F).clientTrackingRange(6).updateInterval(2));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LunarOrbEntity>> LUNAR_ORB =
+        ENTITY_TYPES.registerEntityType(
+            "lunar_orb",
+            LunarOrbEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.35F, 0.35F).clientTrackingRange(6).updateInterval(2));
+
     public static final DeferredHolder<EntityType<?>, EntityType<HexBoltEntity>> HEX_BOLT =
         ENTITY_TYPES.registerEntityType(
             "hex_bolt",
@@ -193,6 +242,42 @@ public class Ironhold {
             "null_stalker_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(NULL_STALKER.get()).stacksTo(64)));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<PinkDeerEntity>> PINK_DEER =
+        ENTITY_TYPES.registerEntityType(
+            "pink_deer",
+            PinkDeerEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.7F, 1.1F).clientTrackingRange(10).updateInterval(2));
+
+    public static final DeferredItem<Item> PINK_DEER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "pink_deer_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(PINK_DEER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<RarePinkDeerEntity>> RARE_PINK_DEER =
+        ENTITY_TYPES.registerEntityType(
+            "rare_pink_deer",
+            RarePinkDeerEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.7F, 1.1F).clientTrackingRange(10).updateInterval(2));
+
+    public static final DeferredItem<Item> RARE_PINK_DEER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "rare_pink_deer_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(RARE_PINK_DEER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MomPinkDeerEntity>> MOM_PINK_DEER =
+        ENTITY_TYPES.registerEntityType(
+            "mom_pink_deer",
+            MomPinkDeerEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.95F, 1.45F).clientTrackingRange(10).updateInterval(2));
+
+    public static final DeferredItem<Item> MOM_PINK_DEER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "mom_pink_deer_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(MOM_PINK_DEER.get()).stacksTo(64)));
+
     public static final DeferredHolder<EntityType<?>, EntityType<PurpleAllayEntity>> PURPLE_ALLAY =
         ENTITY_TYPES.registerEntityType(
             "purple_allay",
@@ -230,6 +315,76 @@ public class Ironhold {
             "filcher_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(FILCHER.get()).stacksTo(64)));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<PossessedArmorEntity>> POSSESSED_ARMOR =
+        ENTITY_TYPES.registerEntityType(
+            "possessed_armor",
+            PossessedArmorEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredItem<Item> POSSESSED_ARMOR_SPAWN_EGG =
+        ITEMS.registerItem(
+            "possessed_armor_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(POSSESSED_ARMOR.get()).stacksTo(64)));
+
+    // Siren — ocean mob that lures players with song
+    public static final DeferredHolder<EntityType<?>, EntityType<SirenEntity>> SIREN =
+        ENTITY_TYPES.registerEntityType(
+            "siren",
+            SirenEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> SIREN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "siren_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SIREN.get()).stacksTo(64)));
+
+    // Shipwreck Mimic — underwater mimic variant
+    public static final DeferredHolder<EntityType<?>, EntityType<ShipwreckMimicEntity>> SHIPWRECK_MIMIC =
+        ENTITY_TYPES.registerEntityType(
+            "shipwreck_mimic",
+            ShipwreckMimicEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(1.0F, 0.9375F).eyeHeight(0.75F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredItem<Item> SHIPWRECK_MIMIC_SPAWN_EGG =
+        ITEMS.registerItem(
+            "shipwreck_mimic_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SHIPWRECK_MIMIC.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<MimicEntity>> MIMIC =
+        ENTITY_TYPES.registerEntityType(
+            "mimic",
+            MimicEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(1.0F, 0.9375F).eyeHeight(0.75F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredItem<Item> MIMIC_SPAWN_EGG =
+        ITEMS.registerItem(
+            "mimic_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(MIMIC.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BabyMimicEntity>> BABY_MIMIC =
+        ENTITY_TYPES.registerEntityType(
+            "baby_mimic",
+            BabyMimicEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.22F, 0.24F).eyeHeight(0.18F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredItem<Item> BABY_MIMIC_SPAWN_EGG =
+        ITEMS.registerItem(
+            "baby_mimic_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(BABY_MIMIC.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.GuillotineSeatEntity>> GUILLOTINE_SEAT_ENTITY =
+        ENTITY_TYPES.registerEntityType(
+            "guillotine_seat",
+            kingdom.smp.entity.GuillotineSeatEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.01F, 0.01F).clientTrackingRange(3).updateInterval(20)
+                  .noSummon());
+
     public static final DeferredItem<TempestArrowItem> TEMPEST_ARROW =
         ITEMS.registerItem("tempest_arrow", TempestArrowItem::new, props -> props.stacksTo(64));
 
@@ -241,6 +396,122 @@ public class Ironhold {
 
     public static final DeferredItem<AnkhShieldItem> ANKH_SHIELD =
         ITEMS.registerItem("ankh_shield", AnkhShieldItem::new, AnkhShieldItem::applyAnkhProperties);
+
+    // Arcane Scepter — spear-like wizard weapon with extended reach, shoots arcane orbs
+    public static final DeferredItem<Item> ARCANE_SCEPTER = ITEMS.registerItem(
+        "arcane_scepter",
+        ArcaneScepterItem::new,
+        props -> props
+            .durability(500)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "scepter_damage"),
+                        4.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "scepter_speed"),
+                        -2.8, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ENTITY_INTERACTION_RANGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "scepter_reach"),
+                        1.5, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Soluna Staff — wizard weapon that shifts between sun/moon texture by time of day
+    public static final DeferredItem<Item> SOLUNA_STAFF = ITEMS.registerItem(
+        "soluna_staff",
+        kingdom.smp.item.SolunaStaffItem::new,
+        props -> props
+            .durability(600)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "soluna_damage"),
+                        5.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "soluna_speed"),
+                        -2.6, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Pitchfork — throwable spear weapon (trident-like)
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.ThrownPitchforkEntity>> THROWN_PITCHFORK =
+        ENTITY_TYPES.registerEntityType(
+            "thrown_pitchfork",
+            kingdom.smp.entity.ThrownPitchforkEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.5F, 0.5F).clientTrackingRange(4).updateInterval(2).noSummon());
+
+    public static final DeferredItem<Item> PITCHFORK = ITEMS.registerItem(
+        "pitchfork",
+        kingdom.smp.item.PitchforkItem::new,
+        props -> props
+            .durability(400)
+            .rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "pitchfork_damage"),
+                        5.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "pitchfork_speed"),
+                        -2.4, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ENTITY_INTERACTION_RANGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "pitchfork_reach"),
+                        1.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // ── Possessed Armor drops ──────────────────────────────────────────────
+
+    // Vengeful Halberd — legendary long-reach weapon, more damage at low HP
+    public static final DeferredItem<Item> VENGEFUL_HALBERD = ITEMS.registerItem(
+        "vengeful_halberd",
+        kingdom.smp.item.VengefulHalberdItem::new,
+        props -> props
+            .durability(1200)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "halberd_damage"),
+                        7.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "halberd_speed"),
+                        -3.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ENTITY_INTERACTION_RANGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "halberd_reach"),
+                        1.5, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Armor Polish — consumable that permanently increases armor durability by 20%
+    public static final DeferredItem<Item> ARMOR_POLISH = ITEMS.registerItem(
+        "armor_polish",
+        kingdom.smp.item.ArmorPolishItem::new,
+        props -> props.stacksTo(16).rarity(net.minecraft.world.item.Rarity.RARE));
+
+    // Wraith's Sigil — accessory that grants a spectral dash
+    public static final DeferredItem<Item> WRAITHS_SIGIL = ITEMS.registerItem(
+        "wraiths_sigil",
+        kingdom.smp.item.WraithsSigilItem::new,
+        props -> props.rarity(net.minecraft.world.item.Rarity.EPIC));
 
     /** Crafting ingredients for {@link #MAGIC_MINECART_ITEM} (see recipe JSON). */
     public static final DeferredItem<Item> RAILWRIGHT_CORE = ITEMS.registerSimpleItem(
@@ -469,9 +740,9 @@ public class Ironhold {
     public static final DeferredItem<BlockItem> EBONY_LEAVES_ITEM =
         ITEMS.registerSimpleBlockItem("ebony_leaves", EBONY_LEAVES);
 
-    // Shadow Bloom — tall two-block dark fungal flower native to Ebonwood Hollow.
-    public static final DeferredBlock<TallFlowerBlock> SHADOW_BLOOM = BLOCKS.register(
-        "shadow_bloom",
+    // Bat Flower — tall two-block dark flower native to Ebonwood Hollow.
+    public static final DeferredBlock<TallFlowerBlock> BAT_FLOWER = BLOCKS.register(
+        "bat_flower",
         id -> new TallFlowerBlock(
             BlockBehaviour.Properties.of()
                 .mapColor(MapColor.COLOR_BLACK)
@@ -482,8 +753,8 @@ public class Ironhold {
                 .setId(ResourceKey.create(Registries.BLOCK, id))
         )
     );
-    public static final DeferredItem<BlockItem> SHADOW_BLOOM_ITEM =
-        ITEMS.registerSimpleBlockItem("shadow_bloom", SHADOW_BLOOM);
+    public static final DeferredItem<BlockItem> BAT_FLOWER_ITEM =
+        ITEMS.registerSimpleBlockItem("bat_flower", BAT_FLOWER);
 
     // Ebonwood Grass — grass block with mud sides/bottom, generated on biome surface.
     public static final DeferredBlock<net.minecraft.world.level.block.GrassBlock> EBONWOOD_GRASS = BLOCKS.register(
@@ -573,6 +844,10 @@ public class Ironhold {
         ITEMS.registerItem("cloud_in_a_bottle", CloudInABottleItem::new,
             props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
 
+    public static final DeferredItem<MimicKeyItem> MIMIC_KEY =
+        ITEMS.registerItem("mimic_key", MimicKeyItem::new,
+            props -> props.rarity(net.minecraft.world.item.Rarity.EPIC).stacksTo(1));
+
     public static final DeferredItem<Item> FOOLS_GOLD = ITEMS.registerSimpleItem(
         "fools_gold",
         props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON)
@@ -583,6 +858,68 @@ public class Ironhold {
         props -> props.rarity(net.minecraft.world.item.Rarity.RARE)
     );
 
+    // ── Guillotine blocks (wood variants) ───────────────────────────────────────
+    private static DeferredBlock<Block> guillotineBlock(String name) {
+        return BLOCKS.register(name,
+            id -> new kingdom.smp.block.GuillotineBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.WOOD)
+                    .strength(2.0f, 3.0f)
+                    .sound(SoundType.WOOD)
+                    .noOcclusion()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            )
+        );
+    }
+
+    public static final DeferredBlock<Block> GUILLOTINE_OAK_BLOCK      = guillotineBlock("guillotine_oak");
+    public static final DeferredBlock<Block> GUILLOTINE_SPRUCE_BLOCK   = guillotineBlock("guillotine_spruce");
+    public static final DeferredBlock<Block> GUILLOTINE_BIRCH_BLOCK    = guillotineBlock("guillotine_birch");
+    public static final DeferredBlock<Block> GUILLOTINE_JUNGLE_BLOCK   = guillotineBlock("guillotine_jungle");
+    public static final DeferredBlock<Block> GUILLOTINE_ACACIA_BLOCK   = guillotineBlock("guillotine_acacia");
+    public static final DeferredBlock<Block> GUILLOTINE_DARK_OAK_BLOCK = guillotineBlock("guillotine_dark_oak");
+    public static final DeferredBlock<Block> GUILLOTINE_MANGROVE_BLOCK = guillotineBlock("guillotine_mangrove");
+    public static final DeferredBlock<Block> GUILLOTINE_CHERRY_BLOCK   = guillotineBlock("guillotine_cherry");
+    public static final DeferredBlock<Block> GUILLOTINE_CRIMSON_BLOCK  = guillotineBlock("guillotine_crimson");
+    public static final DeferredBlock<Block> GUILLOTINE_WARPED_BLOCK   = guillotineBlock("guillotine_warped");
+    public static final DeferredBlock<Block> GUILLOTINE_EBONY_BLOCK   = guillotineBlock("guillotine_ebony");
+
+    // Block items
+    public static final DeferredItem<BlockItem> GUILLOTINE_OAK_ITEM      = ITEMS.registerSimpleBlockItem("guillotine_oak",      GUILLOTINE_OAK_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_SPRUCE_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_spruce",   GUILLOTINE_SPRUCE_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_BIRCH_ITEM    = ITEMS.registerSimpleBlockItem("guillotine_birch",    GUILLOTINE_BIRCH_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_JUNGLE_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_jungle",   GUILLOTINE_JUNGLE_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_ACACIA_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_acacia",   GUILLOTINE_ACACIA_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_DARK_OAK_ITEM = ITEMS.registerSimpleBlockItem("guillotine_dark_oak", GUILLOTINE_DARK_OAK_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_MANGROVE_ITEM = ITEMS.registerSimpleBlockItem("guillotine_mangrove", GUILLOTINE_MANGROVE_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_CHERRY_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_cherry",   GUILLOTINE_CHERRY_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_CRIMSON_ITEM  = ITEMS.registerSimpleBlockItem("guillotine_crimson",  GUILLOTINE_CRIMSON_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_WARPED_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_warped",   GUILLOTINE_WARPED_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_EBONY_ITEM    = ITEMS.registerSimpleBlockItem("guillotine_ebony",    GUILLOTINE_EBONY_BLOCK);
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredItem<BlockItem>[] ALL_GUILLOTINES = new DeferredItem[] {
+        GUILLOTINE_OAK_ITEM, GUILLOTINE_SPRUCE_ITEM, GUILLOTINE_BIRCH_ITEM, GUILLOTINE_JUNGLE_ITEM, GUILLOTINE_ACACIA_ITEM,
+        GUILLOTINE_DARK_OAK_ITEM, GUILLOTINE_MANGROVE_ITEM, GUILLOTINE_CHERRY_ITEM, GUILLOTINE_CRIMSON_ITEM, GUILLOTINE_WARPED_ITEM,
+        GUILLOTINE_EBONY_ITEM
+    };
+
+    // Block entity type — shared by all guillotine variants
+    public static final DeferredRegister<net.minecraft.world.level.block.entity.BlockEntityType<?>> BLOCK_ENTITY_TYPES =
+        DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.GuillotineBlockEntity>> GUILLOTINE_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("guillotine",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.GuillotineBlockEntity::new,
+                GUILLOTINE_OAK_BLOCK.get(), GUILLOTINE_SPRUCE_BLOCK.get(), GUILLOTINE_BIRCH_BLOCK.get(),
+                GUILLOTINE_JUNGLE_BLOCK.get(), GUILLOTINE_ACACIA_BLOCK.get(), GUILLOTINE_DARK_OAK_BLOCK.get(),
+                GUILLOTINE_MANGROVE_BLOCK.get(), GUILLOTINE_CHERRY_BLOCK.get(), GUILLOTINE_CRIMSON_BLOCK.get(),
+                GUILLOTINE_WARPED_BLOCK.get(), GUILLOTINE_EBONY_BLOCK.get()
+            )
+        );
+
     // ── Creative tab (all mod items in one place) ──────────────────────────────
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> IRONHOLD_TAB =
         CREATIVE_TABS.register("ironhold_tab", () -> CreativeModeTab.builder()
@@ -591,10 +928,18 @@ public class Ironhold {
             .displayItems((params, output) -> {
                 output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
                 output.accept(PURPLE_ALLAY_SPAWN_EGG.get());
+                output.accept(PINK_DEER_SPAWN_EGG.get());
                 output.accept(ARCANE_MAGE_SPAWN_EGG.get());
                 output.accept(FILCHER_SPAWN_EGG.get());
                 output.accept(VOID_INVOKER_SPAWN_EGG.get());
                 output.accept(NULL_STALKER_SPAWN_EGG.get());
+                output.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
+                output.accept(SIREN_SPAWN_EGG.get());
+                output.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
+                output.accept(MIMIC_SPAWN_EGG.get());
+                output.accept(BABY_MIMIC_SPAWN_EGG.get());
+                output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
+                output.accept(MOM_PINK_DEER_SPAWN_EGG.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
                 output.accept(RAILWRIGHT_CORE.get());
                 output.accept(ARCANUM_COUPLING.get());
@@ -602,13 +947,15 @@ public class Ironhold {
                 output.accept(TEMPEST_BOW.get());
                 output.accept(TEMPEST_ARROW.get());
                 output.accept(ANKH_SHIELD.get());
-                for (var robe : WizardRobes.ALL_ROBES) output.accept(robe.get());
-                output.accept(WizardRobes.WIZARDS_HAT.get());
+                output.accept(ARCANE_SCEPTER.get());
                 for (var piece : ClassArmor.ALL) output.accept(piece.get());
                 for (var weapon : ClassWeapons.ALL) output.accept(weapon.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
+                output.accept(WRAITHS_SIGIL.get());
+                output.accept(VENGEFUL_HALBERD.get());
+                output.accept(ARMOR_POLISH.get());
                 output.accept(RAW_TANZANITE.get());
                 output.accept(ClassWeapons.TANZANITE_GEM.get());
                 output.accept(ClassWeapons.STEEL_INGOT.get());
@@ -627,16 +974,16 @@ public class Ironhold {
                 output.accept(EBONY_BUTTON_ITEM.get());
                 output.accept(EBONY_PRESSURE_PLATE_ITEM.get());
                 output.accept(EBONY_LEAVES_ITEM.get());
-                output.accept(SHADOW_BLOOM_ITEM.get());
+                output.accept(BAT_FLOWER_ITEM.get());
                 output.accept(EBONWOOD_GRASS_ITEM.get());
                 output.accept(BLUE_VINES_ITEM.get());
                 output.accept(BLACK_SAND_ITEM.get());
                 output.accept(DARK_GRAVEL_ITEM.get());
+                for (var g : ALL_GUILLOTINES) output.accept(g.get());
             })
             .build());
 
     public Ironhold(IEventBus modEventBus, ModContainer modContainer) {
-        WizardRobes.register(ITEMS);
         ClassArmor.register(ITEMS);
         ClassWeapons.register(ITEMS);
 
@@ -651,10 +998,13 @@ public class Ironhold {
         ITEMS.register(modEventBus);
         ENTITY_TYPES.register(modEventBus);
         FEATURES.register(modEventBus);
+        SOUND_EVENTS.register(modEventBus);
+        BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_TABS.register(modEventBus);
 
         ModAttachments.register(modEventBus);
         AccessoryMenuTypes.register(modEventBus);
+        kingdom.smp.entity.BabyMimicMenuTypes.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
@@ -665,6 +1015,7 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(CloudDoubleJumpHandler.class);
         NeoForge.EVENT_BUS.register(EquipRestriction.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
+        NeoForge.EVENT_BUS.register(EncumbranceHandler.class);
 
         modEventBus.addListener(ModNetworking::register);
     }
@@ -700,11 +1051,38 @@ public class Ironhold {
         event.put(NULL_STALKER.get(), NullStalkerEntity.createAttributes().build());
         event.put(ARCANE_MAGE.get(), ArcaneMageEntity.createAttributes().build());
         event.put(FILCHER.get(), FilcherEntity.createAttributes().build());
+        event.put(POSSESSED_ARMOR.get(), PossessedArmorEntity.createAttributes().build());
+        event.put(SIREN.get(), SirenEntity.createAttributes().build());
+        event.put(SHIPWRECK_MIMIC.get(), ShipwreckMimicEntity.createAttributes().build());
+        event.put(MIMIC.get(), MimicEntity.createAttributes().build());
+        event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
         event.put(PURPLE_ALLAY.get(), PurpleAllayEntity.createAttributes().build());
+        event.put(PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
+        event.put(RARE_PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
+        event.put(MOM_PINK_DEER.get(), MomPinkDeerEntity.createAttributes().build());
     }
 
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
+        // Pink Deer — passive animal, spawns on grass in daylight
+        event.register(
+            PINK_DEER.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            Animal::checkAnimalSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(
+            RARE_PINK_DEER.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            Animal::checkAnimalSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(
+            MOM_PINK_DEER.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            Animal::checkAnimalSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
         event.register(
             ARCANE_MAGE.get(),
             SpawnPlacementTypes.ON_GROUND,
@@ -715,7 +1093,32 @@ public class Ironhold {
             FILCHER.get(),
             SpawnPlacementTypes.ON_GROUND,
             Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            (type, level, spawnType, pos, random) -> {
+                // Always allow in Ebonwood Hollow (regardless of light)
+                if (level.getBiome(pos).is(EBONWOOD_HOLLOW)) {
+                    return pos.getY() > level.getSeaLevel();
+                }
+                return Monster.checkMonsterSpawnRules(type, level, spawnType, pos, random);
+            },
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        event.register(
+            MIMIC.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             Monster::checkMonsterSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Siren — spawns in water near the surface
+        event.register(
+            SIREN.get(),
+            SpawnPlacementTypes.IN_WATER,
+            Heightmap.Types.OCEAN_FLOOR,
+            (type, level, spawnType, pos, random) -> {
+                // Must be in water and near the surface (within 10 blocks of sea level)
+                int seaLevel = level.getSeaLevel();
+                return pos.getY() >= seaLevel - 10
+                    && pos.getY() <= seaLevel + 2
+                    && level.getFluidState(pos).is(net.minecraft.tags.FluidTags.WATER);
+            },
             RegisterSpawnPlacementsEvent.Operation.REPLACE);
     }
 
@@ -733,19 +1136,25 @@ public class Ironhold {
             event.accept(NULL_STALKER_SPAWN_EGG.get());
             event.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
             event.accept(PURPLE_ALLAY_SPAWN_EGG.get());
+            event.accept(PINK_DEER_SPAWN_EGG.get());
+            event.accept(RARE_PINK_DEER_SPAWN_EGG.get());
+            event.accept(MOM_PINK_DEER_SPAWN_EGG.get());
+            event.accept(MIMIC_SPAWN_EGG.get());
+            event.accept(BABY_MIMIC_SPAWN_EGG.get());
+            event.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
+            event.accept(SIREN_SPAWN_EGG.get());
+            event.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
         }
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
-            for (var robe : WizardRobes.ALL_ROBES) {
-                event.accept(robe.get());
-            }
-            event.accept(WizardRobes.WIZARDS_HAT.get());
             event.accept(TEMPEST_BOW.get());
             event.accept(TEMPEST_ARROW.get());
             event.accept(ANKH_SHIELD.get());
+            event.accept(ARCANE_SCEPTER.get());
             // Accessories
             event.accept(HERMES_BOOTS.get());
             event.accept(BAND_OF_REGENERATION.get());
             event.accept(CLOUD_IN_A_BOTTLE.get());
+            event.accept(MIMIC_KEY.get());
             // Class armor & weapons
             for (var piece : ClassArmor.ALL) event.accept(piece.get());
             for (var weapon : ClassWeapons.ALL) event.accept(weapon.get());
@@ -754,7 +1163,7 @@ public class Ironhold {
             event.accept(TANZANITE_ORE_ITEM.get());
             event.accept(EBONY_LOG_ITEM.get());
             event.accept(EBONY_LEAVES_ITEM.get());
-            event.accept(SHADOW_BLOOM_ITEM.get());
+            event.accept(BAT_FLOWER_ITEM.get());
             event.accept(EBONWOOD_GRASS_ITEM.get());
             event.accept(BLUE_VINES_ITEM.get());
             event.accept(BLACK_SAND_ITEM.get());

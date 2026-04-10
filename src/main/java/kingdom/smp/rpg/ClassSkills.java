@@ -37,6 +37,8 @@ public final class ClassSkills {
                     new ClassSkillEntry("Assassinate", "Active", "Backstab bonus damage (planned).", "Stub"),
                     new ClassSkillEntry("Pick Pocket", "Active", "Bonus loot from mobs (planned).", "Stub"),
                     new ClassSkillEntry("Evasion", "Passive", "Move & atk speed (class stats).", "Active"));
+            default -> List.of(
+                    new ClassSkillEntry("—", "—", "No skills defined yet.", "—"));
         };
     }
 }

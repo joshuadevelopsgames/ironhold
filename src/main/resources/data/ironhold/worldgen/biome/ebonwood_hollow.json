@@ -81,7 +81,7 @@
       "minecraft:glow_lichen",
       "ironhold:ebony_tree_placed",
       "ironhold:ebony_tree_small_placed",
-      "ironhold:shadow_bloom_placed",
+      "ironhold:bat_flower_placed",
       "ironhold:blue_vines_placed",
       "ironhold:wither_rose_patch_placed",
       "ironhold:ebonwood_shroomlight_placed",
@@ -99,7 +99,14 @@
   "has_precipitation": true,
   "spawn_costs": {},
   "spawners": {
-    "ambient": [],
+    "ambient": [
+      {
+        "type": "minecraft:bat",
+        "maxCount": 10,
+        "minCount": 4,
+        "weight": 200
+      }
+    ],
     "axolotls": [],
     "creature": [],
     "misc": [],

@@ -54,7 +54,7 @@ public abstract class InventoryScreenMixin {
             barX + barW / 2, barTop + 3, VANILLA_TITLE);
 
         for (int i = 0; i < 5; i++) {
-            drawAccessorySlot(gfx, ax0 + i * 18, ay);
+            drawAccessorySlot(gfx, ax0 + i * 18 - 1, ay - 1);
         }
 
         // ── Left column: vanity (wider island, slots centered; matches armor column height) ──
@@ -70,7 +70,7 @@ public abstract class InventoryScreenMixin {
             lx + lw / 2, ly - 9, VANILLA_TITLE);
 
         for (int i = 0; i < 4; i++) {
-            drawVanitySlot(gfx, left + IronholdInventoryLayout.VANITY_SLOT_X, top + IronholdInventoryLayout.VANITY_SLOT_Y0 + i * 18);
+            drawVanitySlot(gfx, left + IronholdInventoryLayout.VANITY_SLOT_X - 1, top + IronholdInventoryLayout.VANITY_SLOT_Y0 + i * 18 - 1);
         }
     }
 

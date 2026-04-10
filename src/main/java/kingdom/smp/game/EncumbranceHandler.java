@@ -15,7 +15,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /** Stub carry-weight: tag-based stack weight + class max; applies transient move-speed penalty. */
 public final class EncumbranceHandler {
@@ -26,7 +35,50 @@ public final class EncumbranceHandler {
     private static final Identifier ENCUMBRANCE_ADD =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "encumbrance_add");
 
+    /** Players whose weight needs recalculating. */
+    private static final Set<UUID> dirty = new HashSet<>();
+
+    /** Safety fallback: recompute every N ticks even if no event fired (catches edge cases). */
+    private static final int FALLBACK_INTERVAL = 100;
+
     private EncumbranceHandler() {}
+
+    // ── Event-driven dirty marking ───────────────────────────────────────────
+
+    /** Mark a player's weight as needing recalculation. */
+    public static void markDirty(ServerPlayer player) {
+        dirty.add(player.getUUID());
+    }
+
+    @SubscribeEvent
+    public static void onItemPickup(ItemEntityPickupEvent.Post event) {
+        if (event.getPlayer() instanceof ServerPlayer sp) markDirty(sp);
+    }
+
+    @SubscribeEvent
+    public static void onEquipmentChange(LivingEquipmentChangeEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) markDirty(sp);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) markDirty(sp);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) markDirty(sp);
+    }
+
+    @SubscribeEvent
+    public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) markDirty(sp);
+    }
+
+    @SubscribeEvent
+    public static void onItemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) markDirty(sp);
+    }
 
     public static int weightFor(ServerPlayer player) {
         return computeWeight(player);
@@ -38,6 +90,10 @@ public final class EncumbranceHandler {
     }
 
     public static void tick(ServerPlayer player, AttachmentType<PlayerKingdomRpgData> rpgKey) {
+        boolean needsRecalc = dirty.remove(player.getUUID())
+                || player.tickCount % FALLBACK_INTERVAL == 0;
+        if (!needsRecalc) return;
+
         PlayerKingdomRpgData rpg = player.getData(rpgKey);
         int max = rpg.playerClass().maxCarryWeight();
         int weight = computeWeight(player);
@@ -90,10 +146,11 @@ public final class EncumbranceHandler {
             perItem = 25;
         } else if (isToolWeapon(stack)) {
             perItem = 15;
-        } else if (stack.getItem() instanceof BlockItem) {
-            perItem = 2;
+        } else if (isMetalOrOre(stack)) {
+            perItem = 5;
         } else {
-            perItem = 3;
+            // Normal items (food, wood, dirt, etc.) have no weight
+            return 0;
         }
         return perItem * stack.getCount();
     }
@@ -111,5 +168,27 @@ public final class EncumbranceHandler {
             || stack.is(ItemTags.PICKAXES)
             || stack.is(ItemTags.SHOVELS)
             || stack.is(ItemTags.HOES);
+    }
+
+    /** Metal ingots/nuggets/blocks and ore blocks. */
+    private static boolean isMetalOrOre(ItemStack stack) {
+        // Ore blocks
+        if (stack.is(ItemTags.IRON_ORES) || stack.is(ItemTags.GOLD_ORES)
+                || stack.is(ItemTags.COPPER_ORES) || stack.is(ItemTags.DIAMOND_ORES)
+                || stack.is(ItemTags.EMERALD_ORES) || stack.is(ItemTags.LAPIS_ORES)
+                || stack.is(ItemTags.REDSTONE_ORES)) {
+            return true;
+        }
+        // Raw metals, ingots, nuggets, and metal blocks by registry name
+        Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        String path = id.getPath();
+        return path.contains("iron_") || path.contains("gold_") || path.contains("copper_")
+            || path.contains("netherite") || path.contains("_ingot") || path.contains("_nugget")
+            || path.contains("raw_iron") || path.contains("raw_gold") || path.contains("raw_copper")
+            || path.contains("chain") || path.contains("anvil")
+            || path.contains("diamond") || path.contains("emerald")
+            || path.contains("tanzanite")
+            || path.contains("iron_block") || path.contains("gold_block")
+            || path.contains("copper_block") || path.contains("netherite_block");
     }
 }

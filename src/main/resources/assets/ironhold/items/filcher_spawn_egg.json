@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "minecraft:item/template_spawn_egg"
+    "model": "ironhold:item/filcher_spawn_egg"
   }
 }

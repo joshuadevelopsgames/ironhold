@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mage's Sceptre - Asset Preview</title>
+<style>
+  body { 
+    background: #1a1a2e; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; 
+    display: flex; flex-direction: column; align-items: center; padding: 40px;
+  }
+  h1 { color: #c9a0f0; margin-bottom: 5px; }
+  h2 { color: #b8860b; font-size: 16px; margin-top: 30px; }
+  .subtitle { color: #888; font-size: 14px; margin-bottom: 30px; }
+  .preview-row { display: flex; gap: 60px; align-items: flex-start; margin: 20px 0; }
+  .preview-box { 
+    text-align: center; background: #2a2a3e; border-radius: 12px; 
+    padding: 24px; border: 1px solid #3a3a5e;
+  }
+  .preview-box img { image-rendering: pixelated; }
+  .mc-slot {
+    width: 64px; height: 64px; background: #8b8b8b; 
+    border: 3px solid; border-color: #555 #fff #fff #555;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+  }
+  .mc-slot img { image-rendering: pixelated; width: 48px; height: 48px; }
+  .label { font-size: 12px; color: #aaa; margin-top: 8px; }
+  .palette { display: flex; gap: 4px; margin-top: 10px; justify-content: center; }
+  .swatch { width: 20px; height: 20px; border: 1px solid #555; border-radius: 3px; }
+  .files { 
+    background: #0d0d1a; padding: 16px 24px; border-radius: 8px; 
+    font-family: monospace; font-size: 12px; color: #7a7; margin-top: 20px;
+    text-align: left; line-height: 1.6;
+  }
+  .check { color: #5a5; }
+</style>
+</head>
+<body>
+  <h1>Mage's Sceptre</h1>
+  <div class="subtitle">Ironhold Mod &mdash; Arcane/Purple &mdash; Moderately Ornate</div>
+  
+  <div class="preview-row">
+    <div class="preview-box">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAElElEQVR4nO3csWtedRSAYSPdBHEQlEa6VQpuAUEEBRe7OrqIDo7FrkIHVxcHITg51K0IQkAhCIpDQQuW4BII3yBSYvkiQZzELf4PPYHL5X2e/fT7EcrLWe7ZeYpV+2H/9GIyf/Lro9Hv3/rq9Z3RP8Cinl76AcByBADCBADCBADCBADCBADCBADCBADCBADCBADCBADCBADCBADCBADCBADCriz9gLr9938efc9//c3dy3rKE/nweH/0/i8f3nJPYEE2AAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAhzD2BhN169Npr/9rNfRvO/HR+N5jfbB6N5lmUDgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDD3ABZ27+7BaP7dD94ZzX/94xej+fN/t6N5lmUDgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDD3AIb+O/34YjL/9msPRr9/7+5ofPHv+b///OXR3+/m7c3OZb2lyAYAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYQIAYb6lXtjp/bdG38MfH/05+v2Dw7PR/J07e6P5l974yf/BBdkAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIEwAIOzK0g+om37P/8re7mh+eg9g+n6WZQOAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMAGAMPcAFnbz9mZnMn96f/fist7yJKbvZ1k2AAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAgTAAhzD2DlPvr0+mh+e/7M8AXfDedZkg0AwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwgQAwtwDWLnt2ePR/Pnf20t6CWtkA4AwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAwAYAw9wBW7sUXro7m3QNoswFAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmHsAK7c9e7z0E1gxGwCECQCECQCECQCECQCECQCECQCECQCECQCECQCECQCECQCECQCECQCECQCEuQewcp+8txnNHxyejeY3v4/GWZgNAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMIEAMLcA1i5bw6fHc0fnfxzOQ9hlWwAECYAECYAECYAECYAECYAECYAECYAECYAECYAECYAECYAECYAECYAECYAEOYewModnTwaze/duDaaf/jHX6N5lmUDgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDABgDD3AFbu6vPPjean9wRYNxsAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhAkAhP0PVk1lqYoI3xsAAAAASUVORK5CYII=" width="256" height="256">
+      <div class="label">256x (texture detail view)</div>
+    </div>
+    <div class="preview-box">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACuUlEQVR4nO3dsUvUYRjA8Qy3QBqCQsXNENoOghAKWnJtdJEaGqXWwKHVpSE4mhxskyAQCkRQGgQNkqPl4LghQq444xCnaKv/4HmTO7r3fb/fz/rgj5f48sLv6VdOXKrcXrP3J5p3Pp+EP7/6ZnFipAfKzOVxH0DjZQBwBgBnAHAGAGcAcAYANznuAwyr+egwfM+fvzcz1POftJvh8zeOV4veE3gDwBkAnAHAGQCcAcAZAJwBwBW/B1i4PRfO3788Cudf2q1w3u1/uvCZSuINAGcAcAYAZwBwBgBnAHAGAFf8HmBrczucLz9+GM7f7r8O54Nf/QueqCzeAHAGAGcAcAYAZwBwBgBnAHDZ7wF+956H3+U/uBP/ff3WZvz8Yd/zd1/dDM+39Kyb9b8b8AaAMwA4A4AzADgDgDMAOAOAy/od9V/0Du6H7+Ht1vfw57d3TsP52lojnM/e/Vj0n6E3AJwBwBkAnAHAGQCcAcAZAFz23wOkpN7zbzXi/ycwtQdIPb903gBwBgBnAHAGAGcAcAYAZwBwxe8BUt/d9w5mwu8Fhn1+6bwB4AwAzgDgDADOAOAMAM4A4IrfA6Q8XZ8P5/3BlcQTPozuMBnyBoAzADgDgDMAOAOAMwA4A4Crfg/QP/0Rzgdndf8+gBRvADgDgDMAOAOAMwA4A4AzALjq9wA3rk+Hc/cAQjMAOAOAMwA4A4AzADgDgKt+D5D6HoDOGwDOAOAMAM4A4AwAzgDgDACu+j3Ai5VuOE/9voDu11GeJj/eAHAGAGcAcAYAZwBwBgBnAHDV7wHe7UyF81bn/P8cJFPeAHAGAGcAcAYAZwBwBgBnAHDV7wFanZNw3liYC+fH336O8jjZ8QaAMwA4A4AzADgDgDMAOAOAq34PMH3tajhP7Qlq5w0AZwBwBgBnAHAGAGcAcAYA9xc1AWSpvXQEPQAAAABJRU5ErkJggg==" width="128" height="128">
+      <div class="label">128x (in-game scale)</div>
+    </div>
+    <div class="preview-box">
+      <div class="mc-slot">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAACuUlEQVR4nO3dsUvUYRjA8Qy3QBqCQsXNENoOghAKWnJtdJEaGqXWwKHVpSE4mhxskyAQCkRQGgQNkqPl4LghQq444xCnaKv/4HmTO7r3fb/fz/rgj5f48sLv6VdOXKrcXrP3J5p3Pp+EP7/6ZnFipAfKzOVxH0DjZQBwBgBnAHAGAGcAcAYANznuAwyr+egwfM+fvzcz1POftJvh8zeOV4veE3gDwBkAnAHAGQCcAcAZAJwBwBW/B1i4PRfO3788Cudf2q1w3u1/uvCZSuINAGcAcAYAZwBwBgBnAHAGAFf8HmBrczucLz9+GM7f7r8O54Nf/QueqCzeAHAGAGcAcAYAZwBwBgBnAHDZ7wF+956H3+U/uBP/ff3WZvz8Yd/zd1/dDM+39Kyb9b8b8AaAMwA4A4AzADgDgDMAOAOAy/od9V/0Du6H7+Ht1vfw57d3TsP52lojnM/e/Vj0n6E3AJwBwBkAnAHAGQCcAcAZAFz23wOkpN7zbzXi/ycwtQdIPb903gBwBgBnAHAGAGcAcAYAZwBwxe8BUt/d9w5mwu8Fhn1+6bwB4AwAzgDgDADOAOAMAM4A4IrfA6Q8XZ8P5/3BlcQTPozuMBnyBoAzADgDgDMAOAOAMwA4A4Crfg/QP/0Rzgdndf8+gBRvADgDgDMAOAOAMwA4A4AzALjq9wA3rk+Hc/cAQjMAOAOAMwA4A4AzADgDgKt+D5D6HoDOGwDOAOAMAM4A4AwAzgDgDACu+j3Ai5VuOE/9voDu11GeJj/eAHAGAGcAcAYAZwBwBgBnAHDV7wHe7UyF81bn/P8cJFPeAHAGAGcAcAYAZwBwBgBnAHDV7wFanZNw3liYC+fH336O8jjZ8QaAMwA4A4AzADgDgDMAOAOAq34PMH3tajhP7Qlq5w0AZwBwBgBnAHAGAGcAcAYA9xc1AWSpvXQEPQAAAABJRU5ErkJggg==">
+      </div>
+      <div class="label">Inventory slot</div>
+    </div>
+  </div>
+
+  <h2>Color Palette</h2>
+  <div style="display: flex; gap: 30px;">
+    <div>
+      <div class="label">Crystal</div>
+      <div class="palette">
+        <div class="swatch" style="background:#2a1244"></div>
+        <div class="swatch" style="background:#3e1c5c"></div>
+        <div class="swatch" style="background:#643494"></div>
+        <div class="swatch" style="background:#945fc6"></div>
+        <div class="swatch" style="background:#bc94e4"></div>
+        <div class="swatch" style="background:#e1d2ff"></div>
+      </div>
+    </div>
+    <div>
+      <div class="label">Gold</div>
+      <div class="palette">
+        <div class="swatch" style="background:#69480f"></div>
+        <div class="swatch" style="background:#b99126"></div>
+        <div class="swatch" style="background:#e4c341"></div>
+        <div class="swatch" style="background:#f8e478"></div>
+      </div>
+    </div>
+    <div>
+      <div class="label">Shaft</div>
+      <div class="palette">
+        <div class="swatch" style="background:#262234"></div>
+        <div class="swatch" style="background:#3a344c"></div>
+        <div class="swatch" style="background:#524b66"></div>
+      </div>
+    </div>
+    <div>
+      <div class="label">Grip</div>
+      <div class="palette">
+        <div class="swatch" style="background:#342016"></div>
+        <div class="swatch" style="background:#4e3426"></div>
+        <div class="swatch" style="background:#664834"></div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Design Breakdown</h2>
+  <div style="max-width: 500px; text-align: left; line-height: 1.8; font-size: 13px;">
+    <strong style="color:#c9a0f0">Crystal tip</strong> (rows 0-4): Purple amethyst with specular highlight upper-left, 4 shades with hue shift from deep blue-violet to lavender.<br>
+    <strong style="color:#daa520">Gold setting</strong> (rows 4-7): Prongs flanking the crystal, ornate band, and ferrule. 4 shades from warm brown to bright yellow.<br>
+    <strong style="color:#524b66">Iron shaft</strong> (rows 8-11): Cool purple-grey with alternating light/dark for subtle texture. 3 shades.<br>
+    <strong style="color:#daa520">Lower ferrule</strong> (row 12): Gold band separating shaft from grip.<br>
+    <strong style="color:#664834">Leather grip</strong> (rows 13-15): Diagonal wrap pattern (light alternates left/right) for visual interest. 3 shades.
+  </div>
+
+  <h2>3D Model Structure</h2>
+  <div style="max-width: 500px; text-align: left; line-height: 1.8; font-size: 13px;">
+    <strong>9 elements total:</strong> grip (2x3x2), lower ferrule (2x1x2), iron shaft (2x4x2), upper ferrule (2x1x2), 
+    gold head frame (4x2x4), left prong (1x2x1), right prong (1x2x1), crystal body (4x4x4), crystal tip (2x1x2).
+    <br><br>
+    Parent: <code>minecraft:item/handheld</code> &mdash; standard held-item transforms with custom display overrides for all 8 contexts.
+  </div>
+
+  <h2>Files Created</h2>
+  <div class="files">
+    <span class="check">&#10003;</span> assets/ironhold/textures/item/mages_sceptre.png <span style="color:#555">(16x16 RGBA)</span><br>
+    <span class="check">&#10003;</span> assets/ironhold/models/item/mages_sceptre.json <span style="color:#555">(3D model, 9 elements)</span><br>
+    <span class="check">&#10003;</span> assets/ironhold/items/mages_sceptre.json <span style="color:#555">(item definition)</span><br>
+    <span class="check">&#10003;</span> assets/ironhold/lang/en_us.json <span style="color:#555">(added "Mage's Sceptre" entry)</span>
+  </div>
+</body>
+</html>

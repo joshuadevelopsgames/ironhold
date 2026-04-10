@@ -1,9 +1,12 @@
 package kingdom.smp.entity;
 
+import kingdom.smp.Ironhold;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.allay.Allay;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * A dark purple variant of the Allay, native to the Ebonwood Hollow biome.
@@ -15,15 +18,30 @@ public class PurpleAllayEntity extends Allay {
         super(type, level);
     }
 
-    /** Glow effect — renders with full brightness like enderman eyes. */
-    @Override
-    public boolean isCurrentlyGlowing() {
-        return true;
-    }
-
     @Override
     public void aiStep() {
         super.aiStep();
+
+        // Biome boundary check — nudge back toward ebonwood every 40 ticks
+        if (!level().isClientSide() && tickCount % 40 == 0) {
+            if (!level().getBiome(blockPosition()).is(Ironhold.EBONWOOD_HOLLOW)) {
+                // Find nearest ebonwood direction and fly back
+                BlockPos pos = blockPosition();
+                for (int dist = 8; dist <= 16; dist += 8) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            if (dx == 0 && dz == 0) continue;
+                            BlockPos check = pos.offset(dx * dist, 0, dz * dist);
+                            if (level().getBiome(check).is(Ironhold.EBONWOOD_HOLLOW)) {
+                                Vec3 target = Vec3.atCenterOf(check);
+                                getNavigation().moveTo(target.x, target.y, target.z, 1.0);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         // Spawn occasional purple particles on both client and server
         if (level().isClientSide() && tickCount % 8 == 0) {

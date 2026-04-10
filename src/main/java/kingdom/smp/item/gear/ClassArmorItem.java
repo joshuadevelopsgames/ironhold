@@ -45,6 +45,7 @@ public class ClassArmorItem extends Item {
             case CLERIC  -> ChatFormatting.GOLD;
             case WIZARD  -> ChatFormatting.LIGHT_PURPLE;
             case PEASANT -> ChatFormatting.WHITE;
+            default -> ChatFormatting.WHITE;
         };
     }
 

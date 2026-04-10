@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "half=lower": { "model": "ironhold:block/bat_flower" },
+    "half=upper": { "model": "ironhold:block/bat_flower_top" }
+  }
+}

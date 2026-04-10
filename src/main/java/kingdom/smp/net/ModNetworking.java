@@ -7,8 +7,11 @@ import kingdom.smp.accessory.AccessoryMenu;
 import kingdom.smp.client.VanityCache;
 import kingdom.smp.client.VillagerDialogueCache;
 import kingdom.smp.entity.MagicMinecartEntity;
+import kingdom.smp.game.ClassStatHandler;
 import kingdom.smp.game.CloudDoubleJumpHandler;
 import kingdom.smp.game.EncumbranceHandler;
+import kingdom.smp.game.RpgXpBarSync;
+import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import kingdom.smp.rpg.RpgProgression;
@@ -108,6 +111,7 @@ public final class ModNetworking {
 
     public static void syncToClient(ServerPlayer player) {
         PlayerKingdomRpgData rpg = player.getData(ModAttachments.PLAYER_RPG.get());
+        CompletedClasses completed = player.getData(ModAttachments.COMPLETED_CLASSES.get());
         int weight = EncumbranceHandler.weightFor(player);
         int maxWeight = rpg.playerClass().maxCarryWeight();
         int xpToNext = RpgProgression.xpToReachNextLevel(rpg.classLevel());
@@ -118,7 +122,8 @@ public final class ModNetworking {
             rpg.xpIntoLevel(),
             xpToNext,
             weight,
-            maxWeight);
+            maxWeight,
+            completed.classOrdinals());
         PacketDistributor.sendToPlayer(player, payload);
     }
 
@@ -132,20 +137,52 @@ public final class ModNetworking {
             return;
         }
         PlayerKingdomRpgData cur = player.getData(ModAttachments.PLAYER_RPG.get());
-        if (cur.playerClass() != PlayerClass.PEASANT) {
+        PlayerClass currentClass = cur.playerClass();
+        CompletedClasses completed = player.getData(ModAttachments.COMPLETED_CLASSES.get());
+
+        // ── Validate the promotion ───────────────────────────────────────────
+        // 1) Player must have reached the promotion level for their current tier
+        int promoLevel = RpgProgression.promotionLevelForTier(currentClass.tier());
+        if (promoLevel > 0 && cur.classLevel() < promoLevel) {
+            return; // not high enough level yet
+        }
+
+        // 2) Chosen class must be exactly one tier above current (or Tier 1 for Peasant)
+        int expectedTier = currentClass.tier() + 1;
+        if (chosen.tier() != expectedTier) {
             return;
         }
-        PlayerKingdomRpgData next = new PlayerKingdomRpgData(cur.kingdomIndex(), chosen.ordinal(), 1, 0);
+
+        // 3) Prerequisites must be met: current class counts as completed + all prior completions
+        CompletedClasses withCurrent = completed.withCompleted(currentClass);
+        if (!chosen.canUnlock(withCurrent.asSet())) {
+            return; // prerequisites not met
+        }
+
+        // ── Apply the promotion ──────────────────────────────────────────────
+        // Mark current class as completed
+        player.setData(ModAttachments.COMPLETED_CLASSES.get(), withCurrent);
+
+        // Switch to new class, reset to level 1
+        PlayerKingdomRpgData next = new PlayerKingdomRpgData(
+            cur.kingdomIndex(), chosen.ordinal(), 1, 0);
         player.setData(ModAttachments.PLAYER_RPG.get(), next);
+        ClassStatHandler.apply(player, next);
+        RpgXpBarSync.sync(player, next);
         syncToClient(player);
 
+        // ── Broadcast ────────────────────────────────────────────────────────
         var server = player.level().getServer();
         if (server != null) {
+            String verb = currentClass == PlayerClass.PEASANT
+                ? " has answered the call of the "
+                : " has ascended to ";
             server.getPlayerList().broadcastSystemMessage(
-                Component.literal("\u00A76" + player.getName().getString() + " has answered the call of the " + chosen.id() + "."),
+                Component.literal("\u00A76" + player.getName().getString() + verb + chosen.id() + "."),
                 false);
         }
-        Ironhold.LOGGER.info("{} chose class {}", player.getName().getString(), chosen.id());
+        Ironhold.LOGGER.info("{} promoted from {} to {}",
+            player.getName().getString(), currentClass.id(), chosen.id());
     }
 
     private static void handleKingdomChoice(ServerPlayer player, KingdomChoicePayload payload) {

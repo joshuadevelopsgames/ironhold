@@ -137,6 +137,7 @@ public final class ClassXpKillRewards {
             case WIZARD -> 9;
             case CLERIC -> 8;
             case PEASANT -> 5;
+            default -> 10;
         };
     }
 

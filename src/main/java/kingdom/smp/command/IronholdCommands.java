@@ -152,6 +152,51 @@ public final class IronholdCommands {
             .register(Commands.literal("s")
                 .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
                 .executes(ctx -> setSelfGameMode(ctx.getSource(), GameType.SURVIVAL)));
+
+        // /dimension <overworld|nether|end> — teleport between dimensions
+        SuggestionProvider<CommandSourceStack> dimSuggestions = (ctx, builder) -> {
+            for (String d : new String[]{"overworld", "nether", "end"}) {
+                if (d.startsWith(builder.getRemaining().toLowerCase())) builder.suggest(d);
+            }
+            return builder.buildFuture();
+        };
+        event.getDispatcher()
+            .register(Commands.literal("dimension")
+                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
+                .then(Commands.argument("dim", StringArgumentType.word())
+                    .suggests(dimSuggestions)
+                    .executes(ctx -> switchDimension(ctx.getSource(),
+                        StringArgumentType.getString(ctx, "dim")))));
+    }
+
+    private static int switchDimension(CommandSourceStack src, String dim) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        var targetKey = switch (dim.toLowerCase()) {
+            case "overworld" -> Level.OVERWORLD;
+            case "nether", "the_nether" -> Level.NETHER;
+            case "end", "the_end" -> Level.END;
+            default -> null;
+        };
+        if (targetKey == null) {
+            src.sendFailure(Component.literal("Unknown dimension: " + dim + ". Use overworld, nether, or end."));
+            return 0;
+        }
+        ServerLevel targetLevel = player.level().getServer().getLevel(targetKey);
+        if (targetLevel == null) {
+            src.sendFailure(Component.literal("Dimension not loaded: " + dim));
+            return 0;
+        }
+        if (player.level().dimension() == targetKey) {
+            src.sendFailure(Component.literal("Already in " + dim + "."));
+            return 0;
+        }
+        player.teleportTo(targetLevel, player.getX(), player.getY(), player.getZ(),
+            java.util.Set.of(), player.getYRot(), player.getXRot(), false);
+        src.sendSuccess(() -> Component.literal("Teleported to " + dim + "."), true);
+        return 1;
     }
 
     private static int spawnVillager(CommandSourceStack src, String professionId) {

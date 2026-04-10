@@ -1,0 +1,44 @@
+{
+  "ambient.ebonwood_hollow": {
+    "sounds": [
+      {
+        "name": "ironhold:ambient/ebonwood_hollow",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.ironhold.ambient.ebonwood_hollow"
+  },
+  "entity.pink_deer.ambient": {
+    "sounds": [
+      "ironhold:entity/pink_deer/ambient1"
+    ],
+    "subtitle": "subtitles.ironhold.entity.pink_deer.ambient"
+  },
+  "entity.pink_deer.hurt": {
+    "sounds": [
+      {
+        "name": "ironhold:entity/pink_deer/hurt_1",
+        "pitch": 1.3
+      }
+    ],
+    "subtitle": "subtitles.ironhold.entity.pink_deer.hurt"
+  },
+  "entity.pink_deer.death": {
+    "sounds": [
+      {
+        "name": "ironhold:entity/pink_deer/death1",
+        "pitch": 0.8
+      }
+    ],
+    "subtitle": "subtitles.ironhold.entity.pink_deer.death"
+  },
+  "entity.pink_deer.mom.hurt": {
+    "sounds": [
+      {
+        "name": "ironhold:entity/pink_deer/hurt_mom_1",
+        "pitch": 0.55
+      }
+    ],
+    "subtitle": "subtitles.ironhold.entity.pink_deer.mom.hurt"
+  }
+}

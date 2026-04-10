@@ -61,6 +61,7 @@ public final class ClassInfoHud {
             case CLERIC -> 0xFFFFDD55;
             case ROGUE -> 0xFFAA3333;
             case PEASANT -> 0xFF888888;
+            default -> 0xFFFFFFFF;
         };
     }
 }
