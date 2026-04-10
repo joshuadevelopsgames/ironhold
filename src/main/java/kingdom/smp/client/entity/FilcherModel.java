@@ -76,9 +76,10 @@ public class FilcherModel extends ZombieModel<FilcherRenderState> {
 
         // ── Arms ─────────────────────────────────────────────────────────────
         // Right arm: BB pivot [4, 8, 0], rot [-8.59deg, 0, 2.86deg]
+        // UV moved to (48, 12) to avoid overlap with hat/crown overlay at (24, 0)
         root.addOrReplaceChild("right_arm",
             CubeListBuilder.create()
-                .texOffs(24, 0)
+                .texOffs(48, 12)
                 .addBox(-2.0F, -1.0F, -1.0F, 2, 7, 2, CubeDeformation.NONE),
             PartPose.offsetAndRotation(-4.0F, 16.0F, 0.0F, 0.15F, 0.0F, 0.05F));
 
