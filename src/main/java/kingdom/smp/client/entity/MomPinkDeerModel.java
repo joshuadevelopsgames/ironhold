@@ -79,19 +79,17 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         PartDefinition root = mesh.getRoot();
 
         // Geometry from "Mother Deer COMPLETED - Converted.geo.json"
-        // All cubes converted from Bedrock coords (pivot at 8,0,-8) to entity model coords.
-        // Bedrock Y=0 is ground, entity Y=24 is ground. Entity Y is inverted.
-        // Bedrock X is offset by +8 from center, Z offset by -8.
+        // UV offsets from the geo.json. Dimensions kept as exact floats — MC uses
+        // exact float UV coordinates (confirmed from bytecode), matching Blockbench's layout.
 
-        // Body pivot at y=8.25 so body bottom (y=12) meets leg tops.
-        // addBox extends 0.01 past y=12 to eliminate sub-pixel seam with legs.
+        // Body: 9×7.5×15 uv(0,0). Pivot lowered so body bottom meets leg tops at y=12.
         PartDefinition body = root.addOrReplaceChild("body",
             CubeListBuilder.create()
                 .texOffs(0, 0)
-                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.76F, 15, CubeDeformation.NONE),
+                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.5F, 15, CubeDeformation.NONE),
             PartPose.offset(0.0F, 8.25F, 0.0F));
 
-        // Neck: attaches to body top, original offset relative to body
+        // Neck: 4.5×7.5×4.5 uv(26,22). Attaches to body front-top.
         PartDefinition neck = body.addOrReplaceChild("neck",
             CubeListBuilder.create()
                 .texOffs(26, 22)
@@ -99,8 +97,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             PartPose.offsetAndRotation(0.0F, -2.25F, -6.75F,
                 -0.2F, 0.0F, 0.0F));
 
-        // Head: origin(5, 28.5, -20.75) size(6, 6, 7.5) uv(0, 22)
-        // pivot(8, 30, -14.75) rot(-8.59, 0, 0) → entity rot(0.15, 0, 0)
+        // Head: 6×6×7.5 uv(0,22)
         PartDefinition head = neck.addOrReplaceChild("head",
             CubeListBuilder.create()
                 .texOffs(0, 22)
@@ -108,15 +105,14 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             PartPose.offsetAndRotation(0.0F, -7.5F, 0.0F,
                 0.15F, 0.0F, 0.0F));
 
-        // Nose: origin(6.5, 29.25, -25.25) size(3, 3, 4.5) uv(42, 22)
+        // Nose: 3×3×4.5 uv(42,22)
         head.addOrReplaceChild("nose",
             CubeListBuilder.create()
                 .texOffs(42, 22)
                 .addBox(-1.5F, -1.5F, -4.5F, 3, 3, 4.5F, CubeDeformation.NONE),
             PartPose.offset(0.0F, -0.75F, -6.0F));
 
-        // Right ear: origin(11, 34.5, -16.25) size(1.5, 4.5, 3) uv(48, 0)
-        // pivot(10.25, 34.5, -16.25) rot(0, 0, -20.05) → entity rot(0, 0, -0.35)
+        // Right ear: 1.5×4.5×3 uv(48,0)
         head.addOrReplaceChild("right_ear",
             CubeListBuilder.create()
                 .texOffs(48, 0)
@@ -124,8 +120,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             PartPose.offsetAndRotation(-2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, -0.35F));
 
-        // Left ear: origin(3.5, 34.5, -16.25) size(1.5, 4.5, 3) uv(48, 7)
-        // pivot(5.75, 34.5, -16.25) rot(0, 0, 20.05) → entity rot(0, 0, 0.35)
+        // Left ear: 1.5×4.5×3 uv(48,7)
         head.addOrReplaceChild("left_ear",
             CubeListBuilder.create()
                 .texOffs(48, 7)
@@ -133,9 +128,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             PartPose.offsetAndRotation(2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, 0.35F));
 
-        // Tail: origin(7.25, 21, -0.5) size(1.5, 4.5, 1.5) uv(48, 14)
-        // pivot(8, 21, -0.5) rot(-34.38, 0, 0) → entity rot(0.6, 0, 0)
-        // Tail: attaches to body back, original offset relative to body
+        // Tail: 1.5×4.5×1.5 uv(48,14)
         body.addOrReplaceChild("tail",
             CubeListBuilder.create()
                 .texOffs(48, 14)
@@ -143,28 +136,25 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             PartPose.offsetAndRotation(0.0F, -0.75F, 7.5F,
                 0.6F, 0.0F, 0.0F));
 
-        // Right front leg: origin(9.5, 0, -14.75) size(3, 12, 3) uv(26, 33)
+        // Legs: 3×12×3 (integers)
         root.addOrReplaceChild("right_front_leg",
             CubeListBuilder.create()
                 .texOffs(26, 33)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(-3.0F, 12.0F, -5.25F));
 
-        // Left front leg: origin(3.5, 0, -14.75) size(3, 12, 3) uv(0, 35)
         root.addOrReplaceChild("left_front_leg",
             CubeListBuilder.create()
                 .texOffs(0, 35)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(3.0F, 12.0F, -5.25F));
 
-        // Right back leg: origin(9.5, 0, -4.25) size(3, 12, 3) uv(12, 35)
         root.addOrReplaceChild("right_back_leg",
             CubeListBuilder.create()
                 .texOffs(12, 35)
                 .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
             PartPose.offset(-3.0F, 12.0F, 5.25F));
 
-        // Left back leg: origin(3.5, 0, -4.25) size(3, 12, 3) uv(38, 33)
         root.addOrReplaceChild("left_back_leg",
             CubeListBuilder.create()
                 .texOffs(38, 33)
