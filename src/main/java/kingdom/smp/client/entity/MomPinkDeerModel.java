@@ -47,6 +47,10 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
     private final ModelPart rightEar;
     private final ModelPart leftEar;
 
+    // Inflate cubes by 0.3 on each side — closes sub-pixel gaps from float
+    // dimensions without affecting UV mapping (CubeDeformation only grows geometry).
+    private static final CubeDeformation GROW = new CubeDeformation(0.3F);
+
     public MomPinkDeerModel(ModelPart root) {
         super(root);
         this.body          = root.getChild("body");
@@ -86,14 +90,14 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         PartDefinition body = root.addOrReplaceChild("body",
             CubeListBuilder.create()
                 .texOffs(0, 0)
-                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.5F, 15, CubeDeformation.NONE),
+                .addBox(-4.5F, -3.75F, -7.5F, 9, 7.5F, 15, GROW),
             PartPose.offset(0.0F, 8.25F, 0.0F));
 
         // Neck: 4.5×7.5×4.5 uv(26,22). Attaches to body front-top.
         PartDefinition neck = body.addOrReplaceChild("neck",
             CubeListBuilder.create()
                 .texOffs(26, 22)
-                .addBox(-2.25F, -7.5F, -2.25F, 4.5F, 7.5F, 4.5F, CubeDeformation.NONE),
+                .addBox(-2.25F, -7.5F, -2.25F, 4.5F, 7.5F, 4.5F, GROW),
             PartPose.offsetAndRotation(0.0F, -2.25F, -6.75F,
                 -0.2F, 0.0F, 0.0F));
 
@@ -101,7 +105,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         PartDefinition head = neck.addOrReplaceChild("head",
             CubeListBuilder.create()
                 .texOffs(0, 22)
-                .addBox(-3.0F, -4.5F, -6.0F, 6, 6, 7.5F, CubeDeformation.NONE),
+                .addBox(-3.0F, -4.5F, -6.0F, 6, 6, 7.5F, GROW),
             PartPose.offsetAndRotation(0.0F, -7.5F, 0.0F,
                 0.15F, 0.0F, 0.0F));
 
@@ -109,14 +113,14 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         head.addOrReplaceChild("nose",
             CubeListBuilder.create()
                 .texOffs(42, 22)
-                .addBox(-1.5F, -1.5F, -4.5F, 3, 3, 4.5F, CubeDeformation.NONE),
+                .addBox(-1.5F, -1.5F, -4.5F, 3, 3, 4.5F, GROW),
             PartPose.offset(0.0F, -0.75F, -6.0F));
 
         // Right ear: 1.5×4.5×3 uv(48,0)
         head.addOrReplaceChild("right_ear",
             CubeListBuilder.create()
                 .texOffs(48, 0)
-                .addBox(-2.25F, -4.5F, 0.0F, 1.5F, 4.5F, 3, CubeDeformation.NONE),
+                .addBox(-2.25F, -4.5F, 0.0F, 1.5F, 4.5F, 3, GROW),
             PartPose.offsetAndRotation(-2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, -0.35F));
 
@@ -124,7 +128,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         head.addOrReplaceChild("left_ear",
             CubeListBuilder.create()
                 .texOffs(48, 7)
-                .addBox(0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 3, CubeDeformation.NONE),
+                .addBox(0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 3, GROW),
             PartPose.offsetAndRotation(2.25F, -4.5F, -1.5F,
                 0.0F, 0.0F, 0.35F));
 
@@ -132,7 +136,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         body.addOrReplaceChild("tail",
             CubeListBuilder.create()
                 .texOffs(48, 14)
-                .addBox(-0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 1.5F, CubeDeformation.NONE),
+                .addBox(-0.75F, -4.5F, 0.0F, 1.5F, 4.5F, 1.5F, GROW),
             PartPose.offsetAndRotation(0.0F, -0.75F, 7.5F,
                 0.6F, 0.0F, 0.0F));
 
@@ -140,25 +144,25 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
         root.addOrReplaceChild("right_front_leg",
             CubeListBuilder.create()
                 .texOffs(26, 33)
-                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
+                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, GROW),
             PartPose.offset(-3.0F, 12.0F, -5.25F));
 
         root.addOrReplaceChild("left_front_leg",
             CubeListBuilder.create()
                 .texOffs(0, 35)
-                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
+                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, GROW),
             PartPose.offset(3.0F, 12.0F, -5.25F));
 
         root.addOrReplaceChild("right_back_leg",
             CubeListBuilder.create()
                 .texOffs(12, 35)
-                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
+                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, GROW),
             PartPose.offset(-3.0F, 12.0F, 5.25F));
 
         root.addOrReplaceChild("left_back_leg",
             CubeListBuilder.create()
                 .texOffs(38, 33)
-                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, CubeDeformation.NONE),
+                .addBox(-1.5F, 0.0F, -1.5F, 3, 12, 3, GROW),
             PartPose.offset(3.0F, 12.0F, 5.25F));
 
         return LayerDefinition.create(mesh, 64, 64);
