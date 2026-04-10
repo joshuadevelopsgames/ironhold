@@ -51,11 +51,9 @@ public class FilcherKingModel extends ZombieModel<FilcherRenderState> {
                 .addBox(-6.0F, -2.0F, -4.0F, 1, 4, 1, CubeDeformation.NONE),
             PartPose.rotation(0.0F, 0.0F, (float)(Math.PI / 2)));
 
-        // Hat/crown overlay: 6x6x6 inflated 1.5 — uv(24,0)
+        // Empty hat — ZombieModel expects this child to exist
         head.addOrReplaceChild("hat",
-            CubeListBuilder.create()
-                .texOffs(24, 0)
-                .addBox(-3.0F, -6.0F, -3.0F, 6, 6, 6, new CubeDeformation(1.5F)),
+            CubeListBuilder.create(),
             PartPose.ZERO);
 
         // Body: pivot(0, 9, 0), rot(-4.58deg → 0.08 rad)
