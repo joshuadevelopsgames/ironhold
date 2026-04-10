@@ -134,7 +134,7 @@ public class MomPinkDeerModel extends EntityModel<LivingEntityRenderState> {
             CubeListBuilder.create()
                 .texOffs(48, 14)
                 .addBox(-0.5F, -4.0F, 0.0F, 1, 4, 1, CubeDeformation.NONE),
-            PartPose.offsetAndRotation(0.0F, -1.0F, 7.5F,
+            PartPose.offsetAndRotation(0.0F, -1.0F, 8.5F,
                 0.6F, 0.0F, 0.0F));
 
         // Legs: 3×12×3 (already integers)
