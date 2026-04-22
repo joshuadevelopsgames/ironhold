@@ -20,12 +20,16 @@ import kingdom.smp.entity.TempestArrowEntity;
 import kingdom.smp.entity.ArcaneMageEntity;
 import kingdom.smp.entity.FilcherEntity;
 import kingdom.smp.entity.KingdomVillagerEntity;
+import kingdom.smp.entity.WardenHalricEntity;
 import kingdom.smp.entity.MomPinkDeerEntity;
 import kingdom.smp.entity.PinkDeerEntity;
 import kingdom.smp.entity.RarePinkDeerEntity;
 import kingdom.smp.entity.PurpleAllayEntity;
+import kingdom.smp.entity.WillOWispEntity;
+import kingdom.smp.entity.WillOWisp2Entity;
 import kingdom.smp.entity.VoidInvokerEntity;
 import kingdom.smp.entity.BabyMimicEntity;
+import kingdom.smp.entity.MiniDragonEntity;
 import kingdom.smp.entity.MimicEntity;
 import kingdom.smp.entity.NullStalkerEntity;
 import kingdom.smp.game.AccessoryTickHandler;
@@ -286,6 +290,30 @@ public class Ironhold {
             "purple_allay_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(PURPLE_ALLAY.get()).stacksTo(64)));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<WillOWispEntity>> WILL_O_WISP =
+        ENTITY_TYPES.registerEntityType(
+            "will_o_wisp",
+            WillOWispEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.35F, 0.6F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredItem<Item> WILL_O_WISP_SPAWN_EGG =
+        ITEMS.registerItem(
+            "will_o_wisp_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(WILL_O_WISP.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WillOWisp2Entity>> WILL_O_WISP_2 =
+        ENTITY_TYPES.registerEntityType(
+            "will_o_wisp_2",
+            WillOWisp2Entity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.35F, 0.6F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredItem<Item> WILL_O_WISP_2_SPAWN_EGG =
+        ITEMS.registerItem(
+            "will_o_wisp_2_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(WILL_O_WISP_2.get()).stacksTo(64)));
+
     public static final DeferredHolder<EntityType<?>, EntityType<KingdomVillagerEntity>> KINGDOM_VILLAGER =
         ENTITY_TYPES.registerEntityType(
             "kingdom_villager",
@@ -297,6 +325,18 @@ public class Ironhold {
         ITEMS.registerItem(
             "kingdom_villager_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(KINGDOM_VILLAGER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WardenHalricEntity>> WARDEN_HALRIC =
+        ENTITY_TYPES.registerEntityType(
+            "warden_halric",
+            WardenHalricEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> WARDEN_HALRIC_SPAWN_EGG =
+        ITEMS.registerItem(
+            "warden_halric_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(WARDEN_HALRIC.get()).stacksTo(64)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<FilcherEntity>> FILCHER =
         ENTITY_TYPES.registerEntityType(
@@ -322,6 +362,19 @@ public class Ironhold {
         ITEMS.registerItem(
             "possessed_armor_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(POSSESSED_ARMOR.get()).stacksTo(64)));
+
+    // King Enderman — endgame raid boss, ~2x Iron Golem scale
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.KingEndermanEntity>> KING_ENDERMAN =
+        ENTITY_TYPES.registerEntityType(
+            "king_enderman",
+            kingdom.smp.entity.KingEndermanEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(3.0F, 5.5F).eyeHeight(4.9F).clientTrackingRange(12).updateInterval(3).fireImmune());
+
+    public static final DeferredItem<Item> KING_ENDERMAN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "king_enderman_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KING_ENDERMAN.get()).stacksTo(64)));
 
     // Siren — ocean mob that lures players with song
     public static final DeferredHolder<EntityType<?>, EntityType<SirenEntity>> SIREN =
@@ -372,6 +425,19 @@ public class Ironhold {
         ITEMS.registerItem(
             "baby_mimic_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(BABY_MIMIC.get()).stacksTo(64)));
+
+    // Mini Dragon — tiny tameable blue ender dragon pet
+    public static final DeferredHolder<EntityType<?>, EntityType<MiniDragonEntity>> MINI_DRAGON =
+        ENTITY_TYPES.registerEntityType(
+            "mini_dragon",
+            MiniDragonEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.75F, 0.6F).eyeHeight(0.45F).clientTrackingRange(10).updateInterval(2));
+
+    public static final DeferredItem<Item> MINI_DRAGON_SPAWN_EGG =
+        ITEMS.registerItem(
+            "mini_dragon_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(MINI_DRAGON.get()).stacksTo(64)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.GuillotineSeatEntity>> GUILLOTINE_SEAT_ENTITY =
         ENTITY_TYPES.registerEntityType(
@@ -508,6 +574,12 @@ public class Ironhold {
         "wraiths_sigil",
         kingdom.smp.item.WraithsSigilItem::new,
         props -> props.rarity(net.minecraft.world.item.Rarity.EPIC));
+
+    // Siren's Ring — accessory that lures a nearby target toward you
+    public static final DeferredItem<Item> SIRENS_RING = ITEMS.registerItem(
+        "sirens_ring",
+        kingdom.smp.item.SirensRingItem::new,
+        props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
 
 
     public static final DeferredItem<Item> MAGIC_MINECART_ITEM = ITEMS.registerItem(
@@ -915,7 +987,10 @@ public class Ironhold {
             .icon(() -> new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHERITE_SWORD))
             .displayItems((params, output) -> {
                 output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
+                output.accept(WARDEN_HALRIC_SPAWN_EGG.get());
                 output.accept(PURPLE_ALLAY_SPAWN_EGG.get());
+                output.accept(WILL_O_WISP_SPAWN_EGG.get());
+                output.accept(WILL_O_WISP_2_SPAWN_EGG.get());
                 output.accept(PINK_DEER_SPAWN_EGG.get());
                 output.accept(ARCANE_MAGE_SPAWN_EGG.get());
                 output.accept(FILCHER_SPAWN_EGG.get());
@@ -926,6 +1001,7 @@ public class Ironhold {
                 output.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
                 output.accept(MIMIC_SPAWN_EGG.get());
                 output.accept(BABY_MIMIC_SPAWN_EGG.get());
+                output.accept(MINI_DRAGON_SPAWN_EGG.get());
                 output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
                 output.accept(MOM_PINK_DEER_SPAWN_EGG.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
@@ -939,6 +1015,7 @@ public class Ironhold {
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
                 output.accept(WRAITHS_SIGIL.get());
+                output.accept(SIRENS_RING.get());
                 output.accept(VENGEFUL_HALBERD.get());
                 output.accept(ARMOR_POLISH.get());
                 output.accept(RAW_TANZANITE.get());
@@ -1033,12 +1110,17 @@ public class Ironhold {
         event.put(ARCANE_MAGE.get(), ArcaneMageEntity.createAttributes().build());
         event.put(FILCHER.get(), FilcherEntity.createAttributes().build());
         event.put(POSSESSED_ARMOR.get(), PossessedArmorEntity.createAttributes().build());
+        event.put(KING_ENDERMAN.get(), kingdom.smp.entity.KingEndermanEntity.createAttributes().build());
         event.put(SIREN.get(), SirenEntity.createAttributes().build());
         event.put(SHIPWRECK_MIMIC.get(), ShipwreckMimicEntity.createAttributes().build());
         event.put(MIMIC.get(), MimicEntity.createAttributes().build());
         event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
+        event.put(MINI_DRAGON.get(), MiniDragonEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
+        event.put(WARDEN_HALRIC.get(), WardenHalricEntity.createAttributes().build());
         event.put(PURPLE_ALLAY.get(), PurpleAllayEntity.createAttributes().build());
+        event.put(WILL_O_WISP.get(), WillOWispEntity.createAttributes().build());
+        event.put(WILL_O_WISP_2.get(), WillOWispEntity.createAttributes().build());
         event.put(PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
         event.put(RARE_PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
         event.put(MOM_PINK_DEER.get(), MomPinkDeerEntity.createAttributes().build());
@@ -1113,15 +1195,20 @@ public class Ironhold {
             event.accept(VOID_INVOKER_SPAWN_EGG.get());
             event.accept(NULL_STALKER_SPAWN_EGG.get());
             event.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
+            event.accept(WARDEN_HALRIC_SPAWN_EGG.get());
             event.accept(PURPLE_ALLAY_SPAWN_EGG.get());
+            event.accept(WILL_O_WISP_SPAWN_EGG.get());
+            event.accept(WILL_O_WISP_2_SPAWN_EGG.get());
             event.accept(PINK_DEER_SPAWN_EGG.get());
             event.accept(RARE_PINK_DEER_SPAWN_EGG.get());
             event.accept(MOM_PINK_DEER_SPAWN_EGG.get());
             event.accept(MIMIC_SPAWN_EGG.get());
             event.accept(BABY_MIMIC_SPAWN_EGG.get());
+            event.accept(MINI_DRAGON_SPAWN_EGG.get());
             event.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
             event.accept(SIREN_SPAWN_EGG.get());
             event.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
+            event.accept(KING_ENDERMAN_SPAWN_EGG.get());
         }
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(TEMPEST_BOW.get());
@@ -1136,6 +1223,7 @@ public class Ironhold {
             event.accept(BAND_OF_REGENERATION.get());
             event.accept(CLOUD_IN_A_BOTTLE.get());
             event.accept(MIMIC_KEY.get());
+            event.accept(SIRENS_RING.get());
         }
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {
             event.accept(TANZANITE_ORE_ITEM.get());

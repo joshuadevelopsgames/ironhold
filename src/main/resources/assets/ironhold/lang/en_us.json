@@ -73,6 +73,8 @@
   "item.ironhold.mimic_key": "Mimic Key",
   "entity.ironhold.baby_mimic": "Baby Mimic",
   "item.ironhold.baby_mimic_spawn_egg": "Baby Mimic Spawn Egg",
+  "entity.ironhold.mini_dragon": "Mini Dragon",
+  "item.ironhold.mini_dragon_spawn_egg": "Mini Dragon Spawn Egg",
 
   "ironhold.death.0": "%s didn't bounce.",
   "ironhold.death.1": "%s left this realm.",
@@ -206,11 +208,23 @@
   "item.ironhold.purple_allay_spawn_egg": "Purple Allay Spawn Egg",
   "entity.ironhold.kingdom_villager": "Kingdom Villager",
   "item.ironhold.kingdom_villager_spawn_egg": "Kingdom Villager Spawn Egg",
+  "entity.ironhold.warden_halric": "Warden Halric",
+  "item.ironhold.warden_halric_spawn_egg": "Warden Halric Spawn Egg",
   "item.ironhold.vengeful_halberd": "Vengeful Halberd",
   "item.ironhold.armor_polish": "Armor Polish",
   "item.ironhold.wraiths_sigil": "Wraith's Sigil",
+  "item.ironhold.sirens_ring": "Siren's Ring",
+  "key.ironhold.siren_lure": "Siren's Call",
+  "key.categories.ironhold": "Kingdom SMP",
   "entity.ironhold.siren": "Siren",
   "item.ironhold.siren_spawn_egg": "Siren Spawn Egg",
   "entity.ironhold.shipwreck_mimic": "Shipwreck Mimic",
-  "item.ironhold.shipwreck_mimic_spawn_egg": "Shipwreck Mimic Spawn Egg"
+  "item.ironhold.shipwreck_mimic_spawn_egg": "Shipwreck Mimic Spawn Egg",
+  "entity.ironhold.will_o_wisp": "Will-o'-the-Wisp",
+  "item.ironhold.will_o_wisp_spawn_egg": "Will-o'-the-Wisp Spawn Egg",
+  "entity.ironhold.will_o_wisp_2": "Will-o'-the-Wisp (Pixie)",
+  "item.ironhold.will_o_wisp_2_spawn_egg": "Will-o'-the-Wisp (Pixie) Spawn Egg",
+  "entity.ironhold.king_enderman": "King Enderman",
+  "item.ironhold.king_enderman_spawn_egg": "King Enderman Spawn Egg",
+  "subtitles.ironhold.music.minecraft_remix": "Minecraft Remix"
 }

@@ -9,6 +9,7 @@ import kingdom.smp.client.entity.ArcaneOrbRenderer;
 import kingdom.smp.client.entity.LunarOrbRenderer;
 import kingdom.smp.client.entity.PossessedArmorRenderer;
 import kingdom.smp.client.entity.ShipwreckMimicRenderer;
+import kingdom.smp.client.entity.ShipwreckMimicModel;
 import kingdom.smp.client.entity.SirenModel;
 import kingdom.smp.client.entity.SirenRenderer;
 import kingdom.smp.client.entity.SolarOrbRenderer;
@@ -17,6 +18,7 @@ import kingdom.smp.client.entity.FilcherRenderer;
 import kingdom.smp.client.entity.HexBoltRenderer;
 import kingdom.smp.client.entity.BabyMimicModel;
 import kingdom.smp.client.entity.BabyMimicRenderer;
+import kingdom.smp.client.entity.MiniDragonRenderer;
 import kingdom.smp.client.entity.MimicModel;
 import kingdom.smp.client.entity.MimicRenderer;
 import kingdom.smp.client.entity.ArcaneMageRenderer;
@@ -24,6 +26,7 @@ import kingdom.smp.client.entity.TempestArrowRenderer;
 import kingdom.smp.client.entity.ThrownPitchforkRenderer;
 import kingdom.smp.client.entity.VoidInvokerRenderer;
 import kingdom.smp.client.entity.KingdomVillagerRenderer;
+import kingdom.smp.client.entity.WardenHalricRenderer;
 import kingdom.smp.client.entity.NullStalkerRenderer;
 import kingdom.smp.client.entity.PinkDeerModel;
 import kingdom.smp.client.entity.MomPinkDeerModel;
@@ -31,6 +34,9 @@ import kingdom.smp.client.entity.MomPinkDeerRenderer;
 import kingdom.smp.client.entity.PinkDeerRenderer;
 import kingdom.smp.client.entity.RarePinkDeerRenderer;
 import kingdom.smp.client.entity.PurpleAllayRenderer;
+import kingdom.smp.client.entity.WillOWispRenderer;
+import kingdom.smp.client.entity.WillOWisp2Model;
+import kingdom.smp.client.entity.WillOWisp2Renderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.IllusionerRenderer;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -43,6 +49,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -57,6 +64,7 @@ public class IronholdClient {
         modEventBus.addListener(IronholdClient::registerLayerDefinitions);
         modEventBus.addListener(IronholdClient::registerEntityRenderers);
         modEventBus.addListener(IronholdClient::registerMenuScreens);
+        modEventBus.addListener(IronholdClient::registerKeyMappings);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         NeoForge.EVENT_BUS.register(ClientNeoForgeEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ScepterDebugCommand.class);
@@ -71,6 +79,11 @@ public class IronholdClient {
         event.registerLayerDefinition(MomPinkDeerModel.LAYER_LOCATION, MomPinkDeerModel::createBodyLayer);
         event.registerLayerDefinition(MomPinkDeerModel.BABY_LAYER, MomPinkDeerModel::createBabyLayer);
         event.registerLayerDefinition(SirenModel.LAYER_LOCATION, SirenModel::createBodyLayer);
+        event.registerLayerDefinition(ShipwreckMimicModel.LAYER_LOCATION, ShipwreckMimicModel::createBodyLayer);
+        event.registerLayerDefinition(WillOWisp2Model.LAYER_LOCATION, WillOWisp2Model::createBodyLayer);
+        event.registerLayerDefinition(
+            kingdom.smp.client.entity.KingEndermanModel.LAYER_LOCATION,
+            kingdom.smp.client.entity.KingEndermanModel::createBodyLayer);
     }
 
     @SuppressWarnings("unchecked")
@@ -101,18 +114,28 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.VOID_INVOKER.get(), VoidInvokerRenderer::new);
         event.registerEntityRenderer(Ironhold.NULL_STALKER.get(), NullStalkerRenderer::new);
         event.registerEntityRenderer(Ironhold.KINGDOM_VILLAGER.get(), ctx -> new KingdomVillagerRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
         event.registerEntityRenderer(Ironhold.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.WILL_O_WISP.get(), ctx -> new WillOWispRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.WILL_O_WISP_2.get(), ctx -> new WillOWisp2Renderer(ctx));
         event.registerEntityRenderer(Ironhold.PINK_DEER.get(), PinkDeerRenderer::new);
         event.registerEntityRenderer(Ironhold.RARE_PINK_DEER.get(), RarePinkDeerRenderer::new);
         event.registerEntityRenderer(Ironhold.MOM_PINK_DEER.get(), MomPinkDeerRenderer::new);
         event.registerEntityRenderer(Ironhold.MIMIC.get(), MimicRenderer::new);
         event.registerEntityRenderer(Ironhold.BABY_MIMIC.get(), BabyMimicRenderer::new);
+        event.registerEntityRenderer(Ironhold.MINI_DRAGON.get(), MiniDragonRenderer::new);
         event.registerEntityRenderer(Ironhold.GUILLOTINE_SEAT_ENTITY.get(),
             net.minecraft.client.renderer.entity.NoopRenderer::new);
+        event.registerEntityRenderer(Ironhold.KING_ENDERMAN.get(),
+            kingdom.smp.client.entity.KingEndermanRenderer::new);
     }
 
     private static void registerMenuScreens(RegisterMenuScreensEvent event) {
         event.register(AccessoryMenuTypes.ACCESSORY_MENU.get(), AccessoryScreen::new);
+    }
+
+    private static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+        event.register(kingdom.smp.client.IronholdKeys.SIREN_LURE);
     }
 
     @SubscribeEvent
