@@ -51,8 +51,8 @@
       "minecraft:ore_lapis",
       "minecraft:ore_lapis_buried",
       "minecraft:ore_copper",
-      "minecraft:disk_clay",
       "minecraft:disk_sand",
+      "minecraft:disk_clay",
       "minecraft:disk_gravel"
     ],
     [],
@@ -63,8 +63,8 @@
     [
       "minecraft:glow_lichen",
       "minecraft:patch_grass_forest",
-      "minecraft:patch_tall_grass",
       "minecraft:patch_large_fern",
+      "minecraft:patch_tall_grass",
       "minecraft:flower_default",
       "minecraft:brown_mushroom_normal",
       "minecraft:red_mushroom_normal",
