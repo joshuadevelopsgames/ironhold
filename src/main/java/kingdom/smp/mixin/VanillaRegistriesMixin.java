@@ -22,13 +22,47 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class VanillaRegistriesMixin {
 
     @Inject(method = "bootstrap", at = @At("RETURN"))
-    private static void ironhold$registerEbonwoodHollow(BootstrapContext<Biome> context, CallbackInfo ci) {
+    private static void ironhold$registerBiomes(BootstrapContext<Biome> context, CallbackInfo ci) {
+        // Ebonwood Hollow — dark coniferous forest in the vanilla overworld
         context.register(Ironhold.EBONWOOD_HOLLOW, new Biome.BiomeBuilder()
             .downfall(0.4f)
             .temperature(0.4f)
             .hasPrecipitation(true)
             .specialEffects(new BiomeSpecialEffects.Builder()
                 .waterColor(0x0C1028)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Heartland — temperate open farmland in the Ironhold dimension
+        context.register(Ironhold.HEARTLAND, new Biome.BiomeBuilder()
+            .downfall(0.4f)
+            .temperature(0.5f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x3B6FBE)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Moors — cold flat heathland in the Ironhold dimension
+        context.register(Ironhold.MOORS, new Biome.BiomeBuilder()
+            .downfall(0.8f)
+            .temperature(0.2f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x3C5A6B)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Craglands — rocky highland mountains in the Ironhold dimension
+        context.register(Ironhold.CRAGLANDS, new Biome.BiomeBuilder()
+            .downfall(0.3f)
+            .temperature(0.0f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x2B4E80)
                 .build())
             .mobSpawnSettings(MobSpawnSettings.EMPTY)
             .generationSettings(BiomeGenerationSettings.EMPTY)

@@ -141,6 +141,21 @@ public class Ironhold {
         Registries.BIOME,
         Identifier.fromNamespaceAndPath(MODID, "ebonwood_hollow")
     );
+    /** Temperate open farmland — heartland of the Ironhold dimension. */
+    public static final ResourceKey<Biome> HEARTLAND = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "heartland")
+    );
+    /** Cold, flat heathland — bleak windswept moors of the Ironhold dimension. */
+    public static final ResourceKey<Biome> MOORS = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "moors")
+    );
+    /** Rocky highland — Skyrim-inspired tall mountains of the Ironhold dimension. */
+    public static final ResourceKey<Biome> CRAGLANDS = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "craglands")
+    );
 
     public static final DeferredHolder<EntityType<?>, EntityType<MagicMinecartEntity>> MAGIC_MINECART_ENTITY =
         ENTITY_TYPES.registerEntityType(
