@@ -549,6 +549,26 @@ public class Ironhold {
                     net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
                 .build()));
 
+    // Wizard Staff — gem-socket staff; gem/metal in offhand loads it and primes a spell
+    public static final DeferredItem<Item> WIZARD_STAFF = ITEMS.registerItem(
+        "wizard_staff",
+        kingdom.smp.item.WizardStaffItem::new,
+        props -> props
+            .durability(500)
+            .rarity(net.minecraft.world.item.Rarity.RARE)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "wizard_staff_damage"),
+                        3.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(MODID, "wizard_staff_speed"),
+                        -2.4, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
     // Pitchfork — throwable spear weapon (trident-like)
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.ThrownPitchforkEntity>> THROWN_PITCHFORK =
         ENTITY_TYPES.registerEntityType(
@@ -1055,6 +1075,7 @@ public class Ironhold {
                 output.accept(ANKH_SHIELD.get());
                 output.accept(ARCANE_SCEPTER.get());
                 output.accept(SOLUNA_STAFF.get());
+                output.accept(WIZARD_STAFF.get());
                 output.accept(PITCHFORK.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(BAND_OF_REGENERATION.get());
@@ -1261,6 +1282,7 @@ public class Ironhold {
             event.accept(ANKH_SHIELD.get());
             event.accept(ARCANE_SCEPTER.get());
             event.accept(SOLUNA_STAFF.get());
+            event.accept(WIZARD_STAFF.get());
             event.accept(PITCHFORK.get());
             event.accept(VENGEFUL_HALBERD.get());
             // Accessories

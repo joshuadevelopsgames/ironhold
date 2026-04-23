@@ -26,11 +26,19 @@ sourceSets.main.resources {
     exclude("src/generated/**/.cache") // datagen cache files
 }
 
+// Ship without in-progress worldgen data: ./gradlew ... -PnoWorldgenResources=true
+if (findProperty("noWorldgenResources")?.toString() == "true") {
+    sourceSets.main.resources {
+        exclude("data/ironhold/worldgen/**")
+        exclude("data/ironhold/neoforge/biome_modifier/ai_worldgen_demo_*.json")
+    }
+}
+
 base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 25 to end users in 1.26.1, so mods should target Java 25.
+// Mojang ships Java 25 to end users in 26.1+, so mods should target Java 25.
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
