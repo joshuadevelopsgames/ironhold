@@ -31,7 +31,7 @@
           }
         },
         {
-          "biome": "minecraft:deep_ocean",
+          "biome": "ironhold:frostspire_tundra",
           "parameters": {
             "temperature": [-1.0, 1.0],
             "humidity": [-1.0, 1.0],
@@ -43,7 +43,7 @@
           }
         },
         {
-          "biome": "minecraft:ocean",
+          "biome": "ironhold:sunken_hollow",
           "parameters": {
             "temperature": [-1.0, 1.0],
             "humidity": [-1.0, 1.0],
@@ -55,7 +55,7 @@
           }
         },
         {
-          "biome": "minecraft:beach",
+          "biome": "ironhold:heartland",
           "parameters": {
             "temperature": [-1.0, 1.0],
             "humidity": [-1.0, 1.0],

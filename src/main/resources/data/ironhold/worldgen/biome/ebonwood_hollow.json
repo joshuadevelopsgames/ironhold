@@ -35,7 +35,10 @@
     [
       "minecraft:amethyst_geode"
     ],
-    [],
+    [
+      "minecraft:monster_room",
+      "minecraft:monster_room_deep"
+    ],
     [],
     [],
     [
@@ -65,7 +68,9 @@
       "minecraft:ore_lapis_buried",
       "minecraft:ore_copper",
       "minecraft:underwater_magma",
+      "minecraft:disk_sand",
       "minecraft:disk_clay",
+      "minecraft:disk_gravel",
       "ironhold:disk_black_sand_placed",
       "ironhold:disk_dark_gravel_placed",
       "ironhold:ebony_obsidian_placed",
@@ -79,18 +84,16 @@
     ],
     [
       "minecraft:glow_lichen",
+      "minecraft:patch_grass_forest",
+      "minecraft:brown_mushroom_normal",
+      "minecraft:red_mushroom_normal",
       "ironhold:ebony_tree_placed",
       "ironhold:ebony_tree_small_placed",
       "ironhold:bat_flower_placed",
       "ironhold:blue_vines_placed",
       "ironhold:wither_rose_patch_placed",
       "ironhold:ebonwood_shroomlight_placed",
-      "minecraft:patch_grass_forest",
-      "minecraft:patch_dead_bush",
-      "minecraft:patch_tall_grass",
-      "ironhold:patch_tall_grass_extra_placed",
-      "minecraft:brown_mushroom_normal",
-      "minecraft:red_mushroom_normal"
+      "ironhold:patch_tall_grass_extra_placed"
     ],
     [
       "minecraft:freeze_top_layer"

@@ -17,7 +17,6 @@
   "features": [
     [],
     [
-      "minecraft:lake_water",
       "minecraft:lake_lava_underground"
     ],
     [
@@ -61,10 +60,10 @@
     ],
     [
       "minecraft:glow_lichen",
-      "minecraft:patch_dead_bush",
       "minecraft:trees_windswept_hills",
       "minecraft:flower_default",
-      "minecraft:brown_mushroom_normal"
+      "minecraft:brown_mushroom_normal",
+      "minecraft:patch_dead_bush"
     ],
     [
       "minecraft:freeze_top_layer"

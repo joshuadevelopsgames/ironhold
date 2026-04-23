@@ -17,7 +17,6 @@
   "features": [
     [],
     [
-      "minecraft:lake_water",
       "minecraft:lake_lava_underground"
     ],
     [
@@ -63,13 +62,10 @@
     ],
     [
       "minecraft:glow_lichen",
-      "minecraft:trees_birch_and_oak",
-      "minecraft:trees_flower_forest",
       "minecraft:patch_grass_forest",
       "minecraft:patch_large_fern",
       "minecraft:patch_tall_grass",
       "minecraft:flower_meadow",
-      "minecraft:flower_forest",
       "minecraft:flower_default",
       "minecraft:brown_mushroom_normal",
       "minecraft:red_mushroom_normal",

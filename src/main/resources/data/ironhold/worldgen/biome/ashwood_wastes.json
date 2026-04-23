@@ -58,10 +58,9 @@
     ],
     [
       "minecraft:glow_lichen",
-      "minecraft:patch_dead_bush",
       "minecraft:brown_mushroom_normal",
       "minecraft:red_mushroom_normal",
-      "minecraft:patch_wither_rose"
+      "minecraft:patch_dead_bush"
     ],
     []
   ],
