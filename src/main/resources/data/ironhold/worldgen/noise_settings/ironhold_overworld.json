@@ -18,7 +18,7 @@
       "y_scale": 0.5
     },
     "continents": "minecraft:overworld/continents",
-    "depth": "ironhold:ironhold/depth",
+    "depth": "minecraft:overworld/depth",
     "erosion": "minecraft:overworld/erosion",
     "final_density": {
       "type": "minecraft:min",
@@ -63,12 +63,12 @@
                           "argument1": 0.078125,
                           "argument2": {
                             "type": "minecraft:range_choice",
-                            "input": "ironhold:ironhold/sloped_cheese",
+                            "input": "minecraft:overworld/sloped_cheese",
                             "max_exclusive": 1.5625,
                             "min_inclusive": -1000000.0,
                             "when_in_range": {
                               "type": "minecraft:min",
-                              "argument1": "ironhold:ironhold/sloped_cheese",
+                              "argument1": "minecraft:overworld/sloped_cheese",
                               "argument2": {
                                 "type": "minecraft:mul",
                                 "argument1": 5.0,
@@ -121,7 +121,7 @@
                                           "argument2": {
                                             "type": "minecraft:mul",
                                             "argument1": -0.64,
-                                            "argument2": "ironhold:ironhold/sloped_cheese"
+                                            "argument2": "minecraft:overworld/sloped_cheese"
                                           }
                                         },
                                         "max": 0.5,
@@ -236,12 +236,12 @@
                                 },
                                 "argument2": {
                                   "type": "minecraft:cache_2d",
-                                  "argument": "ironhold:ironhold/offset"
+                                  "argument": "minecraft:overworld/offset"
                                 }
                               },
                               "argument2": {
                                 "type": "minecraft:cache_2d",
-                                "argument": "ironhold:ironhold/factor"
+                                "argument": "minecraft:overworld/factor"
                               }
                             }
                           }
@@ -275,7 +275,7 @@
                   "type": "minecraft:invert",
                   "argument": {
                     "type": "minecraft:cache_2d",
-                    "argument": "ironhold:ironhold/factor"
+                    "argument": "minecraft:overworld/factor"
                   }
                 }
               },
@@ -284,7 +284,7 @@
                 "argument1": -1.0,
                 "argument2": {
                   "type": "minecraft:cache_2d",
-                  "argument": "ironhold:ironhold/offset"
+                  "argument": "minecraft:overworld/offset"
                 }
               }
             }

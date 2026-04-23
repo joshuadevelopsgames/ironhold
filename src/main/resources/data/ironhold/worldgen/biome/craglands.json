@@ -10,9 +10,7 @@
       "tick_delay": 6000,
       "block_search_extent": 8,
       "offset": 2.0
-    },
-    "sky_color": "#6090C0",
-    "fog_color": "#B8C8D8"
+    }
   },
   "features": [
     [],
@@ -154,5 +152,10 @@
     "water_ambient": [],
     "water_creature": []
   },
-  "temperature": 0.0
+  "temperature": 0.0,
+  "attributes": {
+    "minecraft:visual/sky_color": "#6090C0",
+    "minecraft:visual/fog_color": "#B8C8D8",
+    "minecraft:visual/sky_light_factor": 0.95
+  }
 }
