@@ -1,0 +1,104 @@
+{
+  "carvers": [],
+  "downfall": 0.0,
+  "effects": {
+    "water_color": "#3D0A00",
+    "foliage_color": "#2A1400",
+    "grass_color": "#200E00",
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "sky_color": "#1A0500",
+    "fog_color": "#2A0A00"
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "minecraft:ore_dirt",
+      "minecraft:ore_gravel",
+      "minecraft:ore_tuff",
+      "minecraft:ore_coal_upper",
+      "minecraft:ore_coal_lower",
+      "minecraft:ore_iron_upper",
+      "minecraft:ore_iron_middle",
+      "minecraft:ore_iron_small",
+      "minecraft:ore_gold",
+      "minecraft:ore_gold_lower",
+      "minecraft:ore_redstone",
+      "minecraft:ore_redstone_lower",
+      "minecraft:ore_diamond",
+      "minecraft:ore_diamond_medium",
+      "minecraft:ore_diamond_large",
+      "minecraft:ore_diamond_buried",
+      "minecraft:ore_lapis",
+      "minecraft:ore_lapis_buried",
+      "minecraft:ore_copper"
+    ],
+    [],
+    [
+      "minecraft:spring_lava"
+    ],
+    [
+      "minecraft:glow_lichen"
+    ],
+    []
+  ],
+  "has_precipitation": false,
+  "spawn_costs": {},
+  "spawners": {
+    "ambient": [],
+    "axolotls": [],
+    "creature": [],
+    "misc": [],
+    "monster": [
+      {
+        "type": "minecraft:zombie",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 95
+      },
+      {
+        "type": "minecraft:skeleton",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 80
+      },
+      {
+        "type": "minecraft:creeper",
+        "maxCount": 4,
+        "minCount": 4,
+        "weight": 80
+      },
+      {
+        "type": "minecraft:cave_spider",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 50
+      },
+      {
+        "type": "minecraft:magma_cube",
+        "maxCount": 4,
+        "minCount": 2,
+        "weight": 30
+      },
+      {
+        "type": "minecraft:enderman",
+        "maxCount": 2,
+        "minCount": 1,
+        "weight": 10
+      }
+    ],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "water_creature": []
+  },
+  "temperature": 2.0
+}

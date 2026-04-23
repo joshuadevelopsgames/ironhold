@@ -67,5 +67,71 @@ public class VanillaRegistriesMixin {
             .mobSpawnSettings(MobSpawnSettings.EMPTY)
             .generationSettings(BiomeGenerationSettings.EMPTY)
             .build());
+        // Ashwood Wastes — hot, arid volcanic wasteland in the Ironhold dimension
+        context.register(Ironhold.ASHWOOD_WASTES, new Biome.BiomeBuilder()
+            .downfall(0.0f)
+            .temperature(1.0f)
+            .hasPrecipitation(false)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x4A2810)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Verdant Glades — humid lush temperate woodland in the Ironhold dimension
+        context.register(Ironhold.VERDANT_GLADES, new Biome.BiomeBuilder()
+            .downfall(0.9f)
+            .temperature(0.7f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x2B7A5E)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Frostspire Tundra — frigid frozen plains in the Ironhold dimension
+        context.register(Ironhold.FROSTSPIRE_TUNDRA, new Biome.BiomeBuilder()
+            .downfall(0.5f)
+            .temperature(-0.5f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x2860A0)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Sunken Hollow — misty low-lying valley in the Ironhold dimension
+        context.register(Ironhold.SUNKEN_HOLLOW, new Biome.BiomeBuilder()
+            .downfall(0.9f)
+            .temperature(0.5f)
+            .hasPrecipitation(true)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x2A5040)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Crystal Depths — luminous underground cave biome
+        context.register(Ironhold.CRYSTAL_DEPTHS, new Biome.BiomeBuilder()
+            .downfall(0.0f)
+            .temperature(0.0f)
+            .hasPrecipitation(false)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x184870)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
+        // Obsidian Depths — deep volcanic underground cave biome near bedrock
+        context.register(Ironhold.OBSIDIAN_DEPTHS, new Biome.BiomeBuilder()
+            .downfall(0.0f)
+            .temperature(2.0f)
+            .hasPrecipitation(false)
+            .specialEffects(new BiomeSpecialEffects.Builder()
+                .waterColor(0x3D0A00)
+                .build())
+            .mobSpawnSettings(MobSpawnSettings.EMPTY)
+            .generationSettings(BiomeGenerationSettings.EMPTY)
+            .build());
     }
 }

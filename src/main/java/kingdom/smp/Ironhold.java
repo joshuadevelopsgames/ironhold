@@ -156,6 +156,36 @@ public class Ironhold {
         Registries.BIOME,
         Identifier.fromNamespaceAndPath(MODID, "craglands")
     );
+    /** Volcanic ashwood wasteland — hot, arid biome with wither roses and husks. */
+    public static final ResourceKey<Biome> ASHWOOD_WASTES = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "ashwood_wastes")
+    );
+    /** Verdant lush glade — humid temperate woodland rich with flora. */
+    public static final ResourceKey<Biome> VERDANT_GLADES = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "verdant_glades")
+    );
+    /** Frozen tundra — frigid open plains with sparse vegetation and strays. */
+    public static final ResourceKey<Biome> FROSTSPIRE_TUNDRA = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "frostspire_tundra")
+    );
+    /** Sunken hollow — misty low-lying valley with mud, frogs, and axolotls. */
+    public static final ResourceKey<Biome> SUNKEN_HOLLOW = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "sunken_hollow")
+    );
+    /** Crystal depths — luminous underground cave biome with amethyst and glow squid. */
+    public static final ResourceKey<Biome> CRYSTAL_DEPTHS = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "crystal_depths")
+    );
+    /** Obsidian depths — deep volcanic underground cave biome near bedrock. */
+    public static final ResourceKey<Biome> OBSIDIAN_DEPTHS = ResourceKey.create(
+        Registries.BIOME,
+        Identifier.fromNamespaceAndPath(MODID, "obsidian_depths")
+    );
 
     public static final DeferredHolder<EntityType<?>, EntityType<MagicMinecartEntity>> MAGIC_MINECART_ENTITY =
         ENTITY_TYPES.registerEntityType(
