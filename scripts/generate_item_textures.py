@@ -229,7 +229,7 @@ def tempest_arrow():
 
 
 def magic_minecart():
-    # Dark minecart silhouette (3/4 view) with purple rune glow on rim
+    # Dark minecart silhouette (3/4 view) — brighter magic glow + sparkle above
     p = dict(
         O=IRON["o"], S=IRON["s"], B=IRON["b"], H=IRON["h"],
         W=WOOD_DARK["o"], D=WOOD_DARK["s"], d=WOOD_DARK["b"],
@@ -237,23 +237,160 @@ def magic_minecart():
         M=MAGIC_PURPLE_OR_LIT("b"), L=MAGIC_PURPLE_OR_LIT("h"),
         g=MAGIC_PURPLE_OR_LIT("g"),
     )
-    # (alias handling below)
     grid = [
         "................",
+        "....g...........",  # sparkle above the cart
+        "...LgL..........",
         "................",
-        "...g............",
-        "...Mm...........",  # glow spark
-        "..OMMOOOOOMMO...",  # rim with magic glow at corners
-        ".OHBBBBBBBBBHO..",  # inside of cart (iron)
-        ".OBDddddddddBO..",  # wood floor
+        "..mLMLOOOOMLMm..",  # brighter rim glow along top
+        ".OHBBBBBBBBBBHO.",
+        ".OBDddddddddBO..",
         ".OBDddddddddBO..",
         ".OSBWWWWWWWWBO..",
         "..OOSSSSSSSSOO..",
-        "...OOO....OOO...",  # wheels
+        "...OOO....OOO...",
         "..OSBBO..OSBBO..",
         "..OBBBO..OBBBO..",
         "..OSBSO..OSBSO..",
         "...OOO....OOO...",
+        "................",
+    ]
+    return from_grid(grid, p)
+
+
+def ankh_charm():
+    # Small oval amulet/shield silhouette with a clean gold ankh centered
+    p = dict(
+        N=rgba("#162038"), B=rgba("#2a3a60"), b=rgba("#3e528a"), h=rgba("#5070b0"),
+        O=GOLD["o"], S=GOLD["s"], G=GOLD["b"], H=GOLD["h"],
+    )
+    grid = [
+        "................",
+        "................",
+        "....NNNNNN......",
+        "...NbbBBBBN.....",  # amulet top curve
+        "..NbhBOSOBbN....",  # ankh loop starts
+        "..NhBOGHGOBbN...",
+        "..NbBOGSGOBbN...",  # loop hollow
+        "..NbBBOGOBBBN...",  # loop closes, stem starts
+        "..NbBBbSGbBBN...",
+        "..NbBbOGObBBN...",  # crossbar
+        "..NbBBbSbBBN....",  # stem continues
+        "...NbBBbBBbN....",
+        "...NbBBbBbN.....",
+        "....NbbBbN......",  # taper
+        ".....NNNN.......",
+        "................",
+    ]
+    return from_grid(grid, p)
+
+
+def ebony_door():
+    # 16x16 vertical door with iron hinges and handle
+    p = dict(
+        O=WOOD_DARK["o"], S=WOOD_DARK["s"], B=WOOD_DARK["b"], H=WOOD_DARK["h"],
+        I=IRON["s"], J=IRON["b"], K=IRON["h"],
+    )
+    grid = [
+        "...OOOOOOOOO....",
+        "..OHBBBBBBBSO...",
+        "..OBIIIBBBBBO...",  # top hinge
+        "..OBJJJBBBSBO...",  # hinge plate
+        "..OBIIIBBBSBO...",
+        "..OBBBBBBBSBO...",
+        "..OHBBBSBBBBO...",
+        "..OBBBBSBBKKO...",  # middle - handle area
+        "..OBBBBSBKJKO...",  # handle highlight
+        "..OBBBBSBBKBO...",
+        "..OHBBBSBBBBO...",
+        "..OBIIIBBBSBO...",  # bottom hinge
+        "..OBJJJBBBSBO...",
+        "..OBIIIBBBSBO...",
+        "..OSBBBBBBBBO...",
+        "...OOOOOOOOO....",
+    ]
+    return from_grid(grid, p)
+
+
+def filcher_spawn_egg():
+    # Dark green egg with glowing red eyes + tiny crown pixel (filcher = thief-king)
+    p = dict(
+        O=rgba("#1a2018"), B=rgba("#354030"), b=rgba("#4a5a44"), h=rgba("#6a7a5c"),
+        r=rgba("#d03040"), R=rgba("#f06878"),  # eyes
+        G=rgba("#d4a840"),  # crown accent
+    )
+    grid = [
+        "................",
+        ".....OOOOOO.....",
+        "....OBbbbBGO....",  # G = crown pixel
+        "...OBbhhhhbBO...",
+        "..OBbhhhhhhbBO..",
+        "..OBhhhhhhhhBO..",
+        "..ObRhhhhhhRbO..",  # eyes (red)
+        "..ObrRhhhhRrbO..",
+        "..OBhhhhhhhhBO..",
+        "..OBbhhhhhhbBO..",
+        "..OBbbhhhhbbBO..",
+        "...OBbbbbbbBO...",
+        "....OBbbbbBO....",
+        ".....OOOOOO.....",
+        "................",
+        "................",
+    ]
+    return from_grid(grid, p)
+
+
+def kingdom_villager_spawn_egg():
+    # Grey villager egg + small crown pixel on top signals "kingdom"
+    p = dict(
+        O=rgba("#3a3a3e"), B=rgba("#6a6a70"), b=rgba("#8a8a90"), h=rgba("#b0b0b6"),
+        G=GOLD["b"], g=GOLD["s"],
+        e=rgba("#1a1a1a"),  # eye
+        n=rgba("#c89884"),  # villager nose tone
+    )
+    grid = [
+        "................",
+        "......gGg.......",  # crown (3 gold pixels)
+        ".....OOOOOO.....",
+        "....OBbbbBBO....",
+        "...OBbhhhhbBO...",
+        "..OBbhennehbBO..",  # eyes + nose cluster
+        "..OBhhnnnnhhBO..",  # nose
+        "..OBhhhhhhhhBO..",
+        "..OBbhhhhhhbBO..",
+        "..OBBbhhhhbBBO..",
+        "...OBbbhhbbBO...",
+        "....OBbbbbBO....",
+        ".....OOOOOO.....",
+        "................",
+        "................",
+        "................",
+    ]
+    return from_grid(grid, p)
+
+
+def sirens_ring():
+    # Silver ring with a larger teal gem + halo — bigger than before
+    p = dict(
+        O=rgba("#404850"), S=rgba("#707880"), B=rgba("#a0a8b0"), H=rgba("#d0d8e0"),
+        t=rgba("#084858"), u=rgba("#108078"), T=rgba("#20c0a0"), y=rgba("#80e8d0"), g=rgba("#d0fff0"),
+    )
+    grid = [
+        "................",
+        "................",
+        ".......y........",  # gem halo
+        "......yTy.......",
+        ".....tgTTy......",  # gem with glint
+        ".....tTTTt......",
+        ".....tuTut......",  # gem facet
+        "....OOttttOO....",  # ring top seat
+        "...OHBBBBBBHSO..",
+        "..OBB......BBO..",  # ring with hole
+        "..OB........BO..",
+        "..OBS......SBO..",
+        "...OSSS..SSSO...",  # ring bottom
+        "....OOSSSSOO....",
+        ".....OOOOO......",
         "................",
     ]
     return from_grid(grid, p)
@@ -419,12 +556,21 @@ ITEMS = {
     "hermes_boots": hermes_boots,
     "tempest_arrow": tempest_arrow,
     "magic_minecart": magic_minecart,
-    "pitchfork": pitchfork,
-    "shield_ankh": shield_ankh,
     "mimic_key": mimic_key,
     "filcher_crown": filcher_crown,
     "armor_polish": armor_polish,
+    "ankh_charm": ankh_charm,
+    "ebony_door": ebony_door,
+    "filcher_spawn_egg": filcher_spawn_egg,
+    "kingdom_villager_spawn_egg": kingdom_villager_spawn_egg,
+    "sirens_ring": sirens_ring,
+    # DO NOT add these — they are UV atlases for 3D models (GeckoLib or vanilla elements)
+    # and replacing them with 16×16 icons breaks the in-game rendering:
+    #   pitchfork      — 64×64, GeckoLib model at geo/pitchfork.geo.json
+    #   shield_ankh    — 32×32, vanilla 3D model in models/item/shield_ankh.json
+    #   arcane_scepter_* / soluna_staff_* / mages_sceptre_3d — 3D atlases
     # raw_tanzanite, wraiths_sigil — reverted to originals, not regenerated
+    # tempest_bow_pulling_*, soluna_staff_*, guillotine_* — per user request, untouched
 }
 
 
