@@ -19,6 +19,7 @@ import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.entity.TempestArrowEntity;
 import kingdom.smp.entity.ArcaneMageEntity;
 import kingdom.smp.entity.FilcherEntity;
+import kingdom.smp.entity.EnderVillagerEntity;
 import kingdom.smp.entity.KingdomVillagerEntity;
 import kingdom.smp.entity.WardenHalricEntity;
 import kingdom.smp.entity.MomPinkDeerEntity;
@@ -370,6 +371,18 @@ public class Ironhold {
         ITEMS.registerItem(
             "kingdom_villager_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(KINGDOM_VILLAGER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EnderVillagerEntity>> ENDER_VILLAGER =
+        ENTITY_TYPES.registerEntityType(
+            "ender_villager",
+            EnderVillagerEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> ENDER_VILLAGER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "ender_villager_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ENDER_VILLAGER.get()).stacksTo(64)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<WardenHalricEntity>> WARDEN_HALRIC =
         ENTITY_TYPES.registerEntityType(
@@ -1183,6 +1196,7 @@ public class Ironhold {
         event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
         event.put(MINI_DRAGON.get(), MiniDragonEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
+        event.put(ENDER_VILLAGER.get(), EnderVillagerEntity.createAttributes().build());
         event.put(WARDEN_HALRIC.get(), WardenHalricEntity.createAttributes().build());
         event.put(PURPLE_ALLAY.get(), PurpleAllayEntity.createAttributes().build());
         event.put(WILL_O_WISP.get(), WillOWispEntity.createAttributes().build());

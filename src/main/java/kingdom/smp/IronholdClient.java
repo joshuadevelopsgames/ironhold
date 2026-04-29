@@ -114,6 +114,8 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.VOID_INVOKER.get(), VoidInvokerRenderer::new);
         event.registerEntityRenderer(Ironhold.NULL_STALKER.get(), NullStalkerRenderer::new);
         event.registerEntityRenderer(Ironhold.KINGDOM_VILLAGER.get(), ctx -> new KingdomVillagerRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.ENDER_VILLAGER.get(),
+            kingdom.smp.client.entity.EnderVillagerRenderer::new);
         event.registerEntityRenderer(Ironhold.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
         event.registerEntityRenderer(Ironhold.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
         event.registerEntityRenderer(Ironhold.WILL_O_WISP.get(), ctx -> new WillOWispRenderer(ctx));

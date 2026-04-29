@@ -84,6 +84,17 @@ public enum VillagerProfession {
             "A hero approaches! Or a villain. The song hasn't decided yet.",
             "Listen well, for I sing of battles won and meals half-eaten!",
             "The road goes ever on, and frankly, my feet are killing me."
+        }),
+    ENDER("ender", "Ender Villager", true,
+        "An enigmatic being touched by the power of the End. Trades rare and esoteric items "
+            + "from across dimensions. Speaks in short, cryptic fragments — half-sentences, "
+            + "questions answered with questions, references to things the player has never "
+            + "seen. Values rare, unusual, or enchanted items. Allegiance uncertain. "
+            + "Appears and disappears without warning.",
+        new String[]{
+            "...you carry something that hums. I hear it.",
+            "The End remembers. So do I.",
+            "Trade. Or do not. The void is patient."
         });
 
     private final String id;
@@ -154,6 +165,9 @@ public enum VillagerProfession {
     private static final String[] BARD_NAMES = {
         "Lyric", "Cadence", "Stanza", "Riff", "Coda", "Tempo", "Ballad", "Encore"
     };
+    private static final String[] ENDER_NAMES = {
+        "Vex", "Null", "Echo", "Rift", "Hollow", "Void", "Whisper", "Cinder"
+    };
 
     /** Generate a random name appropriate for this profession. */
     public String randomName(RandomSource rand) {
@@ -167,6 +181,7 @@ public enum VillagerProfession {
             case PRIEST     -> PRIEST_NAMES;
             case LIBRARIAN  -> LIBRARIAN_NAMES;
             case BARD       -> BARD_NAMES;
+            case ENDER      -> ENDER_NAMES;
         };
         return pool[rand.nextInt(pool.length)];
     }

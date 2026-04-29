@@ -132,6 +132,9 @@ public class KingdomVillagerRenderer
             case PRIEST     -> net.minecraft.world.entity.npc.villager.VillagerProfession.CLERIC;
             case LIBRARIAN  -> net.minecraft.world.entity.npc.villager.VillagerProfession.CARTOGRAPHER;
             case BARD       -> net.minecraft.world.entity.npc.villager.VillagerProfession.NITWIT;
+            // ENDER renders via a dedicated EnderVillagerEntity + EnderVillagerRenderer; this branch
+            // is unreachable but the switch must be exhaustive over all enum values.
+            case ENDER      -> net.minecraft.world.entity.npc.villager.VillagerProfession.NONE;
         };
     }
 }
