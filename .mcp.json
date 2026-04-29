@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "blockbench": {
+      "command": "python3",
+      "args": [
+        "/Users/joshua/Kingdom SMP/ironhold/tools/bb-mcp/server.py"
+      ],
+      "env": {}
+    }
+  }
+}
