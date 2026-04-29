@@ -7,6 +7,7 @@ import kingdom.smp.client.entity.ArcaneBoltRenderer;
 import kingdom.smp.client.entity.ArcaneInvokerRenderer;
 import kingdom.smp.client.entity.ArcaneOrbRenderer;
 import kingdom.smp.client.entity.LunarOrbRenderer;
+import kingdom.smp.client.entity.PiglinVillagerRenderer;
 import kingdom.smp.client.entity.PossessedArmorRenderer;
 import kingdom.smp.client.entity.ShipwreckMimicRenderer;
 import kingdom.smp.client.entity.ShipwreckMimicModel;
@@ -85,6 +86,9 @@ public class IronholdClient {
         event.registerLayerDefinition(
             kingdom.smp.client.entity.KingEndermanModel.LAYER_LOCATION,
             kingdom.smp.client.entity.KingEndermanModel::createBodyLayer);
+        event.registerLayerDefinition(
+            kingdom.smp.client.entity.PiglinVillagerModel.LAYER_LOCATION,
+            kingdom.smp.client.entity.PiglinVillagerModel::createBodyLayer);
     }
 
     @SuppressWarnings("unchecked")
@@ -121,6 +125,7 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.ENDER_VILLAGER.get(),
             kingdom.smp.client.entity.EnderVillagerRenderer::new);
         event.registerEntityRenderer(Ironhold.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.PIGLIN_VILLAGER.get(), PiglinVillagerRenderer::new);
         event.registerEntityRenderer(Ironhold.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
         event.registerEntityRenderer(Ironhold.WILL_O_WISP.get(), ctx -> new WillOWispRenderer(ctx));
         event.registerEntityRenderer(Ironhold.WILL_O_WISP_2.get(), ctx -> new WillOWisp2Renderer(ctx));
