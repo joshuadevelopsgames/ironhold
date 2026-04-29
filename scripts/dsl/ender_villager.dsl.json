@@ -1,0 +1,323 @@
+{
+  "_": "Ender Villager — hooded End-touched trader. Concept: dark hood + face,",
+  "__": "purple glowing eyes, ender veins on skin, gold-trimmed dark robe, gem.",
+
+  "out":      "src/main/resources/assets/ironhold/textures/entity/ender_villager.png",
+  "glow_out": "src/main/resources/assets/ironhold/textures/entity/ender_villager_glow.png",
+  "size": [64, 64],
+
+  "palette": {
+    "skin_deep":   "#0a0812",
+    "skin_base":   "#1c1824",
+    "skin_mid":    "#2a2234",
+    "skin_high":   "#403450",
+
+    "hood_deep":   "#0e0820",
+    "hood_base":   "#20143a",
+    "hood_mid":    "#322252",
+    "hood_high":   "#4c3478",
+
+    "robe_deep":   "#1a1230",
+    "robe_base":   "#2c1e48",
+    "robe_mid":    "#3e2c64",
+    "robe_high":   "#5a4286",
+
+    "gold_deep":   "#6e4a14",
+    "gold_base":   "#c49c4c",
+    "gold_high":   "#e8c878",
+
+    "vein":        "#7a38c0",
+    "vein_bright": "#aa5ce8",
+
+    "gem_deep":    "#601c90",
+    "gem_base":    "#bc4cf0",
+    "gem_high":    "#e89cff",
+
+    "eye":         "#d478ff",
+    "eye_glow":    "#f0c8ff",
+    "transparent": "#00000000"
+  },
+
+  "cubes": {
+    "head":      {"u":  0, "v":  0, "w": 8, "h": 10, "d": 8},
+    "nose":      {"u": 24, "v":  0, "w": 2, "h":  4, "d": 2},
+    "hat":       {"u": 32, "v":  0, "w": 8, "h": 10, "d": 8},
+    "body":      {"u": 16, "v": 20, "w": 8, "h": 12, "d": 6},
+    "robe":      {"u":  0, "v": 38, "w": 8, "h": 18, "d": 6},
+    "arm":       {"u": 44, "v": 22, "w": 4, "h":  8, "d": 4},
+    "arm_cross": {"u": 40, "v": 38, "w": 8, "h":  4, "d": 4},
+    "leg":       {"u":  0, "v": 22, "w": 4, "h": 12, "d": 4}
+  },
+
+  "faces": [
+    {
+      "_note": "Head — base skin (will mostly be hidden by the hood front).",
+      "region": "head_top",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "top", "seed": 101},
+      "ops": [
+        {"op": "px", "color": "vein", "at": [[2,1],[5,4],[4,6]]}
+      ]
+    },
+    {
+      "region": "head_bottom",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "bottom", "seed": 102}
+    },
+    {
+      "region": "head_right",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "side", "seed": 103},
+      "ops": [
+        {"op": "px", "color": "vein", "at": [[1,2],[2,5],[6,7]]}
+      ]
+    },
+    {
+      "region": "head_left",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "side", "seed": 104},
+      "ops": [
+        {"op": "px", "color": "vein", "at": [[5,3]]}
+      ]
+    },
+    {
+      "region": "head_back",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "back", "seed": 105}
+    },
+    {
+      "_note": "Head front — the ACTUAL face. Glowing eyes + brow + mouth + veins.",
+      "region": "head_front",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "mid", "seed": 110},
+      "ops": [
+        {"op": "rect", "color": "skin_deep", "at": [1, 2], "size": [6, 1], "_": "brow ridge"},
+        {"op": "px",   "color": "skin_base", "at": [[1,2],[6,2]],          "_": "asym brow break"},
+
+        {"op": "px", "color": "eye", "at": [[1,3],[2,3],[5,3],[6,3]]},
+
+        {"op": "px", "color": "vein", "at": [[1,4],[6,4]],     "_": "wisps under eyes"},
+        {"op": "rect", "color": "skin_deep", "at": [3, 6], "size": [2, 1], "_": "mouth"},
+
+        {"op": "vein", "color": "vein", "bright": "vein_bright", "anchor": [0,0],
+         "branches": [[0,1],[1,0],[7,0],[7,2],[6,4],[0,5],[0,6],[4,8],[5,8]],
+         "bright_idx": 2}
+      ]
+    },
+
+    {
+      "_note": "Nose — small protruding cube; matches dark skin.",
+      "region": "nose_top",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "flat", "seed": 120},
+      "ops": [{"op": "px", "color": "skin_high", "at": [[0,0],[1,0]]}]
+    },
+    {"region": "nose_bottom", "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "bottom", "seed": 121}},
+    {"region": "nose_right",  "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "flat", "seed": 122}},
+    {"region": "nose_left",   "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "flat", "seed": 123}},
+    {"region": "nose_back",   "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "flat", "seed": 124}},
+    {
+      "region": "nose_front",
+      "fill": {"palette": ["skin_deep","skin_base","skin_mid","skin_high"], "mode": "flat", "seed": 125},
+      "ops": [
+        {"op": "px", "color": "skin_high", "at": [[0,0],[1,0]],     "_": "bridge"},
+        {"op": "px", "color": "skin_deep", "at": [[0,3],[1,3]],     "_": "underside shadow"}
+      ]
+    },
+
+    {
+      "_note": "Hood top — solid hood with particle specks.",
+      "region": "hat_top",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "top", "seed": 200},
+      "ops": [
+        {"op": "px", "color": "vein",        "at": [[3,2],[5,5],[1,6],[6,1]]},
+        {"op": "px", "color": "vein_bright", "at": [[5,5]]}
+      ]
+    },
+    {"region": "hat_bottom", "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "bottom", "seed": 201}},
+    {
+      "region": "hat_right",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side", "seed": 202},
+      "ops": [{"op": "px", "color": "vein", "at": [[2,4]]}]
+    },
+    {
+      "region": "hat_left",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side", "seed": 203}
+    },
+    {
+      "region": "hat_back",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "back", "seed": 204},
+      "ops": [
+        {"op": "curl", "color": "vein", "highlight": "vein_bright", "preset": "back_sigil_c", "at": [3, 4]}
+      ]
+    },
+    {
+      "_note": "Hood FRONT — wipe to transparent, then drape top rim + side folds so the face shows through.",
+      "region": "hat_front",
+      "clear": true,
+      "ops": [
+        {"op": "scatter", "color": "hood_base", "density": 0.85, "seed": 220, "near": "top"},
+        {"op": "rect", "color": "hood_base", "at": [0, 0], "size": [8, 2]},
+        {"op": "px",   "color": "hood_high", "at": [[1,0],[5,0],[6,0]]},
+        {"op": "px",   "color": "hood_deep", "at": [[2,1],[6,1]],         "_": "fold creases"},
+        {"op": "px",   "color": "hood_base", "at": [[0,2],[0,3],[0,4],[0,5],
+                                                    [7,2],[7,3],[7,4],[7,5]],
+         "_": "side drapes framing the face"},
+        {"op": "px",   "color": "hood_mid",  "at": [[1,2],[6,3]],         "_": "drape highlights"},
+        {"op": "px",   "color": "hood_deep", "at": [[7,3]],               "_": "asym shadow"},
+        {"op": "px",   "color": "hood_base", "at": [[2,2]],               "_": "drape pixel into face"}
+      ]
+    },
+
+    {
+      "_note": "Body front — gold V-collar at neckline + chest gem + ender-thread curl.",
+      "region": "body_front",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "mid", "seed": 300},
+      "ops": [
+        {"op": "v_collar", "gold": "gold_base", "shadow": "gold_deep", "highlight": "gold_high", "depth": 3},
+        {"op": "gem",  "core": "gem_base", "deep": "gem_deep", "high": "gem_high",
+                       "setting": "gold_base", "at": [3, 2]},
+        {"op": "curl", "color": "gold_base", "highlight": "gold_high", "preset": "ender_thread", "at": [2, 5]},
+        {"op": "px",   "color": "gem_base", "at": [[4, 6]], "_": "tiny jewel inside the curl"},
+        {"op": "ribbon","color": "gold_base", "shadow": "gold_deep", "at": [0, 9], "len": 8, "axis": "h", "_": "waist trim"},
+        {"op": "px",   "color": "robe_high", "at": [[4,10],[4,8]],        "_": "vertical seam highlights"}
+      ]
+    },
+    {"region": "body_top",    "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "top",    "seed": 301}},
+    {"region": "body_bottom", "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "bottom", "seed": 302}},
+    {
+      "region": "body_right",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "side", "seed": 303},
+      "ops": [
+        {"op": "px", "color": "gold_base", "at": [[5,2],[5,6],[5,10]]}
+      ]
+    },
+    {
+      "region": "body_left",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "side", "seed": 304},
+      "ops": [
+        {"op": "px", "color": "gold_base", "at": [[0,3],[0,7],[0,11]]}
+      ]
+    },
+    {
+      "region": "body_back",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "back", "seed": 305},
+      "ops": [
+        {"op": "curl", "color": "vein", "highlight": "vein_bright", "preset": "back_sigil_c", "at": [3, 5]},
+        {"op": "px",   "color": "gold_base", "at": [[4,4],[5,4],[3,7],[4,7]], "_": "thread accent"}
+      ]
+    },
+
+    {
+      "_note": "Long gown — vertical gold dashed seam + V-hem + scattered ender particles.",
+      "region": "robe_front",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "mid", "seed": 400},
+      "ops": [
+        {"op": "px", "color": "gold_base", "at": [[4,0],[4,4],[4,8],[4,12]]},
+        {"op": "px", "color": "gold_deep", "at": [[3,1],[3,5],[3,9],[3,13]]},
+        {"op": "px", "color": "gold_high", "at": [[4,2],[4,6],[4,10],[4,14]]},
+        {"op": "v_hem", "gold": "gold_base", "shadow": "gold_deep", "highlight": "gold_high"},
+        {"op": "px", "color": "vein",        "at": [[1,3],[6,5],[2,8],[5,11],[1,14],[7,9]]},
+        {"op": "px", "color": "vein_bright", "at": [[6,5],[1,14]]}
+      ]
+    },
+    {"region": "robe_top",    "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "top",    "seed": 401}},
+    {"region": "robe_bottom", "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "bottom", "seed": 402}},
+    {
+      "region": "robe_right",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side", "seed": 403},
+      "ops": [
+        {"op": "px", "color": "vein", "at": [[1,4],[4,9],[2,14]]},
+        {"op": "ribbon", "color": "gold_base", "shadow": "gold_deep", "at": [0,17], "len": 6, "axis":"h"}
+      ]
+    },
+    {
+      "region": "robe_left",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side", "seed": 404},
+      "ops": [
+        {"op": "px", "color": "vein", "at": [[3,7],[1,12]]},
+        {"op": "ribbon", "color": "gold_base", "shadow": "gold_deep", "at": [0,17], "len": 6, "axis":"h"}
+      ]
+    },
+    {
+      "region": "robe_back",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "back", "seed": 405},
+      "ops": [
+        {"op": "ribbon", "color": "gold_base", "shadow": "gold_deep", "at": [0,17], "len": 8, "axis":"h"}
+      ]
+    },
+
+    {
+      "region": "arm_front",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "mid", "seed": 500},
+      "ops": [
+        {"op": "cuff", "gold": "gold_base", "shadow": "gold_deep"},
+        {"op": "px", "color": "gold_base", "at": [[1,0],[2,0]], "_": "shoulder pin"}
+      ]
+    },
+    {"region": "arm_top",    "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "top",    "seed": 501}},
+    {"region": "arm_bottom", "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "bottom", "seed": 502}},
+    {"region": "arm_right",  "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side",   "seed": 503}},
+    {
+      "region": "arm_left",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side", "seed": 504},
+      "ops": [{"op": "px", "color": "gold_deep", "at": [[1,2],[1,5]]}]
+    },
+    {
+      "region": "arm_back",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "back", "seed": 505},
+      "ops": [{"op": "px", "color": "vein", "at": [[1,4]]}]
+    },
+
+    {
+      "_note": "Folded-arm cross piece — gold belt with central gem buckle.",
+      "region": "arm_cross_front",
+      "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "mid", "seed": 600},
+      "ops": [
+        {"op": "ribbon", "color": "gold_base", "shadow": "gold_deep", "at": [0,1], "len": 8, "axis":"h"},
+        {"op": "px", "color": "gold_high", "at": [[3,1]]},
+        {"op": "px", "color": "gem_high",  "at": [[3,1]]}
+      ]
+    },
+    {"region": "arm_cross_top",    "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "top",    "seed": 601}},
+    {"region": "arm_cross_bottom", "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "bottom", "seed": 602}},
+    {"region": "arm_cross_right",  "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side",   "seed": 603}},
+    {"region": "arm_cross_left",   "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "side",   "seed": 604}},
+    {"region": "arm_cross_back",   "fill": {"palette": ["hood_deep","hood_base","hood_mid","hood_high"], "mode": "back",   "seed": 605}},
+
+    {
+      "region": "leg_front",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "mid", "seed": 700},
+      "ops": [
+        {"op": "cuff", "gold": "gold_base", "shadow": "gold_deep"},
+        {"op": "px", "color": "vein", "at": [[1,5]]}
+      ]
+    },
+    {"region": "leg_top",    "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "top",    "seed": 701}},
+    {"region": "leg_bottom", "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "bottom", "seed": 702}},
+    {"region": "leg_right",  "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "side",   "seed": 703}},
+    {
+      "region": "leg_left",
+      "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "side", "seed": 704},
+      "ops": [{"op": "px", "color": "vein", "at": [[1,4]]}]
+    },
+    {"region": "leg_back",   "fill": {"palette": ["robe_deep","robe_base","robe_mid","robe_high"], "mode": "back",   "seed": 705}}
+  ],
+
+  "glow": {
+    "_note": "Emissive overlay — only paints the eye + chest gem + buckle gem pixels bright.",
+    "faces": [
+      {
+        "region": "head_front",
+        "ops": [
+          {"op": "px", "color": "eye_glow", "at": [[1,3],[2,3],[5,3],[6,3]]}
+        ]
+      },
+      {
+        "region": "body_front",
+        "ops": [
+          {"op": "px", "color": "gem_high", "at": [[3,2],[4,2],[3,3],[4,3]]}
+        ]
+      },
+      {
+        "region": "arm_cross_front",
+        "ops": [
+          {"op": "px", "color": "gem_high", "at": [[3,1]]}
+        ]
+      }
+    ]
+  }
+}

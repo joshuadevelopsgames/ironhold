@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "ironhold:item/piglin_villager_spawn_egg"
+  }
+}
