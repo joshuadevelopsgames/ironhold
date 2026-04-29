@@ -25,7 +25,8 @@ mkdir -p "$PLUGIN_DIR"
 LINK="$PLUGIN_DIR/ironhold_bridge.js"
 if [ -L "$LINK" ] || [ -f "$LINK" ]; then rm -f "$LINK"; fi
 ln -s "$PLUGIN_SRC" "$LINK"
-echo "[1/3] Linked plugin: $LINK -> $PLUGIN_SRC"
+echo "[1/3] Plugin file: $LINK -> $PLUGIN_SRC
+       (Blockbench requires loading via Plugin Manager — see README)"
 
 # 2. Python deps
 echo "[2/3] Installing Python deps..."

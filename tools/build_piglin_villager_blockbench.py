@@ -39,7 +39,13 @@ def deg(rad):
 
 
 EAR_TILT = 0.5235988  # 30°
-ARM_TILT = -0.75      # ≈ -42.97°
+ARM_TILT = -0.75      # ≈ -42.97° (Java; sign is flipped below for Bedrock)
+
+# IMPORTANT: when converting Java rotations to Bedrock, X- and Z-rotation signs
+# must be flipped because Bedrock has Y-up while Mojang's Java models have Y-down.
+# Y-rotation is the same. Failing to flip causes:
+#   - Arms tilting backward instead of folding across the chest
+#   - Ears tilting away from the head instead of folding against it
 
 # Bone definitions. Pivots and cube origins are in Bedrock world coords
 # (entity feet at y=0, head top at y=32). Cube `origin` is the cube's lowest
@@ -49,14 +55,16 @@ bones = [
         "name": "head",
         "pivot": [0, 24, 0],
         "cubes": [
-            {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]}
+            {"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]},
+            # Villager-style nose: addBox(-1, -3, -6, 2, 4, 2) at head pivot, texOffs(24, 0)
+            {"origin": [-1, 23, -6], "size": [2, 4, 2], "uv": [24, 0]}
         ]
     },
     {
         "name": "left_ear",
         "parent": "head",
         "pivot": [4.5, 30, 0],
-        "rotation": [0, 0, deg(-EAR_TILT)],
+        "rotation": [0, 0, deg(EAR_TILT)],   # SIGN FLIPPED: Java -EAR_TILT → Bedrock +EAR_TILT
         "cubes": [
             {"origin": [4.5, 25, -2], "size": [1, 5, 4], "uv": [51, 6]}
         ]
@@ -65,7 +73,7 @@ bones = [
         "name": "right_ear",
         "parent": "head",
         "pivot": [-4.5, 30, 0],
-        "rotation": [0, 0, deg(EAR_TILT)],
+        "rotation": [0, 0, deg(-EAR_TILT)],  # SIGN FLIPPED: Java +EAR_TILT → Bedrock -EAR_TILT
         "mirror": True,
         "cubes": [
             {"origin": [-5.5, 25, -2], "size": [1, 5, 4], "uv": [39, 6], "mirror": True}
@@ -81,7 +89,7 @@ bones = [
     {
         "name": "arms",
         "pivot": [0, 21, -1],
-        "rotation": [deg(ARM_TILT), 0, 0],
+        "rotation": [deg(-ARM_TILT), 0, 0],  # SIGN FLIPPED: Java -0.75 → Bedrock +0.75
         "cubes": [
             # Left forearm (held horizontally across chest before arm-bone rotation)
             {"origin": [-8, 15, -3], "size": [4, 8, 4], "uv": [44, 22]},
