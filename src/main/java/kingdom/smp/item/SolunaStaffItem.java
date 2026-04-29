@@ -15,22 +15,29 @@ import com.geckolib.animation.object.PlayState;
 import com.geckolib.renderer.GeoItemRenderer;
 import com.geckolib.util.GeckoLibUtil;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -164,13 +171,13 @@ public class SolunaStaffItem extends Item implements GeoItem {
             double launchSpeed = 0.15 + power * 2.85;
 
             if (night) {
-                LunarOrbEntity orb = new LunarOrbEntity(player, look.scale(launchSpeed), level);
+                LunarOrbEntity orb = new LunarOrbEntity(player, look.scale(launchSpeed), level, power);
                 orb.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
                 level.addFreshEntity(orb);
                 level.playSound(null, player.blockPosition(),
                     SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS, 0.7F, 1.2F + power * 0.5F);
             } else {
-                SolarOrbEntity orb = new SolarOrbEntity(player, look.scale(launchSpeed), level);
+                SolarOrbEntity orb = new SolarOrbEntity(player, look.scale(launchSpeed), level, power);
                 orb.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
                 level.addFreshEntity(orb);
                 level.playSound(null, player.blockPosition(),
@@ -185,9 +192,25 @@ public class SolunaStaffItem extends Item implements GeoItem {
         return true;
     }
 
+    // ── Inventory tick (sets custom model data for dimension-aware icon) ────
+
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity owner, @Nullable EquipmentSlot slot) {
+        float mode = isNight(level) ? 1.0F : 0.0F;
+        CustomModelData current = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.EMPTY);
+        Float existing = current.getFloat(0);
+        if (existing == null || existing != mode) {
+            stack.set(DataComponents.CUSTOM_MODEL_DATA,
+                new CustomModelData(List.of(mode), List.of(), List.of(), List.of()));
+        }
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private static boolean isNight(Level level) {
+    /** Nether → always sun, End → always moon, Overworld → time-based. */
+    static boolean isNight(Level level) {
+        if (level.dimension() == Level.NETHER) return false;
+        if (level.dimension() == Level.END) return true;
         long t = level.getOverworldClockTime() % 24000;
         return t >= 12000;
     }

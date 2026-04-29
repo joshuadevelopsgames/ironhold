@@ -3,6 +3,7 @@ package kingdom.smp.client;
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.item.AnkhShieldItem;
+import kingdom.smp.net.SirensRingActivatePayload;
 import kingdom.smp.net.CloudDoubleJumpPayload;
 import kingdom.smp.net.MagicMinecartInputPayload;
 import net.minecraft.client.Minecraft;
@@ -208,6 +209,12 @@ public final class ClientNeoForgeEvents {
                         }
                     }
                 }
+            }
+        }
+
+        while (IronholdKeys.SIREN_LURE.consumeClick()) {
+            if (mc.player != null) {
+                ClientPayloads.sendToServer(new SirensRingActivatePayload());
             }
         }
 

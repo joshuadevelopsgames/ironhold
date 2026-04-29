@@ -9,13 +9,19 @@ import kingdom.smp.client.VillagerDialogueCache;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.game.ClassStatHandler;
 import kingdom.smp.game.CloudDoubleJumpHandler;
+import kingdom.smp.item.SirensRingItem;
 import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.game.RpgXpBarSync;
 import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import kingdom.smp.rpg.RpgProgression;
+import kingdom.smp.skill.ClientSkillData;
+import kingdom.smp.skill.PlayerSkillState;
+import kingdom.smp.skill.Profession;
+import kingdom.smp.skill.SkillSavedData;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -42,6 +48,9 @@ public final class ModNetworking {
 
         registrar.playToClient(OpenMenuPayload.TYPE, OpenMenuPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(ClientRpgData::openMenu));
+
+        registrar.playToClient(OpenConsolePayload.TYPE, OpenConsolePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(ClientRpgData::openConsole));
 
         registrar.playToServer(ClassChoicePayload.TYPE, ClassChoicePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
@@ -78,6 +87,13 @@ public final class ModNetworking {
                 }
             }));
 
+        registrar.playToServer(SirensRingActivatePayload.TYPE, SirensRingActivatePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp && SirensRingItem.isEquipped(sp)) {
+                    SirensRingItem.tryActivate(sp);
+                }
+            }));
+
         // ── Accessory / Vanity payloads ───────────────────────────────────────
 
         registrar.playToServer(OpenAccessoryPayload.TYPE, OpenAccessoryPayload.STREAM_CODEC,
@@ -107,6 +123,70 @@ public final class ModNetworking {
         registrar.playToClient(VillagerEmotePayload.TYPE, VillagerEmotePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() ->
                 VillagerDialogueCache.receiveEmote(payload)));
+
+        registrar.playToClient(OpenVillagerScreenPayload.TYPE, OpenVillagerScreenPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                VillagerDialogueCache.openDialogueScreen(payload)));
+
+        // ── Skill tree (profession-skill-system) ──────────────────────────────
+        registrar.playToClient(SyncSkillStatePayload.TYPE, SyncSkillStatePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> ClientSkillData.receive(payload)));
+
+        registrar.playToServer(SpendSkillPointPayload.TYPE, SpendSkillPointPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    handleSpendSkillPoint(sp, payload.profession());
+                }
+            }));
+
+        registrar.playToServer(RespecSkillPayload.TYPE, RespecSkillPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    handleRespecAll(sp);
+                }
+            }));
+    }
+
+    private static void handleRespecAll(ServerPlayer player) {
+        SkillSavedData data = SkillSavedData.get((ServerLevel) player.level());
+        PlayerSkillState state = data.stateFor(player.getUUID());
+        // No-op if nothing is spent.
+        if (state.totalPointsSpent() <= 0) {
+            syncSkillsToClient(player);
+            return;
+        }
+        PlayerSkillState updated = state.respecAll();
+        data.setState(player.getUUID(), updated);
+        syncSkillsToClient(player);
+    }
+
+    /**
+     * Server-side handler for a client's skill-point spend request.
+     * Validates available points and rank progression, applies the spend, syncs back.
+     */
+    private static void handleSpendSkillPoint(ServerPlayer player, Profession profession) {
+        SkillSavedData data = SkillSavedData.get((ServerLevel) player.level());
+        PlayerSkillState state = data.stateFor(player.getUUID());
+        PlayerSkillState updated = state.trySpendOn(profession);
+        if (updated == null) {
+            // Out of points or already at Master — silently ignore. Re-sync current state
+            // so the client UI corrects itself if it was out of date.
+            syncSkillsToClient(player);
+            return;
+        }
+        data.setState(player.getUUID(), updated);
+        syncSkillsToClient(player);
+    }
+
+    /** Push the player's current PlayerSkillState to their client. */
+    public static void syncSkillsToClient(ServerPlayer player) {
+        SkillSavedData data = SkillSavedData.get((ServerLevel) player.level());
+        PlayerSkillState state = data.stateFor(player.getUUID());
+        SyncSkillStatePayload payload = new SyncSkillStatePayload(
+                state.unspentProfessionPoints(),
+                state.currentRanks(),
+                state.milestonesCompleted().size());
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static void syncToClient(ServerPlayer player) {

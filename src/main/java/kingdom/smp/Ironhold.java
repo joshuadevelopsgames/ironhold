@@ -15,6 +15,7 @@ import kingdom.smp.entity.SirenEntity;
 import kingdom.smp.entity.SolarOrbEntity;
 import kingdom.smp.entity.ArcaneWizardEntity;
 import kingdom.smp.entity.HexBoltEntity;
+import kingdom.smp.entity.SpellBeamEntity;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.entity.TempestArrowEntity;
 import kingdom.smp.entity.ArcaneMageEntity;
@@ -59,7 +60,6 @@ import kingdom.smp.block.BlueVinesPlantBlock;
 import kingdom.smp.block.EbonyLeavesBlock;
 import net.minecraft.world.level.block.TallFlowerBlock;
 import kingdom.smp.worldgen.BlueVinesFeature;
-import kingdom.smp.worldgen.CaveMouthFeature;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -130,9 +130,6 @@ public class Ironhold {
             () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.mom.hurt")));
 
     // ── Worldgen feature keys ─────────────────────────────────────────────────
-    public static final DeferredHolder<Feature<?>, CaveMouthFeature> CAVE_MOUTH_FEATURE =
-        FEATURES.register("cave_mouth", () -> new CaveMouthFeature(NoneFeatureConfiguration.CODEC));
-
     public static final DeferredHolder<Feature<?>, BlueVinesFeature> BLUE_VINES_FEATURE =
         FEATURES.register("blue_vines", () -> new BlueVinesFeature(NoneFeatureConfiguration.CODEC));
 
@@ -141,51 +138,6 @@ public class Ironhold {
     public static final ResourceKey<Biome> EBONWOOD_HOLLOW = ResourceKey.create(
         Registries.BIOME,
         Identifier.fromNamespaceAndPath(MODID, "ebonwood_hollow")
-    );
-    /** Temperate open farmland — heartland of the Ironhold dimension. */
-    public static final ResourceKey<Biome> HEARTLAND = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "heartland")
-    );
-    /** Cold, flat heathland — bleak windswept moors of the Ironhold dimension. */
-    public static final ResourceKey<Biome> MOORS = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "moors")
-    );
-    /** Rocky highland — Skyrim-inspired tall mountains of the Ironhold dimension. */
-    public static final ResourceKey<Biome> CRAGLANDS = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "craglands")
-    );
-    /** Volcanic ashwood wasteland — hot, arid biome with wither roses and husks. */
-    public static final ResourceKey<Biome> ASHWOOD_WASTES = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "ashwood_wastes")
-    );
-    /** Verdant lush glade — humid temperate woodland rich with flora. */
-    public static final ResourceKey<Biome> VERDANT_GLADES = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "verdant_glades")
-    );
-    /** Frozen tundra — frigid open plains with sparse vegetation and strays. */
-    public static final ResourceKey<Biome> FROSTSPIRE_TUNDRA = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "frostspire_tundra")
-    );
-    /** Sunken hollow — misty low-lying valley with mud, frogs, and axolotls. */
-    public static final ResourceKey<Biome> SUNKEN_HOLLOW = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "sunken_hollow")
-    );
-    /** Crystal depths — luminous underground cave biome with amethyst and glow squid. */
-    public static final ResourceKey<Biome> CRYSTAL_DEPTHS = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "crystal_depths")
-    );
-    /** Obsidian depths — deep volcanic underground cave biome near bedrock. */
-    public static final ResourceKey<Biome> OBSIDIAN_DEPTHS = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "obsidian_depths")
     );
 
     public static final DeferredHolder<EntityType<?>, EntityType<MagicMinecartEntity>> MAGIC_MINECART_ENTITY =
@@ -257,12 +209,26 @@ public class Ironhold {
             MobCategory.MISC,
             b -> b.sized(0.32F, 0.32F).clientTrackingRange(4).updateInterval(2));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<SpellBeamEntity>> SPELL_BEAM =
+        ENTITY_TYPES.registerEntityType(
+            "spell_beam",
+            SpellBeamEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.1F, 0.1F).clientTrackingRange(64).updateInterval(20).noSummon());
+
     public static final DeferredHolder<EntityType<?>, EntityType<TempestArrowEntity>> TEMPEST_ARROW_ENTITY =
         ENTITY_TYPES.registerEntityType(
             "tempest_arrow",
             TempestArrowEntity::new,
             MobCategory.MISC,
             b -> b.sized(0.5F, 0.5F).eyeHeight(0.13F).clientTrackingRange(4).updateInterval(20));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.KingEnderEyeEntity>> KING_ENDER_EYE =
+        ENTITY_TYPES.registerEntityType(
+            "king_ender_eye",
+            kingdom.smp.entity.KingEnderEyeEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.4F, 0.4F).clientTrackingRange(8).updateInterval(2));
 
     public static final DeferredHolder<EntityType<?>, EntityType<VoidInvokerEntity>> VOID_INVOKER =
         ENTITY_TYPES.registerEntityType(
@@ -686,6 +652,11 @@ public class Ironhold {
     public static final DeferredItem<BlockItem> TANZANITE_ORE_ITEM =
         ITEMS.registerSimpleBlockItem("tanzanite_ore", TANZANITE_ORE);
 
+    public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem(
+        "gold_coin",
+        props -> props.stacksTo(64)
+    );
+
     public static final DeferredItem<Item> RAW_TANZANITE = ITEMS.registerSimpleItem(
         "raw_tanzanite",
         props -> props.rarity(net.minecraft.world.item.Rarity.RARE)
@@ -1097,6 +1068,7 @@ public class Ironhold {
                 output.accept(SIRENS_RING.get());
                 output.accept(VENGEFUL_HALBERD.get());
                 output.accept(ARMOR_POLISH.get());
+                output.accept(GOLD_COIN.get());
                 output.accept(RAW_TANZANITE.get());
                 output.accept(TANZANITE_GEM.get());
                 output.accept(STEEL_INGOT.get());
@@ -1144,6 +1116,7 @@ public class Ironhold {
         ModAttachments.register(modEventBus);
         AccessoryMenuTypes.register(modEventBus);
         kingdom.smp.entity.BabyMimicMenuTypes.register(modEventBus);
+        kingdom.smp.gear.GearComponents.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
@@ -1153,6 +1126,9 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(CloudDoubleJumpHandler.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
         NeoForge.EVENT_BUS.register(EncumbranceHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearTooltipHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearAttributeHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.skill.SkillEventHandlers.class);
 
         modEventBus.addListener(ModNetworking::register);
     }
@@ -1327,6 +1303,7 @@ public class Ironhold {
             event.accept(EBONY_PRESSURE_PLATE_ITEM.get());
         }
         if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(GOLD_COIN.get());
             event.accept(RAW_TANZANITE.get());
             event.accept(TANZANITE_GEM.get());
             event.accept(STEEL_INGOT.get());

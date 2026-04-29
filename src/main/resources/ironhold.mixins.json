@@ -8,7 +8,9 @@
     "BatSpawnMixin",
     "MapEbonwoodMixin",
     "MonsterSpawnEbonwoodMixin",
+    "CraftingMenuMixin",
     "InventoryMenuMixin",
+    "ItemStackMaxDamageMixin",
     "OverworldBiomeBuilderMixin",
     "ServerPlayerDeathMixin",
     "SpiderEbonwoodMixin",
@@ -22,6 +24,7 @@
     "MusicManagerMixin",
     "ScepterAnimationMixin",
     "InventoryScreenMixin",
+    "InventoryScreenSkillButtonMixin",
     "CreativeModeInventoryScreenMixin"
   ],
   "injectors": {

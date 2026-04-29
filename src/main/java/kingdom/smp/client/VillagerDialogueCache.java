@@ -1,8 +1,11 @@
 package kingdom.smp.client;
 
+import kingdom.smp.client.screen.VillagerDialogueScreen;
 import kingdom.smp.entity.KingdomVillagerEntity;
+import kingdom.smp.net.OpenVillagerScreenPayload;
 import kingdom.smp.net.VillagerDialoguePayload;
 import kingdom.smp.net.VillagerEmotePayload;
+import net.minecraft.client.Minecraft;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +33,15 @@ public final class VillagerDialogueCache {
             DIALOGUES.entrySet().removeIf(e -> e.getValue().expireTick <= clientTick);
             EMOTES.entrySet().removeIf(e -> e.getValue().expireTick <= clientTick);
         }
+    }
+
+    public static void openDialogueScreen(OpenVillagerScreenPayload payload) {
+        Minecraft.getInstance().setScreen(new VillagerDialogueScreen(
+            payload.villagerName(),
+            payload.profession(),
+            payload.dialogue(),
+            payload.decodeMood(),
+            payload.entityId()));
     }
 
     public static void receiveDialogue(VillagerDialoguePayload payload) {

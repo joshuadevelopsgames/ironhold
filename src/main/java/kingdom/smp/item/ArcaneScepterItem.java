@@ -2,6 +2,10 @@ package kingdom.smp.item;
 
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.ArcaneOrbEntity;
+import kingdom.smp.entity.SpellBeamEntity;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -149,7 +153,15 @@ public class ArcaneScepterItem extends Item implements GeoItem {
         if (!(entity instanceof Player player)) return false;
 
         int chargeTime = this.getUseDuration(stack, entity) - timeLeft;
-        if (chargeTime < MIN_CHARGE_TICKS) return false;
+        if (chargeTime < MIN_CHARGE_TICKS) {
+            // Quick tap: instant beam attack
+            if (!level.isClientSide()) {
+                fireBeam(player, (ServerLevel) level, stack);
+            }
+            player.swing(player.getUsedItemHand());
+            player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS / 2);
+            return true;
+        }
 
         if (!level.isClientSide()) {
             Vec3 look = player.getLookAngle();
@@ -188,6 +200,49 @@ public class ArcaneScepterItem extends Item implements GeoItem {
         player.swing(player.getUsedItemHand());
         player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
         return true;
+    }
+
+    private static void fireBeam(Player player, ServerLevel level, ItemStack stack) {
+        Vec3 eyePos = player.getEyePosition();
+        Vec3 look    = player.getLookAngle();
+        double range = 32.0;
+        Vec3 endPos  = eyePos.add(look.scale(range));
+
+        AABB searchBox = player.getBoundingBox().expandTowards(look.scale(range)).inflate(1.0);
+        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+            player, eyePos, endPos, searchBox,
+            e -> !e.isSpectator() && e.isPickable() && e != player
+                && (e instanceof LivingEntity
+                    || e instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
+                    || e instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragonPart),
+            range * range);
+
+        Vec3 impactPos;
+        if (entityHit != null) {
+            Entity target = entityHit.getEntity();
+            if (target instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragonPart part) {
+                target = part.parentMob;
+            }
+            target.hurtServer(level, level.damageSources().indirectMagic(player, player), 5.0f);
+            impactPos = entityHit.getLocation();
+            level.playSound(null, target.blockPosition(),
+                SoundEvents.ILLUSIONER_HURT, SoundSource.PLAYERS, 0.8F, 1.6F);
+        } else {
+            BlockHitResult blockHit = level.clip(
+                new ClipContext(eyePos, endPos, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
+            impactPos = blockHit.getLocation();
+            level.playSound(null, player.blockPosition(),
+                SoundEvents.ILLUSIONER_CAST_SPELL, SoundSource.PLAYERS, 0.7F, 1.4F);
+        }
+
+        Vec3 origin = eyePos.add(look.scale(0.8));
+        SpellBeamEntity beam = SpellBeamEntity.create(level,
+            impactPos.x, impactPos.y, impactPos.z,
+            origin.x, origin.y, origin.z,
+            0x8844FF, 15);
+        level.addFreshEntity(beam);
+
+        stack.hurtAndBreak(1, player, player.getUsedItemHand());
     }
 
     /**

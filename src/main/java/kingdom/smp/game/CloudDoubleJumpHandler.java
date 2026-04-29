@@ -49,26 +49,16 @@ public final class CloudDoubleJumpHandler {
         Vec3 m = player.getDeltaMovement();
         double boostY = 0.52;
         player.setDeltaMovement(m.x, Math.max(m.y, 0.0) + boostY, m.z);
+        player.hurtMarked = true;
         player.resetFallDistance();
 
         if (!(player.level() instanceof ServerLevel sl)) return;
 
         Vec3 p = player.position();
-        double feetY = p.y + 0.08;
-        for (int i = 0; i < 28; i++) {
-            double ox = (player.getRandom().nextDouble() - 0.5) * 1.35;
-            double oz = (player.getRandom().nextDouble() - 0.5) * 1.35;
-            sl.sendParticles(ParticleTypes.CLOUD,
-                    p.x + ox, feetY, p.z + oz,
-                    0, 0.0, 0.06, 0.0, 0.015);
-        }
-        for (int i = 0; i < 10; i++) {
-            double ox = (player.getRandom().nextDouble() - 0.5) * 0.9;
-            double oz = (player.getRandom().nextDouble() - 0.5) * 0.9;
-            sl.sendParticles(ParticleTypes.POOF,
-                    p.x + ox, feetY + 0.02, p.z + oz,
-                    0, 0.0, 0.02, 0.0, 0.02);
-        }
+        // One large gust emitter at waist height produces the wind-charge-hit ring burst
+        sl.sendParticles(ParticleTypes.GUST_EMITTER_LARGE,
+                p.x, p.y + 0.9, p.z,
+                1, 0.0, 0.0, 0.0, 0.0);
 
         // Breeze whoosh + softer wind layer (reads more “cloud” than jump alone)
         player.playSound(SoundEvents.WIND_CHARGE_THROW, 0.4F, 1.1F);

@@ -32,11 +32,6 @@ public final class ClassSkills {
                     new ClassSkillEntry("Sanctuary", "Active", "Zone: reduce hostile damage.", "Not bound — soon"),
                     new ClassSkillEntry("Cleanse", "Active", "Strip one harmful effect.", "Not bound — soon"),
                     new ClassSkillEntry("Resilience", "Passive", "Healing intake up (planned).", "Stub"));
-            case ROGUE -> List.of(
-                    new ClassSkillEntry("Shadow Step", "Active", "Short blink from stealth.", "Not bound — soon"),
-                    new ClassSkillEntry("Assassinate", "Active", "Backstab bonus damage (planned).", "Stub"),
-                    new ClassSkillEntry("Pick Pocket", "Active", "Bonus loot from mobs (planned).", "Stub"),
-                    new ClassSkillEntry("Evasion", "Passive", "Move & atk speed (class stats).", "Active"));
             default -> List.of(
                     new ClassSkillEntry("—", "—", "No skills defined yet.", "—"));
         };

@@ -1,0 +1,41 @@
+package kingdom.smp.rtf.surface.condition;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import net.minecraft.core.Holder;
+import net.minecraft.util.KeyDispatchDataCodec;
+import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.level.levelgen.SurfaceRules.Context;
+import kingdom.smp.rtf.cell.Cell;
+import kingdom.smp.rtf.noise.module.Noise;
+
+class SedimentCondition extends ThresholdCondition {
+	
+	public SedimentCondition(Context context, Noise threshold, Noise variance) {
+		super(context, threshold, variance);
+	}
+
+	@Override
+	protected float sample(Cell cell) {
+		return cell.sediment2;
+	}
+	
+	public record Source(Holder<Noise> threshold, Holder<Noise> variance) implements SurfaceRules.ConditionSource {
+		public static final MapCodec<Source> CODEC = RecordCodecBuilder.<Source>mapCodec(instance -> instance.group(
+			Noise.CODEC.fieldOf("threshold").forGetter(Source::threshold),
+			Noise.CODEC.fieldOf("variance").forGetter(Source::variance)
+		).apply(instance, Source::new));
+
+		@Override
+		public SedimentCondition apply(Context ctx) {
+			return new SedimentCondition(ctx, this.threshold.value(), this.variance.value());
+		}
+
+		@Override
+		public KeyDispatchDataCodec<Source> codec() {
+			return new KeyDispatchDataCodec<>(CODEC);
+		}
+	}
+}

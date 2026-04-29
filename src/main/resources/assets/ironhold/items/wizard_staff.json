@@ -1,0 +1,105 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:custom_model_data",
+          "index": 0,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/wizard_staff"
+          },
+          "entries": [
+            { "threshold": 1.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_diamond" } },
+            { "threshold": 2.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_emerald" } },
+            { "threshold": 3.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_amethyst" } },
+            { "threshold": 4.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_lapis" } },
+            { "threshold": 5.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_quartz" } },
+            { "threshold": 6.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_prismarine" } },
+            { "threshold": 7.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_ender_pearl" } },
+            { "threshold": 8.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_nether_star" } },
+            { "threshold": 9.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_heart_of_the_sea" } },
+            { "threshold": 10.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_echo_shard" } },
+            { "threshold": 11.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_iron" } },
+            { "threshold": 12.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_gold" } },
+            { "threshold": 13.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_copper" } },
+            { "threshold": 14.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_netherite" } },
+            { "threshold": 15.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_blaze_rod" } },
+            { "threshold": 16.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_bone" } }
+          ]
+        }
+      },
+      {
+        "when": "ground",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:custom_model_data",
+          "index": 0,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/wizard_staff"
+          },
+          "entries": [
+            { "threshold": 1.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_diamond" } },
+            { "threshold": 2.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_emerald" } },
+            { "threshold": 3.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_amethyst" } },
+            { "threshold": 4.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_lapis" } },
+            { "threshold": 5.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_quartz" } },
+            { "threshold": 6.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_prismarine" } },
+            { "threshold": 7.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_ender_pearl" } },
+            { "threshold": 8.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_nether_star" } },
+            { "threshold": 9.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_heart_of_the_sea" } },
+            { "threshold": 10.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_echo_shard" } },
+            { "threshold": 11.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_iron" } },
+            { "threshold": 12.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_gold" } },
+            { "threshold": 13.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_copper" } },
+            { "threshold": 14.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_netherite" } },
+            { "threshold": 15.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_blaze_rod" } },
+            { "threshold": 16.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_bone" } }
+          ]
+        }
+      },
+      {
+        "when": "fixed",
+        "model": {
+          "type": "minecraft:range_dispatch",
+          "property": "minecraft:custom_model_data",
+          "index": 0,
+          "fallback": {
+            "type": "minecraft:model",
+            "model": "ironhold:item/wizard_staff"
+          },
+          "entries": [
+            { "threshold": 1.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_diamond" } },
+            { "threshold": 2.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_emerald" } },
+            { "threshold": 3.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_amethyst" } },
+            { "threshold": 4.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_lapis" } },
+            { "threshold": 5.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_quartz" } },
+            { "threshold": 6.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_prismarine" } },
+            { "threshold": 7.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_ender_pearl" } },
+            { "threshold": 8.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_nether_star" } },
+            { "threshold": 9.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_heart_of_the_sea" } },
+            { "threshold": 10.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_echo_shard" } },
+            { "threshold": 11.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_iron" } },
+            { "threshold": 12.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_gold" } },
+            { "threshold": 13.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_copper" } },
+            { "threshold": 14.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_netherite" } },
+            { "threshold": 15.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_blaze_rod" } },
+            { "threshold": 16.0, "model": { "type": "minecraft:model", "model": "ironhold:item/wizard_staff_bone" } }
+          ]
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "ironhold:item/wizard_staff",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
+    }
+  }
+}

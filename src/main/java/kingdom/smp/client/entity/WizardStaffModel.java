@@ -45,6 +45,14 @@ public class WizardStaffModel extends DefaultedItemGeoModel<WizardStaffItem> {
         int gemIdx = renderState.getOrDefaultGeckolibData(GEM_INDEX, 0);
         String suffix = GEM_NAMES.get(gemIdx);
         String modelName = (suffix != null) ? "wizard_staff_" + suffix : "wizard_staff";
-        return Identifier.fromNamespaceAndPath(Ironhold.MODID, "geo/item/" + modelName + ".geo.json");
+        return Identifier.fromNamespaceAndPath(Ironhold.MODID, "item/" + modelName);
+    }
+
+    @Override
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        int gemIdx = renderState.getOrDefaultGeckolibData(GEM_INDEX, 0);
+        String suffix = GEM_NAMES.get(gemIdx);
+        String texName = (suffix != null) ? "wizard_staff_" + suffix : "wizard_staff";
+        return Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/item/" + texName + ".png");
     }
 }

@@ -1,0 +1,12 @@
+Drop the painted atlas here as `kings_console.png` (256×256 RGBA).
+
+Source spec, palette, prompts, and template:
+  ../../../../../../art/console/
+
+Code constants:
+  ../../../../java/kingdom/smp/client/screen/ConsoleAtlas.java
+
+To switch the screen to the painted atlas:
+  KingsConsoleScreen.USE_ATLAS = true
+
+(This file can be deleted once the PNG is in place.)

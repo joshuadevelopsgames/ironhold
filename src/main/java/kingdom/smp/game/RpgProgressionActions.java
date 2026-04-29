@@ -189,7 +189,6 @@ public final class RpgProgressionActions {
             case RANGER  -> 0x55AA55;
             case WIZARD  -> 0x7755FF;
             case CLERIC  -> 0xFFDD55;
-            case ROGUE   -> 0xAA3333;
             case PEASANT -> 0x888888;
             default      -> 0xFFFFFF;
         };

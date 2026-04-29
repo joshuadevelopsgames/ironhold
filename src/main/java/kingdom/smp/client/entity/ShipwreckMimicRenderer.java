@@ -12,13 +12,13 @@ import com.mojang.math.Axis;
  * Renders the Shipwreck Mimic using the same chest model as the regular Mimic
  * but with a waterlogged/barnacle texture.
  */
-public class ShipwreckMimicRenderer extends MobRenderer<ShipwreckMimicEntity, MimicRenderState, MimicModel> {
+public class ShipwreckMimicRenderer extends MobRenderer<ShipwreckMimicEntity, MimicRenderState, ShipwreckMimicModel> {
 
     private static final Identifier TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/shipwreck_mimic.png");
 
     public ShipwreckMimicRenderer(EntityRendererProvider.Context ctx) {
-        super(ctx, new MimicModel(ctx.bakeLayer(MimicModel.LAYER_LOCATION)), 0.0F);
+        super(ctx, new ShipwreckMimicModel(ctx.bakeLayer(ShipwreckMimicModel.LAYER_LOCATION)), 0.0F);
     }
 
     @Override

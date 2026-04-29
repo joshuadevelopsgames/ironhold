@@ -33,8 +33,6 @@ public enum PlayerClass {
         35, 25, 65, 50, 85, 40, 50),
     RANGER("Ranger", "Ranger", 2, 160, new String[]{"ARCHER"},
         50, 35, 60, 65, 25, 70, 45),
-    ROGUE("Rogue", "Ranger", 2, 140, new String[]{"ARCHER"},
-        45, 30, 70, 70, 20, 75, 60),
     CLERIC("Cleric", "Support", 2, 180, new String[]{"MEDIC"},
         55, 45, 30, 35, 80, 40, 65),
 

@@ -7,19 +7,18 @@
         "when": "gui",
         "model": {
           "type": "minecraft:range_dispatch",
-          "property": "minecraft:time",
-          "source": "daytime",
-          "wobble": false,
+          "property": "minecraft:custom_model_data",
+          "index": 0,
           "fallback": {
             "type": "minecraft:model",
-            "model": "ironhold:item/soluna_staff_moon"
+            "model": "ironhold:item/soluna_staff"
           },
           "entries": [
             {
-              "threshold": 0.5,
+              "threshold": 1.0,
               "model": {
                 "type": "minecraft:model",
-                "model": "ironhold:item/soluna_staff"
+                "model": "ironhold:item/soluna_staff_moon"
               }
             }
           ]
@@ -29,19 +28,18 @@
         "when": "ground",
         "model": {
           "type": "minecraft:range_dispatch",
-          "property": "minecraft:time",
-          "source": "daytime",
-          "wobble": false,
+          "property": "minecraft:custom_model_data",
+          "index": 0,
           "fallback": {
             "type": "minecraft:model",
-            "model": "ironhold:item/soluna_staff_moon"
+            "model": "ironhold:item/soluna_staff"
           },
           "entries": [
             {
-              "threshold": 0.5,
+              "threshold": 1.0,
               "model": {
                 "type": "minecraft:model",
-                "model": "ironhold:item/soluna_staff"
+                "model": "ironhold:item/soluna_staff_moon"
               }
             }
           ]
@@ -51,19 +49,18 @@
         "when": "fixed",
         "model": {
           "type": "minecraft:range_dispatch",
-          "property": "minecraft:time",
-          "source": "daytime",
-          "wobble": false,
+          "property": "minecraft:custom_model_data",
+          "index": 0,
           "fallback": {
             "type": "minecraft:model",
-            "model": "ironhold:item/soluna_staff_moon"
+            "model": "ironhold:item/soluna_staff"
           },
           "entries": [
             {
-              "threshold": 0.5,
+              "threshold": 1.0,
               "model": {
                 "type": "minecraft:model",
-                "model": "ironhold:item/soluna_staff"
+                "model": "ironhold:item/soluna_staff_moon"
               }
             }
           ]

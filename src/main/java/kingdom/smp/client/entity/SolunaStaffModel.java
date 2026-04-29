@@ -35,10 +35,12 @@ public class SolunaStaffModel extends DefaultedItemGeoModel<SolunaStaffItem> {
         return isNight() ? MOON_TEXTURE : SUN_TEXTURE;
     }
 
-    /** Returns true when the moon texture should be the primary. */
+    /** Nether → always sun, End → always moon, Overworld → time-based. */
     static boolean isNight() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return false;
+        if (mc.level.dimension() == net.minecraft.world.level.Level.NETHER) return false;
+        if (mc.level.dimension() == net.minecraft.world.level.Level.END) return true;
         long t = mc.level.getOverworldClockTime() % 24000;
         return t >= 12000;
     }
@@ -46,10 +48,16 @@ public class SolunaStaffModel extends DefaultedItemGeoModel<SolunaStaffItem> {
     /**
      * Returns the current fade alpha (0.0 = fully transparent, 1.0 = fully opaque).
      * Dips toward 0 at each swap point so the texture change is hidden by the fade.
+     * In the Nether or End there is no transition — always fully opaque.
      */
     static float getFadeAlpha() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) return 1f;
+        // No fade in non-overworld dimensions (locked to one form)
+        if (mc.level.dimension() == net.minecraft.world.level.Level.NETHER
+                || mc.level.dimension() == net.minecraft.world.level.Level.END) {
+            return 1f;
+        }
         long t = mc.level.getOverworldClockTime() % 24000;
 
         // Distance to the dusk swap (tick 12000)

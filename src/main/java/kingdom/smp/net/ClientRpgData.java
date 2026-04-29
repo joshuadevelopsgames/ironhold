@@ -2,6 +2,7 @@ package kingdom.smp.net;
 
 import kingdom.smp.client.screen.ClassSelectionScreen;
 import kingdom.smp.client.screen.KingdomSelectionScreen;
+import kingdom.smp.client.screen.KingsConsoleScreen;
 import kingdom.smp.client.screen.MainMenuScreen;
 import kingdom.smp.client.screen.ProfileScreen;
 import kingdom.smp.rpg.CompletedClasses;
@@ -51,6 +52,7 @@ public final class ClientRpgData {
     public static void openKingdomSelection(){ Minecraft.getInstance().setScreen(new KingdomSelectionScreen()); }
     public static void openProfile()         { Minecraft.getInstance().setScreen(new ProfileScreen()); }
     public static void openMenu()            { Minecraft.getInstance().setScreen(new MainMenuScreen()); }
+    public static void openConsole()         { Minecraft.getInstance().setScreen(new KingsConsoleScreen()); }
 
     // ── RPG data getters ──────────────────────────────────────────────────────
     public static int         kingdomIndex()   { return kingdomIndex; }

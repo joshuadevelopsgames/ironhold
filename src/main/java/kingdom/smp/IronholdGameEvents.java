@@ -1,11 +1,15 @@
 package kingdom.smp;
 
 import kingdom.smp.command.IronholdCommands;
+import kingdom.smp.entity.WillOWispEntity;
 import kingdom.smp.game.ClassStatHandler;
 import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.game.RpgXpBarSync;
 import kingdom.smp.net.ModNetworking;
 import kingdom.smp.world.KingdomWorldData;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.monster.Enemy;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -16,6 +20,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -67,6 +72,8 @@ public final class IronholdGameEvents {
         RpgXpBarSync.sync(player, rpg);
         // Immediately sync full RPG state to the client for HUD rendering
         ModNetworking.syncToClient(player);
+        // Sync profession-skill state for the SkillTreeScreen
+        ModNetworking.syncSkillsToClient(player);
     }
 
     @SubscribeEvent
@@ -92,6 +99,29 @@ public final class IronholdGameEvents {
         if (event.getEntity().level().isClientSide()) return;
         if (event.getEntity().level().getRandom().nextFloat() < 0.12f) {
             event.getDrops().add(new ItemStack(Ironhold.FOOLS_GOLD.get()));
+        }
+    }
+
+    /**
+     * Will-o'-the-Wisps suppress hostile mob spawns within {@link WillOWispEntity#LIGHT_RADIUS}
+     * blocks, the same way a torch's light level would. Only blocks natural spawning —
+     * spawn eggs, spawners, and structure spawns are unaffected.
+     */
+    @SubscribeEvent
+    public static void onMobFinalizeSpawn(FinalizeSpawnEvent event) {
+        if (!(event.getEntity() instanceof Enemy)) return;
+        EntitySpawnReason reason = event.getSpawnType();
+        if (reason != EntitySpawnReason.NATURAL && reason != EntitySpawnReason.CHUNK_GENERATION) return;
+
+        var level = event.getLevel().getLevel();
+        double r = WillOWispEntity.LIGHT_RADIUS;
+        AABB box = new AABB(
+            event.getX() - r, event.getY() - r, event.getZ() - r,
+            event.getX() + r, event.getY() + r, event.getZ() + r);
+
+        if (!level.getEntitiesOfClass(WillOWispEntity.class, box).isEmpty()) {
+            event.setSpawnCancelled(true);
+            event.setCanceled(true);
         }
     }
 

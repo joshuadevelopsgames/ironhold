@@ -16,6 +16,7 @@ import kingdom.smp.client.entity.SolarOrbRenderer;
 import kingdom.smp.client.entity.FilcherModel;
 import kingdom.smp.client.entity.FilcherRenderer;
 import kingdom.smp.client.entity.HexBoltRenderer;
+import kingdom.smp.client.entity.SpellBeamRenderer;
 import kingdom.smp.client.entity.BabyMimicModel;
 import kingdom.smp.client.entity.BabyMimicRenderer;
 import kingdom.smp.client.entity.MiniDragonRenderer;
@@ -102,6 +103,9 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.ARCANE_ORB.get(), ArcaneOrbRenderer::new);
         event.registerEntityRenderer(Ironhold.ARCANE_BOLT.get(), ArcaneBoltRenderer::new);
         event.registerEntityRenderer(Ironhold.HEX_BOLT.get(), HexBoltRenderer::new);
+        event.registerEntityRenderer(Ironhold.KING_ENDER_EYE.get(),
+            kingdom.smp.client.entity.KingEnderEyeRenderer::new);
+        event.registerEntityRenderer(Ironhold.SPELL_BEAM.get(), SpellBeamRenderer::new);
         event.registerEntityRenderer(Ironhold.SOLAR_ORB.get(), SolarOrbRenderer::new);
         event.registerEntityRenderer(Ironhold.LUNAR_ORB.get(), LunarOrbRenderer::new);
         event.registerEntityRenderer(Ironhold.POSSESSED_ARMOR.get(), PossessedArmorRenderer::new);

@@ -66,7 +66,7 @@ public class PossessedArmorRenderer extends HumanoidMobRenderer<PossessedArmorEn
 
     @Override
     protected void scale(ZombieRenderState state, PoseStack poseStack) {
-        float moveBoost = Math.min(smoothedSpeed * 0.35F, 0.15F);
+        float moveBoost = Math.min(smoothedSpeed * 0.55F, 0.25F);
         float amplitude = 0.12F + moveBoost;
         float bob = (float) Math.sin(state.ageInTicks * 0.07) * amplitude;
         poseStack.translate(0.0F, bob, 0.0F);

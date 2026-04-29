@@ -21,7 +21,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
 /**
- * Class XP + kingdom pool from kills: bosses, monsters, minimal non-monsters, and PVP (class-based; Rogue + backstab).
+ * Class XP + kingdom pool from kills: bosses, monsters, minimal non-monsters, and PVP (class-based).
  */
 public final class ClassXpKillRewards {
     private ClassXpKillRewards() {}
@@ -111,9 +111,7 @@ public final class ClassXpKillRewards {
         return 0;
     }
 
-    /**
-     * Killer’s class sets baseline; victim’s level adds a little; Rogue gains a large bonus when striking from behind.
-     */
+    /** Killer’s class sets baseline; victim’s level adds a little. */
     private static int pvpClassXp(ServerPlayer killer, ServerPlayer victim) {
         if (killer.isSpectator()) {
             return 0;
@@ -123,15 +121,11 @@ public final class ClassXpKillRewards {
         PlayerClass kc = krpg.playerClass();
         int base = pvpBaseForKillerClass(kc);
         base += Mth.floor(vrpg.classLevel() / 3f);
-        if (kc == PlayerClass.ROGUE && isKillerBehindVictim(victim, killer)) {
-            base += 40;
-        }
         return Mth.clamp(base, 2, 150);
     }
 
     private static int pvpBaseForKillerClass(PlayerClass kc) {
         return switch (kc) {
-            case ROGUE -> 32;
             case KNIGHT -> 14;
             case RANGER -> 12;
             case WIZARD -> 9;

@@ -39,6 +39,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import kingdom.smp.net.OpenVillagerScreenPayload;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.HashMap;
@@ -207,7 +208,7 @@ public class KingdomVillagerEntity extends PathfinderMob {
     private void handleTalkingInteraction(ServerPlayer player) {
         if (!OllamaClient.isConfigured()) {
             String fallback = profession.randomFallback(getRandom());
-            sendDialogue(fallback);
+            sendDialogue(fallback, player);
             performProfessionAction(player);
             return;
         }
@@ -227,7 +228,7 @@ public class KingdomVillagerEntity extends PathfinderMob {
 
                 if (rawResponse == null) {
                     server.execute(() -> {
-                        sendDialogue(profession.randomFallback(getRandom()));
+                        sendDialogue(profession.randomFallback(getRandom()), player);
                         performProfessionAction(player);
                     });
                     return;
@@ -250,7 +251,7 @@ public class KingdomVillagerEntity extends PathfinderMob {
                         int opinionShift = parsed.has("opinion_shift")
                             ? parsed.get("opinion_shift").getAsInt() : 0;
 
-                        sendDialogue(dialogue);
+                        sendDialogue(dialogue, player);
 
                         if (!memory.isEmpty()) {
                             personality.addMemory(memory);
@@ -265,7 +266,7 @@ public class KingdomVillagerEntity extends PathfinderMob {
                     } catch (Exception e) {
                         Ironhold.LOGGER.warn("[KingdomVillager] Failed to parse LLM response: {}",
                             e.getMessage());
-                        sendDialogue(profession.randomFallback(getRandom()));
+                        sendDialogue(profession.randomFallback(getRandom()), player);
                     }
 
                     performProfessionAction(player);
@@ -370,7 +371,6 @@ public class KingdomVillagerEntity extends PathfinderMob {
         MobEffectInstance effect = switch (pClass) {
             case KNIGHT  -> new MobEffectInstance(MobEffects.RESISTANCE, 1200, 0);
             case RANGER  -> new MobEffectInstance(MobEffects.SPEED, 1200, 1);
-            case ROGUE   -> new MobEffectInstance(MobEffects.INVISIBILITY, 600, 0);
             case WIZARD  -> new MobEffectInstance(MobEffects.NIGHT_VISION, 2400, 0);
             case CLERIC  -> new MobEffectInstance(MobEffects.REGENERATION, 1200, 0);
             default      -> new MobEffectInstance(MobEffects.SATURATION, 600, 0);
@@ -440,11 +440,20 @@ public class KingdomVillagerEntity extends PathfinderMob {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private void sendDialogue(String text) {
+    private void sendDialogue(String text, ServerPlayer interactingPlayer) {
         if (!(level() instanceof ServerLevel)) return;
+        // Floating text for all observers
         VillagerDialoguePayload payload = new VillagerDialoguePayload(
             getId(), personality.name(), profession.id(), text);
         PacketDistributor.sendToPlayersTrackingEntity(this, payload);
+        // Full dialogue screen for the interacting player only
+        PacketDistributor.sendToPlayer(interactingPlayer,
+            new OpenVillagerScreenPayload(
+                personality.name(),
+                profession.id(),
+                text,
+                OpenVillagerScreenPayload.encodeMood(personality.mood()),
+                getId()));
     }
 
     private boolean removeEmeralds(ServerPlayer player, int count) {

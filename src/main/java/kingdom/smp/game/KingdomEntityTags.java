@@ -16,8 +16,6 @@ public final class KingdomEntityTags {
         TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Ironhold.MODID, "wizard_favored"));
     public static final TagKey<EntityType<?>> KNIGHT_FAVORED =
         TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Ironhold.MODID, "knight_favored"));
-    public static final TagKey<EntityType<?>> ROGUE_FAVORED =
-        TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Ironhold.MODID, "rogue_favored"));
     public static final TagKey<EntityType<?>> PATROL_BUFF_CANDIDATES =
         TagKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Ironhold.MODID, "patrol_buff_candidates"));
 

@@ -1,0 +1,20 @@
+GIMP Palette
+Name: Kings Console
+Columns: 8
+#
+ 42  42  42	shadow_outline
+ 63  63  63	dark_mid
+ 92  92  92	stone_dark
+142 142 142	stone_mid
+191 191 191	stone_light
+230 230 230	text_high
+184 134  11	gold_dark
+255 204  68	gold_mid
+255 238 153	gold_light
+200 176 122	parchment
+ 92  74  43	parchment_edge
+ 58  45  20	parchment_text
+ 85 221  85	ok_green
+204  51  51	bad_red
+139  31  31	wax_red
+ 68 119 204	ally_blue

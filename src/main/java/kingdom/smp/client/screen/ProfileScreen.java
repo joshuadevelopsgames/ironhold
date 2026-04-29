@@ -188,7 +188,6 @@ public class ProfileScreen extends Screen {
             case RANGER -> 0xFF55AA55;
             case WIZARD -> 0xFF7755FF;
             case CLERIC -> 0xFFFFDD55;
-            case ROGUE -> 0xFFAA3333;
             case PEASANT -> 0xFF888888;
             default -> 0xFFFFFFFF;
         };

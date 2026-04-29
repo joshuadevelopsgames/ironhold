@@ -1,4 +1,13 @@
 {
+  "music.minecraft_remix": {
+    "sounds": [
+      {
+        "name": "ironhold:music/minecraft_remix",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.ironhold.music.minecraft_remix"
+  },
   "ambient.ebonwood_hollow": {
     "sounds": [
       {

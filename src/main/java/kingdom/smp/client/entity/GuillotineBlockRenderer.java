@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Map;
 
@@ -30,6 +31,17 @@ public class GuillotineBlockRenderer extends GeoBlockRenderer<GuillotineBlockEnt
         // The guillotine model extends ~5 blocks tall — always render even when
         // the base block is outside the view frustum.
         return true;
+    }
+
+    /** Tell the frustum-culling pass that this BE renders into a 3×4×3 volume,
+     *  not the default 1×1×1 block. shouldRenderOffScreen alone isn't always
+     *  enough in 1.21+ — some pipelines still cull against this AABB. */
+    @Override
+    public AABB getRenderBoundingBox(GuillotineBlockEntity blockEntity) {
+        BlockPos p = blockEntity.getBlockPos();
+        return new AABB(
+            p.getX() - 1, p.getY(),     p.getZ() - 1,
+            p.getX() + 2, p.getY() + 4, p.getZ() + 2);
     }
 
     @Override

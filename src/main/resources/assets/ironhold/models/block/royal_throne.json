@@ -1,0 +1,169 @@
+{
+  "_comment": "Royal Throne — sittable furniture per Kingdom SMP design philosophy. Vanilla JSON model (no Geckolib) since it has no animation. Texture references default to vanilla blocks so the throne renders immediately; swap to custom ironhold:block/throne_* textures when art is ready.",
+  "textures": {
+    "particle": "minecraft:block/deepslate",
+    "stone":    "minecraft:block/deepslate",
+    "cushion":  "minecraft:block/red_wool",
+    "gold":     "minecraft:block/gold_block"
+  },
+  "elements": [
+    {
+      "_comment": "Base footprint",
+      "from": [1, 0, 1],
+      "to":   [15, 2, 15],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" },
+        "up":    { "texture": "#stone" },
+        "down":  { "texture": "#stone", "cullface": "down" }
+      }
+    },
+    {
+      "_comment": "Back-left leg",
+      "from": [1, 2, 1],
+      "to":   [3, 8, 3],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Back-right leg",
+      "from": [13, 2, 1],
+      "to":   [15, 8, 3],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Front-left leg",
+      "from": [1, 2, 13],
+      "to":   [3, 8, 15],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Front-right leg",
+      "from": [13, 2, 13],
+      "to":   [15, 8, 15],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Seat slab — full 14x14 footprint, 2 thick",
+      "from": [1, 8, 1],
+      "to":   [15, 10, 15],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" },
+        "up":    { "texture": "#stone" },
+        "down":  { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Cushion — red velvet pad on the seat",
+      "from": [3, 10, 3],
+      "to":   [13, 11, 13],
+      "faces": {
+        "north": { "texture": "#cushion" },
+        "south": { "texture": "#cushion" },
+        "east":  { "texture": "#cushion" },
+        "west":  { "texture": "#cushion" },
+        "up":    { "texture": "#cushion" },
+        "down":  { "texture": "#cushion" }
+      }
+    },
+    {
+      "_comment": "Backrest stone slab — full width, against north wall, mid-height",
+      "from": [1, 10, 1],
+      "to":   [15, 14, 3],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" },
+        "up":    { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Backrest gold trim — crowning band on top of the backrest",
+      "from": [1, 14, 1],
+      "to":   [15, 16, 3],
+      "faces": {
+        "north": { "texture": "#gold" },
+        "south": { "texture": "#gold" },
+        "east":  { "texture": "#gold" },
+        "west":  { "texture": "#gold" },
+        "up":    { "texture": "#gold" }
+      }
+    },
+    {
+      "_comment": "Left armrest — runs from backrest to near front edge",
+      "from": [1, 10, 3],
+      "to":   [3, 13, 13],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" },
+        "up":    { "texture": "#stone" }
+      }
+    },
+    {
+      "_comment": "Right armrest",
+      "from": [13, 10, 3],
+      "to":   [15, 13, 13],
+      "faces": {
+        "north": { "texture": "#stone" },
+        "south": { "texture": "#stone" },
+        "east":  { "texture": "#stone" },
+        "west":  { "texture": "#stone" },
+        "up":    { "texture": "#stone" }
+      }
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [30, 225, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.625, 0.625, 0.625]
+    },
+    "ground": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 3, 0],
+      "scale": [0.25, 0.25, 0.25]
+    },
+    "fixed": {
+      "rotation": [0, 0, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "thirdperson_righthand": {
+      "rotation": [75, 45, 0],
+      "translation": [0, 2.5, 0],
+      "scale": [0.375, 0.375, 0.375]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, 45, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.4, 0.4, 0.4]
+    }
+  }
+}

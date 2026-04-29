@@ -38,3 +38,16 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
+
+### Local-only working dirs (do not commit) ###
+# Runtime logs from launching the dev client
+logs/
+# Extracted binary refs (geckolib decompile, vanilla decomp at repo root)
+/com/
+/net/
+# Quarantined RTF framework — kept locally for reference, not for shipping
+.rtf-quarantine/
+# Large reference data set (>500MB) for ai-driven worldgen experiments
+ai-worldgen/
+# Texture-painter preview output (regenerated on demand from scripts/paint_*.py)
+scripts/preview/
