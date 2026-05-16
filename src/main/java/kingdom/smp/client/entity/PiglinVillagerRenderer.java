@@ -1,37 +1,41 @@
 package kingdom.smp.client.entity;
 
+import com.geckolib.model.DefaultedEntityGeoModel;
+import com.geckolib.renderer.GeoEntityRenderer;
+import com.geckolib.renderer.base.GeoRenderState;
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.PiglinVillagerEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.state.PiglinRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
 
 /**
- * Renderer for the Nether Villager ({@link PiglinVillagerEntity}).
- * <p>
- * Uses the custom {@link PiglinVillagerModel} — vanilla piglin head/ears +
- * standard humanoid body and legs, with villager-style folded "praying" arms
- * across the chest — so the silhouette reads as "trading villager" rather than
- * "swinging-armed piglin warrior".
+ * GeckoLib renderer for {@link PiglinVillagerEntity}, using the converted
+ * {@code piglin_villager.geo.json} model + animation file. The bbmodel's
+ * bone hierarchy (head with ear+nose subparts, body with the 43°-tilted
+ * "arms" praying-villager bone, separate legs) is preserved exactly.
+ *
+ * <p>Pattern mirrors {@link kingdom.smp.client.entity.dragon.KingdomDragonRenderer}.
  */
-public class PiglinVillagerRenderer
-    extends MobRenderer<PiglinVillagerEntity, PiglinRenderState, PiglinVillagerModel> {
+public class PiglinVillagerRenderer extends GeoEntityRenderer<PiglinVillagerEntity, LivingEntityRenderState> {
 
     private static final Identifier TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/piglin_villager.png");
 
     public PiglinVillagerRenderer(EntityRendererProvider.Context ctx) {
-        super(ctx, new PiglinVillagerModel(ctx.bakeLayer(PiglinVillagerModel.LAYER_LOCATION)), 0.5F);
+        super(ctx, new Model());
+        this.shadowRadius = 0.5F;
     }
 
-    @Override
-    public Identifier getTextureLocation(PiglinRenderState state) {
-        return TEXTURE;
-    }
+    /** Geo model wrapper that points the texture path at our PNG. */
+    private static class Model extends DefaultedEntityGeoModel<PiglinVillagerEntity> {
+        Model() {
+            super(Identifier.fromNamespaceAndPath(Ironhold.MODID, "piglin_villager"));
+        }
 
-    @Override
-    public PiglinRenderState createRenderState() {
-        return new PiglinRenderState();
+        @Override
+        public Identifier getTextureResource(GeoRenderState state) {
+            return TEXTURE;
+        }
     }
 }

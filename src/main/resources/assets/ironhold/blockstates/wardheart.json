@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "hidden=false": { "model": "ironhold:block/wardheart" },
+    "hidden=true":  { "model": "ironhold:block/wardheart" }
+  }
+}

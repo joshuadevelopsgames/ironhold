@@ -1,8 +1,11 @@
 package kingdom.smp.client;
 
 import kingdom.smp.client.screen.VillagerDialogueScreen;
+import kingdom.smp.client.screen.WardenDialogueScreen;
 import kingdom.smp.entity.KingdomVillagerEntity;
 import kingdom.smp.net.OpenVillagerScreenPayload;
+import kingdom.smp.net.OpenWardenScreenPayload;
+import kingdom.smp.net.UpdateWardenScreenPayload;
 import kingdom.smp.net.VillagerDialoguePayload;
 import kingdom.smp.net.VillagerEmotePayload;
 import net.minecraft.client.Minecraft;
@@ -42,6 +45,25 @@ public final class VillagerDialogueCache {
             payload.dialogue(),
             payload.decodeMood(),
             payload.entityId()));
+    }
+
+    /** Opens the interactive Warden dialogue screen with the initial NPC line. */
+    public static void openWardenScreen(OpenWardenScreenPayload payload) {
+        Minecraft.getInstance().setScreen(new WardenDialogueScreen(
+            payload.entityId(),
+            payload.npcName(),
+            payload.npcTag(),
+            payload.subtitle(),
+            payload.dialogue(),
+            payload.muted()));
+    }
+
+    /** Routes a server-pushed update into the currently-open Warden screen (if any). */
+    public static void updateWardenScreen(UpdateWardenScreenPayload payload) {
+        if (Minecraft.getInstance().screen instanceof WardenDialogueScreen warden
+            && warden.entityId() == payload.entityId()) {
+            warden.handleServerUpdate(payload.status(), payload.dialogue());
+        }
     }
 
     public static void receiveDialogue(VillagerDialoguePayload payload) {

@@ -1,5 +1,9 @@
 package kingdom.smp.game;
 
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import kingdom.smp.Ironhold;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
@@ -45,7 +49,41 @@ public final class ClassStatHandler {
 
     private ClassStatHandler() {}
 
+    /**
+     * Players whose class stats need re-application this tick. The per-player-
+     * tick handler in IronholdGameEvents calls {@link #apply} every tick; we
+     * only do the expensive attribute-modifier mutations when this set
+     * contains the player. Mark dirty whenever class, level, or any stat
+     * affecting modifier inputs changes.
+     */
+    private static final Set<UUID> dirty = ConcurrentHashMap.newKeySet();
+
+    /** Mark this player as needing class stats re-applied on the next tick. */
+    public static void markDirty(java.util.UUID playerId) {
+        dirty.add(playerId);
+    }
+
+    public static void markDirty(ServerPlayer player) {
+        dirty.add(player.getUUID());
+    }
+
+    /**
+     * Called by the per-player-tick handler. Cheap if the player isn't dirty —
+     * only does the attribute mutations when class/level changed since the
+     * last apply. Mutations call {@link #apply} directly instead.
+     */
+    public static void applyIfDirty(ServerPlayer player, PlayerKingdomRpgData rpg) {
+        if (!dirty.remove(player.getUUID())) return;
+        apply(player, rpg);
+    }
+
     public static void apply(ServerPlayer player, PlayerKingdomRpgData rpg) {
+        // Always-apply path. Called explicitly from class/level mutation
+        // sites (login, level up, promotion). The per-tick handler calls
+        // applyIfDirty, which short-circuits unless the player has been
+        // marked dirty. apply() also clears the dirty flag for symmetry.
+        dirty.remove(player.getUUID());
+
         PlayerClass c = rpg.playerClass();
         int levelTier = RpgProgression.classTier(rpg.classLevel());
 

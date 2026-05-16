@@ -1,6 +1,7 @@
 package kingdom.smp.rtf.feature.placement;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.BlockPos;
@@ -10,7 +11,7 @@ import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 import kingdom.smp.rtf.cell.Cell;
 
 class MacroBiomeFilter extends CellFilter {
-	public static final Codec<MacroBiomeFilter> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+	public static final MapCodec<MacroBiomeFilter> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.FLOAT.fieldOf("chance").forGetter((filter) -> filter.chance)
 	).apply(instance, MacroBiomeFilter::new));
 

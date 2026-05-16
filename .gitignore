@@ -1,53 +1,50 @@
-### Gradle ###
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/**/build/
 
+!**/src/**/bin/
+!**/src/**/build/
+!**/src/**/out/
+!**/src/**/repo/
+!**/src/**/run/
+!gradle/wrapper/gradle-wrapper.jar
+# Extracted binary refs (geckolib decompile, vanilla decomp at repo root)
+# Large reference data set (>500MB) for ai-driven worldgen experiments
+# Quarantined RTF framework — kept locally for reference, not for shipping
+# Runtime logs from launching the dev client
+# Texture-painter preview output (regenerated on demand from scripts/paint_*.py)
+### Eclipse ###
+### Gradle ###
 ### IntelliJ IDEA ###
-.idea/
-*.iws
+### Local-only working dirs (do not commit) ###
+### Mac OS ###
+### Minecraft Modding ###
+### VS Code ###
+**/src/generated/**/.cache/
 *.iml
 *.ipr
-out/
-!**/src/**/out/
-
-.run/
-
-### Eclipse ###
+*.iws
+.DS_Store
 .apt_generated
 .classpath
 .eclipse/
 .factorypath
+.gradle
+.idea/
 .project
+.recipes_venv/
+.rtf-quarantine/
+.run/
 .settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/**/bin/
-
-### VS Code ###
 .vscode/
-
-### Mac OS ###
-.DS_Store
-
-### Minecraft Modding ###
-run/
-!**/src/**/run/
-**/src/generated/**/.cache/
-repo/
-!**/src/**/repo/
-
-### Local-only working dirs (do not commit) ###
-# Runtime logs from launching the dev client
-logs/
-# Extracted binary refs (geckolib decompile, vanilla decomp at repo root)
 /com/
 /net/
-# Quarantined RTF framework — kept locally for reference, not for shipping
-.rtf-quarantine/
-# Large reference data set (>500MB) for ai-driven worldgen experiments
 ai-worldgen/
-# Texture-painter preview output (regenerated on demand from scripts/paint_*.py)
+bin/
+build/
+docs/build_recipes/_images/
+logs/
+out/
+repo/
+run/
 scripts/preview/
+structures/

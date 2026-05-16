@@ -34,7 +34,10 @@ public class PresetNoiseGeneratorSettings {
 			NoiseSettings.create(-worldDepth, worldDepth + worldHeight, 1, 2), 
 			Blocks.STONE.defaultBlockState(), Blocks.WATER.defaultBlockState(), 
 			PresetNoiseRouterData.overworld(preset, densityFunctions, noiseParams, noises),
-			PresetSurfaceRuleData.overworld(preset, noises),
+			// RTFSurfaceRules and RTFSurfaceConditions still need a SurfaceRegion bridge mixin before
+			// PresetSurfaceRuleData can be wired in safely. For now, keep vanilla overworld surface rules
+			// so the JSON is generatable without our RTF noise registry being populated at datagen time.
+			SurfaceRuleData.overworld(),
 			properties.spawnType.getParameterPoints(), 
 			properties.seaLevel, 
 			false, 

@@ -1,9 +1,12 @@
 package kingdom.smp.rtf.data.preset.settings;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 public class CaveSettings {
-	public static final Codec<CaveSettings> CODEC = Codec.unit(new CaveSettings());
+	public static final Codec<CaveSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+		Codec.FLOAT.optionalFieldOf("_", 0.0F).forGetter(c -> 0.0F)
+	).apply(instance, v -> new CaveSettings()));
 //	public static final Codec<CaveSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 //		
 //	).apply(instance, CaveSettings::new));

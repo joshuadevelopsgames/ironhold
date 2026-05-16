@@ -90,6 +90,10 @@ neoForge {
 
         // applies to all the run configs above
         configureEach {
+            // RTF tile cache + large mod dev environment: default 1G JVM heap is too small.
+            // ModDevGradle bundles VM args separately from Gradle's JavaExec.maxHeapSize — set here.
+            jvmArgument '-Xms1G'
+            jvmArgument '-Xmx4G'
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
             // "SCAN": For mods scan.
@@ -125,6 +129,9 @@ configurations {
 dependencies {
     // GeckoLib — animated entity/item models with full rotation support
     compileOnly files("libs/geckolib-neoforge-26.1-5.5.jar")
+
+    // Simple Voice Chat — soft dependency for Kangarude TTS playback (run/mods/ ships the runtime jar)
+    compileOnly files("libs/voicechat-neoforge-2.6.17+26.1.2.jar")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -168,6 +175,15 @@ publishing {
 if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
     tasks.named('runClient', JavaExec) {
         jvmArgs '-XstartOnFirstThread'
+    }
+}
+
+// RTF worldgen + heavy mod content needs more heap than the JVM default. Bump
+// to 4G for dev runs to avoid OOM during chunk generation.
+['runClient', 'runServer'].each { taskName ->
+    tasks.named(taskName, JavaExec) {
+        minHeapSize = '1G'
+        maxHeapSize = '4G'
     }
 }
 

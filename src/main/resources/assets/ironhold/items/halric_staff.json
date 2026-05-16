@@ -1,0 +1,31 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": { "type": "minecraft:model", "model": "ironhold:item/halric_staff_icon" }
+      },
+      {
+        "when": "ground",
+        "model": { "type": "minecraft:model", "model": "ironhold:item/halric_staff" }
+      },
+      {
+        "when": "fixed",
+        "model": { "type": "minecraft:model", "model": "ironhold:item/halric_staff" }
+      },
+      {
+        "when": "head",
+        "model": { "type": "minecraft:model", "model": "ironhold:item/halric_staff" }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "ironhold:item/halric_staff_icon",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
+    }
+  }
+}

@@ -45,6 +45,17 @@ public class FilcherTradeGoal extends Goal {
     /** How many ticks the filcher tries to reach the partner before giving up. */
     private static final int    PATIENCE_TICKS    = 100;
 
+    /**
+     * Goal-evaluation throttle. canUse() does 4 separate AABB entity scans —
+     * way too expensive to run unconditionally every tick. We cap evaluation
+     * to once per 15 ticks (3/sec) per filcher and stagger across filchers by
+     * (filcher.getId() % CAN_USE_INTERVAL) to keep frame spikes down.
+     */
+    private static final int    CAN_USE_INTERVAL  = 15;
+    /** Cached result between throttled evaluations. */
+    private boolean             cachedCanUse      = false;
+    private int                 lastCanUseTick    = -1;
+
     private final FilcherEntity filcher;
     private FilcherEntity       partner;
     private int                 ticksActive;
@@ -58,13 +69,23 @@ public class FilcherTradeGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        // Throttle: re-evaluate at most every CAN_USE_INTERVAL ticks per filcher.
+        // Stagger via filcher id so simultaneous re-evaluations don't pile up.
+        int tick = filcher.tickCount;
+        int stagger = filcher.getId() % CAN_USE_INTERVAL;
+        if (tick - lastCanUseTick < CAN_USE_INTERVAL && ((tick + stagger) % CAN_USE_INTERVAL) != 0) {
+            return cachedCanUse;
+        }
+        lastCanUseTick = tick;
+
         // This filcher must be holding something to have trade leverage.
-        if (filcher.getMainHandItem().isEmpty()) return false;
+        if (filcher.getMainHandItem().isEmpty()) { cachedCanUse = false; return false; }
         // Only resort to filcher-on-filcher theft when nothing better is around.
-        if (hasNearbyStealableTargets()) return false;
+        if (hasNearbyStealableTargets()) { cachedCanUse = false; return false; }
 
         partner = findCovetablePartner();
-        return partner != null;
+        cachedCanUse = partner != null;
+        return cachedCanUse;
     }
 
     /**
@@ -75,10 +96,11 @@ public class FilcherTradeGoal extends Goal {
      *   <li>Any living, awake villager</li>
      *   <li>Any enderman currently carrying a block</li>
      * </ul>
-     * The scan radius matches the filcher's maximum follow range (20 blocks).
+     * Scan radius reduced from 20 → 16 (≈4 chunks horizontally) to cut the
+     * per-scan entity count by ~50%.
      */
     private boolean hasNearbyStealableTargets() {
-        AABB box = filcher.getBoundingBox().inflate(20.0);
+        AABB box = filcher.getBoundingBox().inflate(16.0);
 
         // Players with stealable hotbar items?
         boolean hasPlayer = !filcher.level().getEntitiesOfClass(

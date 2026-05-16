@@ -13,95 +13,114 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 /**
- * Filcher geometry — converted from "Flitcher crown model.json"
- * (Bedrock geometry identifier: geometry.ironhold:filcher).
+ * Filcher geometry — transcribed from scratch/blockbench/filcher.geo.bbmodel
+ * (Bedrock identifier: geometry.ironhold:filcher; texture 64×64).
  *
- * <p>Single 64x64 texture atlas. Crown is a child of head, toggled
- * visible only when the filcher is a pack king.
+ * <p>Crown is a child of head, toggled visible only when the filcher is pack king.
+ * The crown is a detailed 15-cube model (rim + spikes + gem accents); the two rotated
+ * rim cubes are implemented as sub-bones with PartPose rotation so the UV faces stay
+ * correct after the -90° Y rotation around the entity origin.
  */
 public class FilcherModel extends ZombieModel<FilcherRenderState> {
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
         Identifier.fromNamespaceAndPath("ironhold", "filcher"), "main");
 
-    private final ModelPart hat;
+    /** Field is named "crown" but the underlying bone keeps vanilla's name "hat" so that
+     * HumanoidModel.<init> (zombie super) can find it via root.getChild("head").getChild("hat"). */
+    private final ModelPart crown;
 
     public FilcherModel(ModelPart root) {
         super(root);
-        this.hat = root.getChild("head").getChild("hat");
+        this.crown = root.getChild("head").getChild("hat");
     }
 
     public static LayerDefinition createBodyLayer() {
         MeshDefinition mesh = new MeshDefinition();
         PartDefinition root = mesh.getRoot();
 
-        // ── Head ─────────────────────────────────────────────────────────────
-        // BB pivot [0, 9, 0] → Java offset (0, 15, 0)
+        // ── Head (pivot Bedrock [0, 9, 0] → Java offset (0, 15, 0)) ──────────
         PartDefinition head = root.addOrReplaceChild("head",
             CubeListBuilder.create()
-                // Main head: 6x6x6 — UV(0, 13)
-                .texOffs(0, 13)
-                .addBox(-3.0F, -6.0F, -3.0F, 6, 6, 6, CubeDeformation.NONE)
-                // Right ear nub: 1x6x1 — UV(16, 25)
-                .texOffs(16, 25)
-                .addBox(2.0F, -6.0F, -4.0F, 1, 6, 1, CubeDeformation.NONE)
-                // Left ear nub: 1x6x1 — UV(20, 25)
-                .texOffs(20, 25)
-                .addBox(-3.0F, -6.0F, -4.0F, 1, 6, 1, CubeDeformation.NONE),
+                .texOffs(0, 13).addBox(-3.0F, -6.0F, -3.0F, 6, 6, 6, CubeDeformation.NONE)
+                .texOffs(16, 25).addBox(2.0F, -6.0F, -4.0F, 1, 6, 1, CubeDeformation.NONE)
+                .texOffs(20, 25).addBox(-3.0F, -6.0F, -4.0F, 1, 6, 1, CubeDeformation.NONE),
             PartPose.offset(0.0F, 15.0F, 0.0F));
 
-        // Horn: 1x4x1 with 90deg Z rotation — UV(30, 30)
-        // BB origin [-6, 7, -4], pivot [0, 9, 0], rotation [0, 0, 90]
+        // Horn — 1×4×1 with 90° Z rotation around head pivot.
         head.addOrReplaceChild("horn",
             CubeListBuilder.create()
-                .texOffs(30, 30)
-                .addBox(-6.0F, -2.0F, -4.0F, 1, 4, 1, CubeDeformation.NONE),
+                .texOffs(30, 30).addBox(-6.0F, -2.0F, -4.0F, 1, 4, 1, CubeDeformation.NONE),
             PartPose.rotation(0.0F, 0.0F, (float)(Math.PI / 2)));
 
-        // Hat overlay: 6x6x6 inflated 1.5 — UV(24, 0)
-        head.addOrReplaceChild("hat",
+        // ── Crown (15 cubes; child of head, same pivot) ──────────────────────
+        // Bone name must remain "hat" so vanilla HumanoidModel.<init> (zombie super)
+        // finds it. We just put the new crown geometry there instead of an inflated overlay.
+        // y_java = 9 - (bedrock_y + size_y); x_java/z_java = bedrock_x/z (head pivot at 0,_,0).
+        PartDefinition crown = head.addOrReplaceChild("hat",
             CubeListBuilder.create()
-                .texOffs(24, 0)
-                .addBox(-3.0F, -6.0F, -3.0F, 6, 6, 6, new CubeDeformation(1.5F)),
+                // Front + back rims (non-rotated).
+                .texOffs(24, 18).addBox(-3.0F, -7.0F, -4.0F, 6, 1, 1, CubeDeformation.NONE)
+                .texOffs(24, 20).addBox(-3.0F, -7.0F,  3.0F, 6, 1, 1, CubeDeformation.NONE)
+                // Front-center tall spike.
+                .texOffs(24, 26).addBox(-1.0F, -10.0F, -4.0F, 2, 3, 1, CubeDeformation.NONE)
+                // Side spikes (right at +X, left at -X).
+                .texOffs(24, 30).addBox( 3.0F, -9.0F, -1.0F, 1, 2, 2, CubeDeformation.NONE)
+                .texOffs(30, 26).addBox(-4.0F, -9.0F, -1.0F, 1, 2, 2, CubeDeformation.NONE)
+                // Front-flanking small spikes.
+                .texOffs(0, 31).addBox(-2.0F, -9.0F, -3.0F, 1, 2, 1, CubeDeformation.NONE)
+                .texOffs(4, 31).addBox( 1.0F, -9.0F, -3.0F, 1, 2, 1, CubeDeformation.NONE)
+                // Corner gems (4 around the rim + 4 at the corners).
+                .texOffs(8, 31).addBox( 2.0F, -8.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(32, 0).addBox( 3.0F, -8.0F, -2.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(12, 31).addBox(-3.0F, -8.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(32, 2).addBox(-4.0F, -8.0F, -2.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(32, 4).addBox(-4.0F, -8.0F,  1.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(32, 6).addBox( 3.0F, -8.0F,  1.0F, 1, 1, 1, CubeDeformation.NONE),
             PartPose.ZERO);
 
-        // ── Body ─────────────────────────────────────────────────────────────
-        // BB pivot [0, 9, 0], rotation [-4.58deg, 0, 0]
+        // Rotated rim cubes — Bedrock specifies them with rotation Y=-90° around
+        // pivot (0, 0, 0) (entity origin). Express as sub-bones whose pivot is at
+        // the entity origin (offset (0, 9, 0) from crown's pivot in Java terms),
+        // then add the cubes in pre-rotation orientation.
+        crown.addOrReplaceChild("crown_rim_right",
+            CubeListBuilder.create()
+                .texOffs(24, 22).addBox(-3.0F, -16.0F,  3.0F, 6, 1, 1, CubeDeformation.NONE),
+            PartPose.offsetAndRotation(0.0F, 9.0F, 0.0F, 0.0F, (float)(-Math.PI / 2), 0.0F));
+        crown.addOrReplaceChild("crown_rim_left",
+            CubeListBuilder.create()
+                .texOffs(24, 24).addBox(-3.0F, -16.0F, -4.0F, 6, 1, 1, CubeDeformation.NONE),
+            PartPose.offsetAndRotation(0.0F, 9.0F, 0.0F, 0.0F, (float)(-Math.PI / 2), 0.0F));
+
+        // ── Body (3 cubes: main + 2 tiny decoration nubs) ───────────────────
         root.addOrReplaceChild("body",
             CubeListBuilder.create()
-                // Main body: 8x9x4 — UV(0, 0)
-                .texOffs(0, 0)
-                .addBox(-4.0F, 0.0F, -2.0F, 8, 9, 4, CubeDeformation.NONE),
+                .texOffs(0, 0).addBox(-4.0F, 0.0F, -2.0F, 8, 9, 4, CubeDeformation.NONE)
+                .texOffs(17, 5).addBox(-3.0F, 0.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE)
+                .texOffs(14, 1).addBox( 2.0F, 0.0F, -3.0F, 1, 1, 1, CubeDeformation.NONE),
             PartPose.offsetAndRotation(0.0F, 15.0F, 0.0F, 0.08F, 0.0F, 0.0F));
 
-        // ── Arms ─────────────────────────────────────────────────────────────
-        // Right arm: BB pivot [4, 8, 0], rot [-8.59deg, 0, 2.86deg]
-        // UV moved to (48, 12) to avoid overlap with hat/crown overlay at (24, 0)
+        // ── Arms (both use shared UV (16, 40)) ──────────────────────────────
         root.addOrReplaceChild("right_arm",
             CubeListBuilder.create()
-                .texOffs(48, 12)
-                .addBox(-2.0F, -1.0F, -1.0F, 2, 7, 2, CubeDeformation.NONE),
-            PartPose.offsetAndRotation(-4.0F, 16.0F, 0.0F, 0.15F, 0.0F, 0.05F));
+                .texOffs(16, 40).addBox(0.0F, -1.0F, -1.0F, 2, 7, 2, CubeDeformation.NONE),
+            PartPose.offsetAndRotation(4.0F, 16.0F, 0.0F, 0.15F, 0.0F, 0.05F));
 
-        // Left arm: BB pivot [-4, 8, 0], rot [-8.59deg, 0, -2.86deg]
         root.addOrReplaceChild("left_arm",
             CubeListBuilder.create()
-                .texOffs(24, 9)
-                .addBox(0.0F, -1.0F, -1.0F, 2, 7, 2, CubeDeformation.NONE),
-            PartPose.offsetAndRotation(4.0F, 16.0F, 0.0F, 0.15F, 0.0F, -0.05F));
+                .texOffs(16, 40).addBox(-2.0F, -1.0F, -1.0F, 2, 7, 2, CubeDeformation.NONE),
+            PartPose.offsetAndRotation(-4.0F, 16.0F, 0.0F, 0.15F, 0.0F, -0.05F));
 
-        // ── Legs ─────────────────────────────────────────────────────────────
+        // ── Legs ────────────────────────────────────────────────────────────
         root.addOrReplaceChild("right_leg",
             CubeListBuilder.create()
-                .texOffs(0, 25)
-                .addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, CubeDeformation.NONE),
-            PartPose.offset(-0.5F, 20.0F, 0.0F));
+                .texOffs(0, 25).addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, CubeDeformation.NONE),
+            PartPose.offset(0.5F, 20.0F, 0.0F));
 
         root.addOrReplaceChild("left_leg",
             CubeListBuilder.create()
-                .texOffs(8, 25)
-                .addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, CubeDeformation.NONE),
-            PartPose.offset(0.5F, 20.0F, 0.0F));
+                .texOffs(8, 25).addBox(-1.0F, 0.0F, -1.0F, 2, 4, 2, CubeDeformation.NONE),
+            PartPose.offset(-0.5F, 20.0F, 0.0F));
 
         return LayerDefinition.create(mesh, 64, 64);
     }
@@ -112,8 +131,9 @@ public class FilcherModel extends ZombieModel<FilcherRenderState> {
     public void setupAnim(FilcherRenderState state) {
         super.setupAnim(state);
 
-        // Crown hat overlay only visible for king filchers
-        hat.visible = state.isKing;
+        // Crown bone visible only for king filchers — all 15 cubes (incl. rotated sub-bone
+        // rims) inherit visibility from the crown ModelPart.
+        crown.visible = state.isKing;
 
         float t         = state.ageInTicks;
         float walkSpeed = state.walkAnimationSpeed;

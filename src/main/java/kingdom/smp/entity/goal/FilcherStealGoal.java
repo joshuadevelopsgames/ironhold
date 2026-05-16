@@ -1,7 +1,9 @@
 package kingdom.smp.entity.goal;
 
 import kingdom.smp.entity.FilcherEntity;
-import kingdom.smp.entity.FilcherRole;
+// FilcherRole import retained-removed: role-based branching has been deleted in favour of a
+// single "steal when the player isn't looking" path. All filchers behave the same; the king
+// just has buffed HP + cooldown bypass (see FilcherEntity#applyKingStats).
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,29 +21,18 @@ import java.util.EnumSet;
 /**
  * Makes a {@link FilcherEntity} steal from a player's hotbar.
  *
- * <h3>Two modes depending on assigned role</h3>
- * <ul>
- *   <li><b>THIEF (active)</b> — stalks the player from behind, flanks around
- *       to the blind side, proactively signals a distractor, and makes the steal
- *       attempt on contact. Requires {@code boldness > 0.6}.</li>
- *   <li><b>All other roles (opportunistic)</b> — never moves toward the player
- *       on purpose. Fires only when the filcher already happens to be within
- *       {@link #OPPORTUNIST_RANGE_SQ} blocks AND the player isn't watching.
- *       No flanking, no distraction setup — just grabs and flees.</li>
- * </ul>
+ * <p>Single behavior path for every filcher: when a target player is in range and
+ * NOT looking, stalk to a position just behind them and lift one hotbar item.
+ * After a successful steal, sprint to cover. If spotted mid-approach, freeze for
+ * 1–2 seconds; if still spotted after that, abandon and let other goals take over.
  *
- * <p>If the player is actively looking at the filcher this goal suspends itself
- * so the filcher can fall through to other goals instead.
+ * <p>Kings (filchers wearing FILCHER_CROWN) bypass the post-failure cooldown so
+ * they're more aggressive than the rest of the pack.
  */
 public class FilcherStealGoal extends Goal {
 
     /** Squared distance at which the steal attempt is made. */
     private static final double STEAL_RANGE_SQ = 2.2 * 2.2;
-    /**
-     * Opportunistic steal range: non-THIEF filchers only steal if they are
-     * already this close to a player without actively pursuing them.
-     */
-    private static final double OPPORTUNIST_RANGE_SQ = 4.0 * 4.0;
     /**
      * Dot-product threshold for "behind the player".
      * dot(playerLook, toMob) < threshold → mob is more than ~91° from look dir.
@@ -66,7 +57,6 @@ public class FilcherStealGoal extends Goal {
     private boolean stolen = false;
     private int fleeTicks = 0;
     private int frozenTicks = 0;
-    private boolean distractionSent = false;
 
     public FilcherStealGoal(FilcherEntity filcher, double speed) {
         this.filcher = filcher;
@@ -78,20 +68,15 @@ public class FilcherStealGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (filcher.isKing()) return false;
-        if (filcher.getStealCooldownTicks() > 0) return false;
+        // Kings bypass the cooldown — they're the buffed thieves of the pack.
+        if (!filcher.isKing() && filcher.getStealCooldownTicks() > 0) return false;
         if (!(filcher.getTarget() instanceof Player p)) return false;
         if (p.isCreative() || p.isSpectator()) return false;
         this.target = p;
         if (isPlayerWatching()) return false;
-
-        if (filcher.getRole() == FilcherRole.THIEF) {
-            // Active mode: stalk and create the opportunity — requires boldness
-            return filcher.getBoldness() > 0.6f;
-        }
-        // Opportunistic mode: only fire if already within arm's reach while doing
-        // another job. No chasing, no recruiting — just grab and run.
-        return filcher.distanceToSqr(p) <= OPPORTUNIST_RANGE_SQ;
+        // Single behavior path: if a player is within targeting range and not looking,
+        // every filcher (king or not) stalks them and tries to steal from behind.
+        return true;
     }
 
     @Override
@@ -110,17 +95,17 @@ public class FilcherStealGoal extends Goal {
         stolen = false;
         fleeTicks = 0;
         frozenTicks = 0;
-        distractionSent = false;
     }
 
     @Override
     public void stop() {
-        if (!stolen) filcher.setStealCooldownTicks(100);
+        // Kings never go on cooldown — they're relentless. Regular filchers cool down
+        // after a failed attempt so they don't immediately re-target the same player.
+        if (!stolen && !filcher.isKing()) filcher.setStealCooldownTicks(100);
         target = null;
         stolen = false;
         fleeTicks = 0;
         frozenTicks = 0;
-        distractionSent = false;
         filcher.getNavigation().stop();
     }
 
@@ -159,29 +144,9 @@ public class FilcherStealGoal extends Goal {
         Vec3 behindPos = getBehindPosition();
         double distSq  = filcher.distanceToSqr(target);
 
-        // ── Opportunistic mode (non-THIEF roles) ─────────────────────────────
-        // Don't chase — only steal if already in striking range and behind.
-        // No flanking, no distraction recruitment.
-        if (filcher.getRole() != FilcherRole.THIEF) {
-            if (distSq <= STEAL_RANGE_SQ && isBehindPlayer()) {
-                attemptSteal();
-            }
-            return;
-        }
-
-        // ── Active mode (THIEF) ───────────────────────────────────────────────
-        // Stalk phase — path to just behind the player.
-        // Don't look directly at the target while sneaking; staring at someone's
-        // back is a social tell. The model's stalk animation handles orientation.
-
-        // ── Proactive distraction — signal one pack member to the player's front ──
-        if (!distractionSent && !stolen) {
-            double distSq2 = filcher.distanceToSqr(target);
-            if (distSq2 <= 10.0 * 10.0) {
-                attemptSetupDistraction();
-                distractionSent = true;
-            }
-        }
+        // Single behavior path: stalk to a position just behind the player and steal.
+        // Don't look directly at the target while sneaking; staring at someone's back
+        // is a social tell. The model's stalk animation handles orientation.
 
         if (distSq > STEAL_RANGE_SQ) {
             double boldSpeed = speed * (0.9 + filcher.getBoldness() * 0.2);
@@ -221,26 +186,6 @@ public class FilcherStealGoal extends Goal {
         double side = filcher.position().subtract(playerPos).dot(perp) >= 0 ? 1.0 : -1.0;
         // 4 blocks to that side + 2 blocks behind the player
         return playerPos.add(perp.scale(side * 4.0)).add(look.scale(-2.0));
-    }
-
-    /**
-     * Sends one nearby non-bold, empty-handed filcher to the player's front
-     * as a distraction while this filcher circles to steal from behind.
-     */
-    private void attemptSetupDistraction() {
-        java.util.List<FilcherEntity> candidates = filcher.level().getEntitiesOfClass(
-            FilcherEntity.class,
-            filcher.getBoundingBox().inflate(16.0),
-            f -> f != filcher
-                && f.isAlive()
-                && f.getMainHandItem().isEmpty()
-                && f.getBoldness() <= 0.6f
-                && f.getSwarmTicks() == 0
-                && f.getTarget() == null
-        );
-        if (candidates.isEmpty()) return;
-        FilcherEntity distractor = candidates.get(filcher.getRandom().nextInt(candidates.size()));
-        distractor.setSwarmTarget(target, 60);
     }
 
     /** Returns a position 1.5 blocks directly behind the player's look direction. */

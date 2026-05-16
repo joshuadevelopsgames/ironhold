@@ -22,7 +22,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -66,7 +66,7 @@ public final class SkillEventHandlers {
      * Creative-mode players bypass the gate.
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onBlockBreakGate(BlockEvent.BreakEvent event) {
+    public static void onBlockBreakGate(BreakBlockEvent event) {
         Player player = event.getPlayer();
         if (player.getAbilities().instabuild) return;
 
@@ -84,7 +84,7 @@ public final class SkillEventHandlers {
     }
 
     @SubscribeEvent
-    public static void onBlockBreakVeinbreaker(BlockEvent.BreakEvent event) {
+    public static void onBlockBreakVeinbreaker(BreakBlockEvent event) {
         if (event.isCanceled()) return;
         Player player = event.getPlayer();
         if (!(player instanceof ServerPlayer sp)) return;

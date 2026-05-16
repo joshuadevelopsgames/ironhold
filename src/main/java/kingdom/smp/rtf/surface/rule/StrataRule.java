@@ -70,7 +70,7 @@ public record StrataRule(Identifier cacheId, int buffer, int iterations, Holder<
 	private Strata generateStrata(RandomSource random) {
 		List<Stratum> stratum = new ArrayList<>();
 		for(Layer layer : this.layers) {
-			HolderSet<Block> materials = BuiltInRegistries.BLOCK.getTag(layer.materials()).orElseThrow();
+			HolderSet<Block> materials = BuiltInRegistries.BLOCK.getOrThrow(layer.materials());
 			int layerCount = layer.layers(random.nextFloat());
 	        int lastIndex = -1;
 	        for (int i = 0; i < layerCount; i++) {
@@ -202,7 +202,7 @@ public record StrataRule(Identifier cacheId, int buffer, int iterations, Holder<
 	}
 	
 	public record Layer(TagKey<Block> materials, Holder<Noise> depth, int attempts, int minLayers, int maxLayers, float minDepth, float maxDepth) {
-		public static final MapCodec<Layer> CODEC = RecordCodecBuilder.<Layer>mapCodec(instance -> instance.group(
+		public static final Codec<Layer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			TagKey.hashedCodec(Registries.BLOCK).fieldOf("materials").forGetter(Layer::materials),
 			Noise.CODEC.fieldOf("depth").forGetter(Layer::depth),
 			Codec.INT.fieldOf("attempts").forGetter(Layer::attempts),

@@ -9,7 +9,7 @@ import kingdom.smp.rtf.registries.RTFBuiltInRegistries;
 public class CurveFunctions {
 
 	public static void bootstrap() {
-		register("interpolation", Interpolation.CODEC);
+		register("interpolation", Interpolation.LINEAR.codec());
 		register("scurve", SCurveFunction.CODEC);
 		register("terrace", TerraceFunction.CODEC);
 	}

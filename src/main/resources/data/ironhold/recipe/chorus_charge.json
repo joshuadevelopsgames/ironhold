@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:popped_chorus_fruit",
+    "minecraft:ender_pearl",
+    "minecraft:chorus_fruit"
+  ],
+  "result": {
+    "id": "ironhold:chorus_charge",
+    "count": 2
+  }
+}

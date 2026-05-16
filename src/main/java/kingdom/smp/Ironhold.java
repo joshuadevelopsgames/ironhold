@@ -9,12 +9,27 @@ import kingdom.smp.entity.ArcaneBoltEntity;
 import kingdom.smp.entity.ArcaneInvokerEntity;
 import kingdom.smp.entity.ArcaneOrbEntity;
 import kingdom.smp.entity.LunarOrbEntity;
+import kingdom.smp.entity.PiglinVillagerEntity;
+import kingdom.smp.entity.KnightArmoredEntity;
+import kingdom.smp.entity.KnightCrossbowmanEntity;
+import kingdom.smp.entity.KnightCrusaderEntity;
+import kingdom.smp.entity.KnightGoldEntity;
+import kingdom.smp.entity.KnightGothicEntity;
+import kingdom.smp.entity.KnightJousterEntity;
+import kingdom.smp.entity.KnightManAtArmsEntity;
+import kingdom.smp.entity.KnightRecruitEntity;
+import kingdom.smp.entity.KnightVeteranEntity;
 import kingdom.smp.entity.PossessedArmorEntity;
 import kingdom.smp.entity.ShipwreckMimicEntity;
+import kingdom.smp.entity.ShulkerHerderEntity;
+import kingdom.smp.entity.WhiteShulkerEntity;
+import kingdom.smp.entity.BlackShulkerEntity;
 import kingdom.smp.entity.SirenEntity;
 import kingdom.smp.entity.SolarOrbEntity;
 import kingdom.smp.entity.ArcaneWizardEntity;
 import kingdom.smp.entity.HexBoltEntity;
+import kingdom.smp.entity.HoplingEntity;
+import kingdom.smp.entity.KangarudeEntity;
 import kingdom.smp.entity.SpellBeamEntity;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.entity.TempestArrowEntity;
@@ -31,9 +46,9 @@ import kingdom.smp.entity.WillOWispEntity;
 import kingdom.smp.entity.WillOWisp2Entity;
 import kingdom.smp.entity.VoidInvokerEntity;
 import kingdom.smp.entity.BabyMimicEntity;
-import kingdom.smp.entity.MiniDragonEntity;
 import kingdom.smp.entity.MimicEntity;
 import kingdom.smp.entity.NullStalkerEntity;
+import kingdom.smp.entity.dragon.KingdomDragonEntity;
 import kingdom.smp.game.AccessoryTickHandler;
 import kingdom.smp.item.ArcaneScepterItem;
 import kingdom.smp.game.EncumbranceHandler;
@@ -70,9 +85,15 @@ import kingdom.smp.game.TanzaniteWorldgenFluidHandler;
 import kingdom.smp.net.ModNetworking;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.illager.Illusioner;
@@ -108,6 +129,12 @@ public class Ironhold {
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, MODID);
+    public static final DeferredRegister<net.minecraft.world.effect.MobEffect> MOB_EFFECTS =
+        DeferredRegister.create(Registries.MOB_EFFECT, MODID);
+
+    // ── Status effects ───────────────────────────────────────────────────────
+    public static final DeferredHolder<net.minecraft.world.effect.MobEffect, kingdom.smp.effect.PlagueEffect> PLAGUE_EFFECT =
+        MOB_EFFECTS.register("plague", kingdom.smp.effect.PlagueEffect::new);
 
     // ── Sound events ─────────────────────────────────────────────────────────
     // Ebonwood Hollow ambient loop — sound by CreativeMD / AmbientSounds mod (LGPL-3.0)
@@ -115,6 +142,10 @@ public class Ironhold {
     public static final DeferredHolder<SoundEvent, SoundEvent> EBONWOOD_AMBIENT =
         SOUND_EVENTS.register("ambient.ebonwood_hollow",
             () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "ambient.ebonwood_hollow")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> HALRIC_STAFF_CHAIN_CLINK =
+        SOUND_EVENTS.register("item.halric_staff.chain_clink",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "item.halric_staff.chain_clink")));
 
     public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_AMBIENT =
         SOUND_EVENTS.register("entity.pink_deer.ambient",
@@ -128,6 +159,26 @@ public class Ironhold {
     public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_MOM_HURT =
         SOUND_EVENTS.register("entity.pink_deer.mom.hurt",
             () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.mom.hurt")));
+
+    /** Dramatic sonic-boom transition cue for the Kangabrine descent. ~4s long. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_DRAMATIC_DESCENT =
+        SOUND_EVENTS.register("entity.kangabrine.dramatic_descent",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.dramatic_descent")));
+
+    /** Fast, nerving, eerie 30-second ambient — plays during the Kangabrine STALKING phase. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_EERIE_AMBIENT =
+        SOUND_EVENTS.register("entity.kangabrine.eerie_ambient",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.eerie_ambient")));
+
+    /** Horrifying banshee scream — used as a strike payoff during ESCALATED. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_BANSHEE_SCREAM =
+        SOUND_EVENTS.register("entity.kangabrine.banshee_scream",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.banshee_scream")));
+
+    /** Dark haunted-atmosphere evil laugh — used as a random ambient sting. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_EVIL_LAUGH =
+        SOUND_EVENTS.register("entity.kangabrine.evil_laugh",
+            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.evil_laugh")));
 
     // ── Worldgen feature keys ─────────────────────────────────────────────────
     public static final DeferredHolder<Feature<?>, BlueVinesFeature> BLUE_VINES_FEATURE =
@@ -297,6 +348,25 @@ public class Ironhold {
             MobCategory.CREATURE,
             b -> b.sized(0.35F, 0.6F).clientTrackingRange(8).updateInterval(2));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<HoplingEntity>> HOPLING =
+        ENTITY_TYPES.registerEntityType(
+            "hopling",
+            HoplingEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.9F, 0.9F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.RatEntity>> RAT =
+        ENTITY_TYPES.registerEntityType(
+            "rat",
+            kingdom.smp.entity.RatEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.35F, 0.2F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredItem<Item> RAT_SPAWN_EGG =
+        ITEMS.registerItem(
+            "rat_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(RAT.get()).stacksTo(64)));
+
     public static final DeferredItem<Item> PURPLE_ALLAY_SPAWN_EGG =
         ITEMS.registerItem(
             "purple_allay_spawn_egg",
@@ -338,6 +408,19 @@ public class Ironhold {
             "kingdom_villager_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(KINGDOM_VILLAGER.get()).stacksTo(64)));
 
+    /** Kangarude — humanoid NPC with a player skin, local-LLM brain, and ElevenLabs voice via SVC. */
+    public static final DeferredHolder<EntityType<?>, EntityType<KangarudeEntity>> KANGARUDE =
+        ENTITY_TYPES.registerEntityType(
+            "kangarude",
+            KangarudeEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.8F).eyeHeight(1.62F).clientTrackingRange(12).updateInterval(3));
+
+    public static final DeferredItem<Item> KANGARUDE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "kangarude_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KANGARUDE.get()).stacksTo(64)));
+
     public static final DeferredHolder<EntityType<?>, EntityType<EnderVillagerEntity>> ENDER_VILLAGER =
         ENTITY_TYPES.registerEntityType(
             "ender_villager",
@@ -350,6 +433,44 @@ public class Ironhold {
             "ender_villager_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ENDER_VILLAGER.get()).stacksTo(64)));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<ShulkerHerderEntity>> SHULKER_HERDER =
+        ENTITY_TYPES.registerEntityType(
+            "shulker_herder",
+            ShulkerHerderEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> SHULKER_HERDER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "shulker_herder_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SHULKER_HERDER.get()).stacksTo(64)));
+
+    /** White Shulker — healer/priest caste; weak attack, heals nearby End mobs. */
+    public static final DeferredHolder<EntityType<?>, EntityType<WhiteShulkerEntity>> WHITE_SHULKER =
+        ENTITY_TYPES.registerEntityType(
+            "white_shulker",
+            WhiteShulkerEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(1.0F, 1.0F).clientTrackingRange(10));
+
+    public static final DeferredItem<Item> WHITE_SHULKER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "white_shulker_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(WHITE_SHULKER.get()).stacksTo(64)));
+
+    /** Black Shulker — void assassin; teleport-strikes and blinds with bullets. */
+    public static final DeferredHolder<EntityType<?>, EntityType<BlackShulkerEntity>> BLACK_SHULKER =
+        ENTITY_TYPES.registerEntityType(
+            "black_shulker",
+            BlackShulkerEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(1.0F, 1.0F).clientTrackingRange(10));
+
+    public static final DeferredItem<Item> BLACK_SHULKER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "black_shulker_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(BLACK_SHULKER.get()).stacksTo(64)));
+
     public static final DeferredHolder<EntityType<?>, EntityType<WardenHalricEntity>> WARDEN_HALRIC =
         ENTITY_TYPES.registerEntityType(
             "warden_halric",
@@ -361,6 +482,162 @@ public class Ironhold {
         ITEMS.registerItem(
             "warden_halric_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(WARDEN_HALRIC.get()).stacksTo(64)));
+
+    /** Vesper — wither-skeleton cemetery watcher. Peaceful, immobile, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.CemeteryWatcherEntity>> CEMETERY_WATCHER =
+        ENTITY_TYPES.registerEntityType(
+            "cemetery_watcher",
+            kingdom.smp.entity.CemeteryWatcherEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.7F, 2.4F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> CEMETERY_WATCHER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "cemetery_watcher_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(CEMETERY_WATCHER.get()).stacksTo(64)));
+
+    /** Mira — village innkeeper at The Wandering Wolf. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.MiraInnkeeperEntity>> MIRA_INNKEEPER =
+        ENTITY_TYPES.registerEntityType(
+            "mira_innkeeper",
+            kingdom.smp.entity.MiraInnkeeperEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> MIRA_INNKEEPER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "mira_innkeeper_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(MIRA_INNKEEPER.get()).stacksTo(64)));
+
+    /** Master Tobias — village blacksmith at The Iron Hearth. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.BlacksmithTobiasEntity>> BLACKSMITH_TOBIAS =
+        ENTITY_TYPES.registerEntityType(
+            "blacksmith_tobias",
+            kingdom.smp.entity.BlacksmithTobiasEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> BLACKSMITH_TOBIAS_SPAWN_EGG =
+        ITEMS.registerItem(
+            "blacksmith_tobias_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(BLACKSMITH_TOBIAS.get()).stacksTo(64)));
+
+    /** Brother Cedric — village priest at the Chapel of the Old Light. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.PriestCedricEntity>> PRIEST_CEDRIC =
+        ENTITY_TYPES.registerEntityType(
+            "priest_cedric",
+            kingdom.smp.entity.PriestCedricEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> PRIEST_CEDRIC_SPAWN_EGG =
+        ITEMS.registerItem(
+            "priest_cedric_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(PRIEST_CEDRIC.get()).stacksTo(64)));
+
+    /** Old Hesta — village seer at the Hollow Shrine. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.OldHestaEntity>> OLD_HESTA =
+        ENTITY_TYPES.registerEntityType(
+            "old_hesta",
+            kingdom.smp.entity.OldHestaEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> OLD_HESTA_SPAWN_EGG =
+        ITEMS.registerItem(
+            "old_hesta_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(OLD_HESTA.get()).stacksTo(64)));
+
+    /** Old Beren — disgraced veteran on the tavern steps. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.OldBerenEntity>> OLD_BEREN =
+        ENTITY_TYPES.registerEntityType(
+            "old_beren",
+            kingdom.smp.entity.OldBerenEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> OLD_BEREN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "old_beren_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(OLD_BEREN.get()).stacksTo(64)));
+
+    /** Captain Roselind — village watch captain at the Barracks. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.CaptainRoselindEntity>> CAPTAIN_ROSELIND =
+        ENTITY_TYPES.registerEntityType(
+            "captain_roselind",
+            kingdom.smp.entity.CaptainRoselindEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> CAPTAIN_ROSELIND_SPAWN_EGG =
+        ITEMS.registerItem(
+            "captain_roselind_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(CAPTAIN_ROSELIND.get()).stacksTo(64)));
+
+    /** Loremaster Eilan — village scribe at the Library. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.LoremasterEilanEntity>> LOREMASTER_EILAN =
+        ENTITY_TYPES.registerEntityType(
+            "loremaster_eilan",
+            kingdom.smp.entity.LoremasterEilanEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> LOREMASTER_EILAN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "loremaster_eilan_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(LOREMASTER_EILAN.get()).stacksTo(64)));
+
+    /** Sister Wren — village apothecary at the Herb Garden. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.SisterWrenEntity>> SISTER_WREN =
+        ENTITY_TYPES.registerEntityType(
+            "sister_wren",
+            kingdom.smp.entity.SisterWrenEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> SISTER_WREN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "sister_wren_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SISTER_WREN.get()).stacksTo(64)));
+
+    /** Bram — village bard on The Wandering Wolf's stage. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.BramBardEntity>> BRAM_BARD =
+        ENTITY_TYPES.registerEntityType(
+            "bram_bard",
+            kingdom.smp.entity.BramBardEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> BRAM_BARD_SPAWN_EGG =
+        ITEMS.registerItem(
+            "bram_bard_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(BRAM_BARD.get()).stacksTo(64)));
+
+    /** Pippa — village street kid (girl, ~10) in the market alleys. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.PippaUrchinEntity>> PIPPA_URCHIN =
+        ENTITY_TYPES.registerEntityType(
+            "pippa_urchin",
+            kingdom.smp.entity.PippaUrchinEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.4F, 1.0F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> PIPPA_URCHIN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "pippa_urchin_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(PIPPA_URCHIN.get()).stacksTo(64)));
+
+    /** Piglin-villager crossbreed: passive trader, lives in Overworld/Nether border settlements. */
+    public static final DeferredHolder<EntityType<?>, EntityType<PiglinVillagerEntity>> PIGLIN_VILLAGER =
+        ENTITY_TYPES.registerEntityType(
+            "piglin_villager",
+            PiglinVillagerEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> PIGLIN_VILLAGER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "piglin_villager_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(PIGLIN_VILLAGER.get()).stacksTo(64)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<FilcherEntity>> FILCHER =
         ENTITY_TYPES.registerEntityType(
@@ -413,6 +690,176 @@ public class Ironhold {
             "siren_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(SIREN.get()).stacksTo(64)));
 
+    // ── Knight variants (trial chamber medievalization) ────────────────────────
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightRecruitEntity>> KNIGHT_RECRUIT =
+        ENTITY_TYPES.registerEntityType("knight_recruit", KnightRecruitEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_RECRUIT_SPAWN_EGG =
+        ITEMS.registerItem("knight_recruit_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_RECRUIT.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightManAtArmsEntity>> KNIGHT_MAN_AT_ARMS =
+        ENTITY_TYPES.registerEntityType("knight_man_at_arms", KnightManAtArmsEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_MAN_AT_ARMS_SPAWN_EGG =
+        ITEMS.registerItem("knight_man_at_arms_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_MAN_AT_ARMS.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightCrossbowmanEntity>> KNIGHT_CROSSBOWMAN =
+        ENTITY_TYPES.registerEntityType("knight_crossbowman", KnightCrossbowmanEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_CROSSBOWMAN_SPAWN_EGG =
+        ITEMS.registerItem("knight_crossbowman_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_CROSSBOWMAN.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightArmoredEntity>> KNIGHT_ARMORED =
+        ENTITY_TYPES.registerEntityType("knight_armored", KnightArmoredEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_ARMORED_SPAWN_EGG =
+        ITEMS.registerItem("knight_armored_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_ARMORED.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightCrusaderEntity>> KNIGHT_CRUSADER =
+        ENTITY_TYPES.registerEntityType("knight_crusader", KnightCrusaderEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_CRUSADER_SPAWN_EGG =
+        ITEMS.registerItem("knight_crusader_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_CRUSADER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightGothicEntity>> KNIGHT_GOTHIC =
+        ENTITY_TYPES.registerEntityType("knight_gothic", KnightGothicEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_GOTHIC_SPAWN_EGG =
+        ITEMS.registerItem("knight_gothic_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_GOTHIC.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightGoldEntity>> KNIGHT_GOLD =
+        ENTITY_TYPES.registerEntityType("knight_gold", KnightGoldEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_GOLD_SPAWN_EGG =
+        ITEMS.registerItem("knight_gold_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_GOLD.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightJousterEntity>> KNIGHT_JOUSTER =
+        ENTITY_TYPES.registerEntityType("knight_jouster", KnightJousterEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_JOUSTER_SPAWN_EGG =
+        ITEMS.registerItem("knight_jouster_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_JOUSTER.get()).stacksTo(64)));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<KnightVeteranEntity>> KNIGHT_VETERAN =
+        ENTITY_TYPES.registerEntityType("knight_veteran", KnightVeteranEntity::new, MobCategory.MONSTER,
+            b -> b.sized(0.6F, 1.95F).eyeHeight(1.62F).clientTrackingRange(8).updateInterval(3));
+    public static final DeferredItem<Item> KNIGHT_VETERAN_SPAWN_EGG =
+        ITEMS.registerItem("knight_veteran_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KNIGHT_VETERAN.get()).stacksTo(64)));
+
+    // ── Knight equipment assets (map to assets/ironhold/equipment/*.json) ────────
+    // Helmet equipment assets (one per knight) — texture matches the custom helmet model's UV layout.
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_RECRUIT =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_recruit"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_MAN_AT_ARMS =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_man_at_arms"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_CROSSBOWMAN =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_crossbowman"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_ARMORED =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_armored"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_CRUSADER =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_crusader"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_GOTHIC =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_gothic"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_GOLD =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_gold"));
+
+    // Body equipment assets — used by chest/legs/boots items. The helmet textures from
+    // Epic Knights only paint helmet UV regions, so chest/legs/boots need separate textures
+    // (gambeson for the lighter sets, maximilian for the armored set, full-set textures
+    // for crusader/gothic/gold) to avoid garbled chestplates and broken arms.
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_RECRUIT_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_recruit_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_MAN_AT_ARMS_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_man_at_arms_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_CROSSBOWMAN_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_crossbowman_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_ARMORED_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_armored_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_CRUSADER_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_crusader_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_GOTHIC_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_gothic_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_GOLD_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_gold_body"));
+
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_JOUSTER =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_jouster"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_JOUSTER_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_jouster_body"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_VETERAN =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_veteran"));
+    public static final ResourceKey<EquipmentAsset> EQ_KNIGHT_VETERAN_BODY =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(MODID, "knight_veteran_body"));
+
+    // ── Knight armor items (mob-only; 4 slots per tier, no drops) ─────────────
+    // Helper: builds Equippable for the given slot + asset, no player-facing features
+    private static Equippable knightEquip(EquipmentSlot slot, ResourceKey<EquipmentAsset> asset) {
+        return Equippable.builder(slot).setAsset(asset)
+            .setDispensable(false).setSwappable(false).setDamageOnHurt(false).build();
+    }
+
+    // Knight Recruit
+    public static final DeferredItem<Item> KNIGHT_RECRUIT_HELM   = ITEMS.registerItem("knight_recruit_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_RECRUIT))));
+    public static final DeferredItem<Item> KNIGHT_RECRUIT_CHEST  = ITEMS.registerItem("knight_recruit_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_RECRUIT_BODY))));
+    public static final DeferredItem<Item> KNIGHT_RECRUIT_LEGS   = ITEMS.registerItem("knight_recruit_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_RECRUIT_BODY))));
+    public static final DeferredItem<Item> KNIGHT_RECRUIT_BOOTS  = ITEMS.registerItem("knight_recruit_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_RECRUIT_BODY))));
+
+    // Knight Man-at-Arms
+    public static final DeferredItem<Item> KNIGHT_MAN_AT_ARMS_HELM   = ITEMS.registerItem("knight_man_at_arms_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_MAN_AT_ARMS))));
+    public static final DeferredItem<Item> KNIGHT_MAN_AT_ARMS_CHEST  = ITEMS.registerItem("knight_man_at_arms_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_MAN_AT_ARMS_BODY))));
+    public static final DeferredItem<Item> KNIGHT_MAN_AT_ARMS_LEGS   = ITEMS.registerItem("knight_man_at_arms_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_MAN_AT_ARMS_BODY))));
+    public static final DeferredItem<Item> KNIGHT_MAN_AT_ARMS_BOOTS  = ITEMS.registerItem("knight_man_at_arms_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_MAN_AT_ARMS_BODY))));
+
+    // Knight Crossbowman
+    public static final DeferredItem<Item> KNIGHT_CROSSBOWMAN_HELM   = ITEMS.registerItem("knight_crossbowman_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_CROSSBOWMAN))));
+    public static final DeferredItem<Item> KNIGHT_CROSSBOWMAN_CHEST  = ITEMS.registerItem("knight_crossbowman_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_CROSSBOWMAN_BODY))));
+    public static final DeferredItem<Item> KNIGHT_CROSSBOWMAN_LEGS   = ITEMS.registerItem("knight_crossbowman_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_CROSSBOWMAN_BODY))));
+    public static final DeferredItem<Item> KNIGHT_CROSSBOWMAN_BOOTS  = ITEMS.registerItem("knight_crossbowman_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_CROSSBOWMAN_BODY))));
+
+    // Knight Armored
+    public static final DeferredItem<Item> KNIGHT_ARMORED_HELM   = ITEMS.registerItem("knight_armored_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_ARMORED))));
+    public static final DeferredItem<Item> KNIGHT_ARMORED_CHEST  = ITEMS.registerItem("knight_armored_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_ARMORED_BODY))));
+    public static final DeferredItem<Item> KNIGHT_ARMORED_LEGS   = ITEMS.registerItem("knight_armored_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_ARMORED_BODY))));
+    public static final DeferredItem<Item> KNIGHT_ARMORED_BOOTS  = ITEMS.registerItem("knight_armored_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_ARMORED_BODY))));
+
+    // Knight Crusader
+    public static final DeferredItem<Item> KNIGHT_CRUSADER_HELM   = ITEMS.registerItem("knight_crusader_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_CRUSADER))));
+    public static final DeferredItem<Item> KNIGHT_CRUSADER_CHEST  = ITEMS.registerItem("knight_crusader_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_CRUSADER_BODY))));
+    public static final DeferredItem<Item> KNIGHT_CRUSADER_LEGS   = ITEMS.registerItem("knight_crusader_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_CRUSADER_BODY))));
+    public static final DeferredItem<Item> KNIGHT_CRUSADER_BOOTS  = ITEMS.registerItem("knight_crusader_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_CRUSADER_BODY))));
+
+    // Knight Gothic
+    public static final DeferredItem<Item> KNIGHT_GOTHIC_HELM   = ITEMS.registerItem("knight_gothic_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_GOTHIC))));
+    public static final DeferredItem<Item> KNIGHT_GOTHIC_CHEST  = ITEMS.registerItem("knight_gothic_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_GOTHIC_BODY))));
+    public static final DeferredItem<Item> KNIGHT_GOTHIC_LEGS   = ITEMS.registerItem("knight_gothic_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_GOTHIC_BODY))));
+    public static final DeferredItem<Item> KNIGHT_GOTHIC_BOOTS  = ITEMS.registerItem("knight_gothic_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_GOTHIC_BODY))));
+
+    // Knight Gold
+    public static final DeferredItem<Item> KNIGHT_GOLD_HELM   = ITEMS.registerItem("knight_gold_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_GOLD))));
+    public static final DeferredItem<Item> KNIGHT_GOLD_CHEST  = ITEMS.registerItem("knight_gold_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_GOLD_BODY))));
+    public static final DeferredItem<Item> KNIGHT_GOLD_LEGS   = ITEMS.registerItem("knight_gold_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_GOLD_BODY))));
+    public static final DeferredItem<Item> KNIGHT_GOLD_BOOTS  = ITEMS.registerItem("knight_gold_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_GOLD_BODY))));
+
+    // Knight Jouster — Stechhelm + platemail
+    public static final DeferredItem<Item> KNIGHT_JOUSTER_HELM   = ITEMS.registerItem("knight_jouster_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_JOUSTER))));
+    public static final DeferredItem<Item> KNIGHT_JOUSTER_CHEST  = ITEMS.registerItem("knight_jouster_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_JOUSTER_BODY))));
+    public static final DeferredItem<Item> KNIGHT_JOUSTER_LEGS   = ITEMS.registerItem("knight_jouster_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_JOUSTER_BODY))));
+    public static final DeferredItem<Item> KNIGHT_JOUSTER_BOOTS  = ITEMS.registerItem("knight_jouster_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_JOUSTER_BODY))));
+
+    // Knight Veteran — Sallet + chainmail
+    public static final DeferredItem<Item> KNIGHT_VETERAN_HELM   = ITEMS.registerItem("knight_veteran_helm",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.HEAD,  EQ_KNIGHT_VETERAN))));
+    public static final DeferredItem<Item> KNIGHT_VETERAN_CHEST  = ITEMS.registerItem("knight_veteran_chest",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.CHEST, EQ_KNIGHT_VETERAN_BODY))));
+    public static final DeferredItem<Item> KNIGHT_VETERAN_LEGS   = ITEMS.registerItem("knight_veteran_legs",   p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.LEGS,  EQ_KNIGHT_VETERAN_BODY))));
+    public static final DeferredItem<Item> KNIGHT_VETERAN_BOOTS  = ITEMS.registerItem("knight_veteran_boots",  p -> new Item(p.stacksTo(1).component(DataComponents.EQUIPPABLE, knightEquip(EquipmentSlot.FEET,  EQ_KNIGHT_VETERAN_BODY))));
+
     // Shipwreck Mimic — underwater mimic variant
     public static final DeferredHolder<EntityType<?>, EntityType<ShipwreckMimicEntity>> SHIPWRECK_MIMIC =
         ENTITY_TYPES.registerEntityType(
@@ -450,18 +897,18 @@ public class Ironhold {
             "baby_mimic_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(BABY_MIMIC.get()).stacksTo(64)));
 
-    // Mini Dragon — tiny tameable blue ender dragon pet
-    public static final DeferredHolder<EntityType<?>, EntityType<MiniDragonEntity>> MINI_DRAGON =
+    // Kingdom Dragon — dimensional dragon family (Ender / Nether / Overworld / Deep Dark)
+    public static final DeferredHolder<EntityType<?>, EntityType<KingdomDragonEntity>> KINGDOM_DRAGON =
         ENTITY_TYPES.registerEntityType(
-            "mini_dragon",
-            MiniDragonEntity::new,
+            "kingdom_dragon",
+            KingdomDragonEntity::new,
             MobCategory.CREATURE,
-            b -> b.sized(0.75F, 0.6F).eyeHeight(0.45F).clientTrackingRange(10).updateInterval(2));
+            b -> b.sized(2.5F, 2.0F).eyeHeight(1.6F).clientTrackingRange(10).updateInterval(2));
 
-    public static final DeferredItem<Item> MINI_DRAGON_SPAWN_EGG =
+    public static final DeferredItem<Item> KINGDOM_DRAGON_SPAWN_EGG =
         ITEMS.registerItem(
-            "mini_dragon_spawn_egg",
-            props -> new SpawnEggItem(props.spawnEgg(MINI_DRAGON.get()).stacksTo(64)));
+            "kingdom_dragon_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(KINGDOM_DRAGON.get()).stacksTo(64)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.GuillotineSeatEntity>> GUILLOTINE_SEAT_ENTITY =
         ENTITY_TYPES.registerEntityType(
@@ -555,6 +1002,24 @@ public class Ironhold {
             kingdom.smp.entity.ThrownPitchforkEntity::new,
             MobCategory.MISC,
             b -> b.sized(0.5F, 0.5F).clientTrackingRange(4).updateInterval(2).noSummon());
+
+    /**
+     * Wizard Stick — entry-level wand. Power scales with the wielder's wizard class
+     * (see {@link kingdom.smp.item.WizardStickItem}); pitiful for non-mages, decent
+     * for Sorcerer Supreme and the tier-4 mage hybrids.
+     */
+    public static final DeferredItem<Item> WIZARD_STICK = ITEMS.registerItem(
+        "wizard_stick",
+        kingdom.smp.item.WizardStickItem::new,
+        props -> props.stacksTo(1));
+
+    /**
+     * Halric's Staff — Warden Halric's ceremonial weapon. 3D model with hanging lantern.
+     */
+    public static final DeferredItem<Item> HALRIC_STAFF = ITEMS.registerItem(
+        "halric_staff",
+        kingdom.smp.item.HalricStaffItem::new,
+        props -> props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE));
 
     public static final DeferredItem<Item> PITCHFORK = ITEMS.registerItem(
         "pitchfork",
@@ -651,6 +1116,24 @@ public class Ironhold {
 
     public static final DeferredItem<BlockItem> TANZANITE_ORE_ITEM =
         ITEMS.registerSimpleBlockItem("tanzanite_ore", TANZANITE_ORE);
+
+    // ── Fool's gold ore ───────────────────────────────────────────────────────
+    // Worldgen: same y-range as gold ore (-64..32, trapezoid), count 3 per chunk
+    // (vanilla gold uses count 4 → ~75% which matches the "2/3 frequency" intent).
+    // Drops itself; mineable with any pickaxe (no tool tier requirement).
+    public static final DeferredBlock<Block> FOOLS_GOLD_ORE = BLOCKS.register(
+        "fools_gold_ore",
+        id -> new Block(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.GOLD)
+                .strength(3.0f, 3.0f)
+                .sound(SoundType.STONE)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredItem<BlockItem> FOOLS_GOLD_ORE_ITEM =
+        ITEMS.registerSimpleBlockItem("fools_gold_ore", FOOLS_GOLD_ORE);
 
     public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem(
         "gold_coin",
@@ -953,6 +1436,11 @@ public class Ironhold {
         ITEMS.registerItem("cloud_in_a_bottle", CloudInABottleItem::new,
             props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
 
+    /** Seashell — accessory granting an underwater dash. See {@link kingdom.smp.item.SeashellItem}. */
+    public static final DeferredItem<kingdom.smp.item.SeashellItem> SEASHELL =
+        ITEMS.registerItem("seashell", kingdom.smp.item.SeashellItem::new,
+            props -> props.rarity(net.minecraft.world.item.Rarity.RARE).stacksTo(1));
+
     public static final DeferredItem<MimicKeyItem> MIMIC_KEY =
         ITEMS.registerItem("mimic_key", MimicKeyItem::new,
             props -> props.rarity(net.minecraft.world.item.Rarity.EPIC).stacksTo(1));
@@ -1029,6 +1517,105 @@ public class Ironhold {
             )
         );
 
+    // ── Chorus Wardheart (force-field shield generator) ───────────────────────
+    public static final DeferredBlock<kingdom.smp.block.wardheart.WardheartBlock> WARDHEART_BLOCK =
+        BLOCKS.register("wardheart",
+            id -> new kingdom.smp.block.wardheart.WardheartBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(4.5f, 1200.0f)   // tough, blast-resistant
+                    .sound(SoundType.AMETHYST)
+                    .lightLevel(s -> 9)
+                    .noOcclusion()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
+
+    public static final DeferredItem<BlockItem> WARDHEART_ITEM =
+        ITEMS.registerSimpleBlockItem("wardheart", WARDHEART_BLOCK,
+            () -> new Item.Properties().rarity(net.minecraft.world.item.Rarity.EPIC));
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.wardheart.WardheartBlockEntity>>
+            WARDHEART_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("wardheart",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.wardheart.WardheartBlockEntity::new,
+                WARDHEART_BLOCK.get()));
+
+    // ── Class Stone (Tier 1 class-selection pedestal) ─────────────────────────
+    /**
+     * Pedestal that opens the Tier 1 class-selection screen on right-click.
+     * Visually it's a 12-tall slab with four rotating items hovering above —
+     * sword, bow, arcane scepter, enchanted book — driven by
+     * {@link kingdom.smp.client.block.ClassStoneRenderer}.
+     */
+    public static final DeferredBlock<kingdom.smp.block.ClassStoneBlock> CLASS_STONE_BLOCK =
+        BLOCKS.register("class_stone",
+            id -> new kingdom.smp.block.ClassStoneBlock(
+                // Bedrock-style indestructibility: -1.0 hardness = no break progress
+                // ever in survival; 3,600,000 blast resistance = creeper / wither / TNT
+                // and even end crystals can't touch it. Creative players still break
+                // instantly because creative bypasses the destroy-progress check.
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_PURPLE)
+                    .strength(-1.0f, 3600000.0f)
+                    .lightLevel(s -> 7)
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
+
+    public static final DeferredItem<BlockItem> CLASS_STONE_ITEM =
+        ITEMS.registerSimpleBlockItem("class_stone", CLASS_STONE_BLOCK,
+            () -> new Item.Properties().rarity(net.minecraft.world.item.Rarity.RARE));
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.ClassStoneBlockEntity>>
+            CLASS_STONE_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("class_stone",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.ClassStoneBlockEntity::new,
+                CLASS_STONE_BLOCK.get()));
+
+    public static final DeferredItem<kingdom.smp.item.ChorusChargeItem> CHORUS_CHARGE =
+        ITEMS.registerItem("chorus_charge", kingdom.smp.item.ChorusChargeItem::new,
+            props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON).stacksTo(64));
+
+    public static final DeferredItem<Item> END_CRYSTAL_SHARD =
+        ITEMS.registerSimpleItem("end_crystal_shard",
+            props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
+
+    /** Cheese wedge — primary food for taming rats; also a snack restoring 4 hunger.
+     *  Crafted from milk + wheat (placeholder recipe, see data/recipe/cheese_wedge.json). */
+    public static final DeferredItem<Item> CHEESE_WEDGE =
+        ITEMS.registerItem("cheese_wedge",
+            props -> new Item(props.food(
+                new net.minecraft.world.food.FoodProperties.Builder()
+                    .nutrition(4).saturationModifier(0.6F).build())));
+
+    /** Swollen lymph node — drops from cows/players that die while plagued. Sole non-renewable
+     *  cure ingredient for the Plague Tonic. */
+    public static final DeferredItem<Item> PLAGUE_BUBO =
+        ITEMS.registerSimpleItem("plague_bubo",
+            props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON));
+
+    /** Drinkable cure for the Plague effect at any stage. Crafted from milk + honey + golden
+     *  apple + plague bubo (returns empty bucket on craft). */
+    public static final DeferredItem<Item> PLAGUE_TONIC =
+        ITEMS.registerItem("plague_tonic",
+            props -> new kingdom.smp.item.PlagueTonicItem(
+                props.rarity(net.minecraft.world.item.Rarity.RARE)));
+
+    /** Drop from the White Shulker — used in magical warding items. */
+    public static final DeferredItem<Item> PURIFIED_SHELL =
+        ITEMS.registerSimpleItem("purified_shell",
+            props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON));
+
+    /** Drop from the Black Shulker — used for teleport daggers / stealth gear. */
+    public static final DeferredItem<Item> VOID_CORE =
+        ITEMS.registerSimpleItem("void_core",
+            props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
+
     // ── Creative tab (all mod items in one place) ──────────────────────────────
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> IRONHOLD_TAB =
         CREATIVE_TABS.register("ironhold_tab", () -> CreativeModeTab.builder()
@@ -1037,6 +1624,17 @@ public class Ironhold {
             .displayItems((params, output) -> {
                 output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
                 output.accept(WARDEN_HALRIC_SPAWN_EGG.get());
+                output.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
+                output.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
+                output.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
+                output.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
+                output.accept(OLD_HESTA_SPAWN_EGG.get());
+                output.accept(OLD_BEREN_SPAWN_EGG.get());
+                output.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
+                output.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
+                output.accept(SISTER_WREN_SPAWN_EGG.get());
+                output.accept(BRAM_BARD_SPAWN_EGG.get());
+                output.accept(PIPPA_URCHIN_SPAWN_EGG.get());
                 output.accept(PURPLE_ALLAY_SPAWN_EGG.get());
                 output.accept(WILL_O_WISP_SPAWN_EGG.get());
                 output.accept(WILL_O_WISP_2_SPAWN_EGG.get());
@@ -1050,9 +1648,27 @@ public class Ironhold {
                 output.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
                 output.accept(MIMIC_SPAWN_EGG.get());
                 output.accept(BABY_MIMIC_SPAWN_EGG.get());
-                output.accept(MINI_DRAGON_SPAWN_EGG.get());
+                output.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
                 output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
+                output.accept(KNIGHT_RECRUIT_SPAWN_EGG.get());
+                output.accept(KNIGHT_MAN_AT_ARMS_SPAWN_EGG.get());
+                output.accept(KNIGHT_CROSSBOWMAN_SPAWN_EGG.get());
+                output.accept(KNIGHT_ARMORED_SPAWN_EGG.get());
+                output.accept(KNIGHT_CRUSADER_SPAWN_EGG.get());
+                output.accept(KNIGHT_GOTHIC_SPAWN_EGG.get());
+                output.accept(KNIGHT_GOLD_SPAWN_EGG.get());
+                output.accept(KNIGHT_JOUSTER_SPAWN_EGG.get());
+                output.accept(KNIGHT_VETERAN_SPAWN_EGG.get());
                 output.accept(MOM_PINK_DEER_SPAWN_EGG.get());
+                output.accept(RAT_SPAWN_EGG.get());
+                output.accept(SHULKER_HERDER_SPAWN_EGG.get());
+                output.accept(WHITE_SHULKER_SPAWN_EGG.get());
+                output.accept(BLACK_SHULKER_SPAWN_EGG.get());
+                output.accept(PURIFIED_SHELL.get());
+                output.accept(VOID_CORE.get());
+                output.accept(CHEESE_WEDGE.get());
+                output.accept(PLAGUE_BUBO.get());
+                output.accept(PLAGUE_TONIC.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
                 output.accept(TEMPEST_BOW.get());
                 output.accept(TEMPEST_ARROW.get());
@@ -1060,11 +1676,15 @@ public class Ironhold {
                 output.accept(ARCANE_SCEPTER.get());
                 output.accept(SOLUNA_STAFF.get());
                 output.accept(WIZARD_STAFF.get());
+                output.accept(WIZARD_STICK.get());
+                output.accept(HALRIC_STAFF.get());
+                output.accept(CLASS_STONE_ITEM.get());
                 output.accept(PITCHFORK.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
                 output.accept(WRAITHS_SIGIL.get());
+                output.accept(SEASHELL.get());
                 output.accept(SIRENS_RING.get());
                 output.accept(VENGEFUL_HALBERD.get());
                 output.accept(ARMOR_POLISH.get());
@@ -1073,6 +1693,7 @@ public class Ironhold {
                 output.accept(TANZANITE_GEM.get());
                 output.accept(STEEL_INGOT.get());
                 output.accept(FOOLS_GOLD.get());
+                output.accept(FOOLS_GOLD_ORE_ITEM.get());
                 output.accept(FILCHER_CROWN.get());
                 output.accept(TANZANITE_ORE_ITEM.get());
                 output.accept(EBONY_LOG_ITEM.get());
@@ -1093,6 +1714,9 @@ public class Ironhold {
                 output.accept(BLACK_SAND_ITEM.get());
                 output.accept(DARK_GRAVEL_ITEM.get());
                 for (var g : ALL_GUILLOTINES) output.accept(g.get());
+                output.accept(WARDHEART_ITEM.get());
+                output.accept(CHORUS_CHARGE.get());
+                output.accept(END_CRYSTAL_SHARD.get());
             })
             .build());
 
@@ -1112,16 +1736,24 @@ public class Ironhold {
         SOUND_EVENTS.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_TABS.register(modEventBus);
+        MOB_EFFECTS.register(modEventBus);
+
+        // Let PlagueEffect resolve its own Holder lazily after registration.
+        kingdom.smp.effect.PlagueEffect.setHolderSupplier(() -> PLAGUE_EFFECT);
 
         ModAttachments.register(modEventBus);
         AccessoryMenuTypes.register(modEventBus);
         kingdom.smp.entity.BabyMimicMenuTypes.register(modEventBus);
+        kingdom.smp.quest.QuestBoardMenuTypes.register(modEventBus);
         kingdom.smp.gear.GearComponents.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
         NeoForge.EVENT_BUS.register(AnkhShieldHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.block.wardheart.EndCrystalShieldHandler.class);
         NeoForge.EVENT_BUS.register(ClassXpKillRewards.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.effect.PlagueHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.entity.CatVsRatHandler.class);
         NeoForge.EVENT_BUS.register(AccessoryTickHandler.class);
         NeoForge.EVENT_BUS.register(CloudDoubleJumpHandler.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
@@ -1129,6 +1761,13 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearTooltipHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearAttributeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.SkillEventHandlers.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.PickpocketHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.SneakDetectionTracker.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.VillagerStealthHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.SneakStealthHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.entity.VillageKnightSpawner.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.mine.MineDropQualityHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.rpg.ability.AbilityEffects.class);
 
         modEventBus.addListener(ModNetworking::register);
     }
@@ -1165,24 +1804,66 @@ public class Ironhold {
         event.put(ARCANE_MAGE.get(), ArcaneMageEntity.createAttributes().build());
         event.put(FILCHER.get(), FilcherEntity.createAttributes().build());
         event.put(POSSESSED_ARMOR.get(), PossessedArmorEntity.createAttributes().build());
+        event.put(KNIGHT_RECRUIT.get(), KnightRecruitEntity.createAttributes().build());
+        event.put(KNIGHT_MAN_AT_ARMS.get(), KnightManAtArmsEntity.createAttributes().build());
+        event.put(KNIGHT_CROSSBOWMAN.get(), KnightCrossbowmanEntity.createAttributes().build());
+        event.put(KNIGHT_ARMORED.get(), KnightArmoredEntity.createAttributes().build());
+        event.put(KNIGHT_CRUSADER.get(), KnightCrusaderEntity.createAttributes().build());
+        event.put(KNIGHT_GOTHIC.get(), KnightGothicEntity.createAttributes().build());
+        event.put(KNIGHT_GOLD.get(), KnightGoldEntity.createAttributes().build());
+        event.put(KNIGHT_JOUSTER.get(), KnightJousterEntity.createAttributes().build());
+        event.put(KNIGHT_VETERAN.get(), KnightVeteranEntity.createAttributes().build());
         event.put(KING_ENDERMAN.get(), kingdom.smp.entity.KingEndermanEntity.createAttributes().build());
         event.put(SIREN.get(), SirenEntity.createAttributes().build());
         event.put(SHIPWRECK_MIMIC.get(), ShipwreckMimicEntity.createAttributes().build());
         event.put(MIMIC.get(), MimicEntity.createAttributes().build());
         event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
-        event.put(MINI_DRAGON.get(), MiniDragonEntity.createAttributes().build());
+        event.put(KINGDOM_DRAGON.get(), KingdomDragonEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
+        event.put(KANGARUDE.get(), KangarudeEntity.createAttributes().build());
         event.put(ENDER_VILLAGER.get(), EnderVillagerEntity.createAttributes().build());
+        event.put(SHULKER_HERDER.get(), ShulkerHerderEntity.createAttributes().build());
+        event.put(WHITE_SHULKER.get(), WhiteShulkerEntity.createAttributes().build());
+        event.put(BLACK_SHULKER.get(), BlackShulkerEntity.createAttributes().build());
         event.put(WARDEN_HALRIC.get(), WardenHalricEntity.createAttributes().build());
+        event.put(CEMETERY_WATCHER.get(), kingdom.smp.entity.CemeteryWatcherEntity.createAttributes().build());
+        event.put(MIRA_INNKEEPER.get(), kingdom.smp.entity.MiraInnkeeperEntity.createAttributes().build());
+        event.put(BLACKSMITH_TOBIAS.get(), kingdom.smp.entity.BlacksmithTobiasEntity.createAttributes().build());
+        event.put(PRIEST_CEDRIC.get(), kingdom.smp.entity.PriestCedricEntity.createAttributes().build());
+        event.put(OLD_HESTA.get(), kingdom.smp.entity.OldHestaEntity.createAttributes().build());
+        event.put(OLD_BEREN.get(), kingdom.smp.entity.OldBerenEntity.createAttributes().build());
+        event.put(CAPTAIN_ROSELIND.get(), kingdom.smp.entity.CaptainRoselindEntity.createAttributes().build());
+        event.put(LOREMASTER_EILAN.get(), kingdom.smp.entity.LoremasterEilanEntity.createAttributes().build());
+        event.put(SISTER_WREN.get(), kingdom.smp.entity.SisterWrenEntity.createAttributes().build());
+        event.put(BRAM_BARD.get(), kingdom.smp.entity.BramBardEntity.createAttributes().build());
+        event.put(PIPPA_URCHIN.get(), kingdom.smp.entity.PippaUrchinEntity.createAttributes().build());
+        event.put(PIGLIN_VILLAGER.get(),
+            net.minecraft.world.entity.npc.villager.Villager.createAttributes().build());
         event.put(PURPLE_ALLAY.get(), PurpleAllayEntity.createAttributes().build());
         event.put(WILL_O_WISP.get(), WillOWispEntity.createAttributes().build());
         event.put(WILL_O_WISP_2.get(), WillOWispEntity.createAttributes().build());
         event.put(PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
         event.put(RARE_PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
         event.put(MOM_PINK_DEER.get(), MomPinkDeerEntity.createAttributes().build());
+        event.put(HOPLING.get(), HoplingEntity.createAttributes().build());
+        event.put(RAT.get(), kingdom.smp.entity.RatEntity.createAttributes().build());
     }
 
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
+        // Hopling — small End-dimension creature; rare ground spawn on End islands
+        event.register(
+            HOPLING.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            Animal::checkAnimalSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Rat — vermin, ground spawn at night under standard animal rules
+        event.register(
+            RAT.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            kingdom.smp.entity.RatEntity::checkRatSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
         // Pink Deer — passive animal, spawns on grass in daylight
         event.register(
             PINK_DEER.get(),
@@ -1250,21 +1931,45 @@ public class Ironhold {
             event.accept(FILCHER_SPAWN_EGG.get());
             event.accept(VOID_INVOKER_SPAWN_EGG.get());
             event.accept(NULL_STALKER_SPAWN_EGG.get());
+            event.accept(KNIGHT_RECRUIT_SPAWN_EGG.get());
+            event.accept(KNIGHT_MAN_AT_ARMS_SPAWN_EGG.get());
+            event.accept(KNIGHT_CROSSBOWMAN_SPAWN_EGG.get());
+            event.accept(KNIGHT_ARMORED_SPAWN_EGG.get());
+            event.accept(KNIGHT_CRUSADER_SPAWN_EGG.get());
+            event.accept(KNIGHT_GOTHIC_SPAWN_EGG.get());
+            event.accept(KNIGHT_GOLD_SPAWN_EGG.get());
+            event.accept(KNIGHT_JOUSTER_SPAWN_EGG.get());
+            event.accept(KNIGHT_VETERAN_SPAWN_EGG.get());
             event.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
+            event.accept(KANGARUDE_SPAWN_EGG.get());
             event.accept(WARDEN_HALRIC_SPAWN_EGG.get());
+            event.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
+            event.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
+            event.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
+            event.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
+            event.accept(OLD_HESTA_SPAWN_EGG.get());
+            event.accept(OLD_BEREN_SPAWN_EGG.get());
+            event.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
+            event.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
+            event.accept(SISTER_WREN_SPAWN_EGG.get());
+            event.accept(BRAM_BARD_SPAWN_EGG.get());
+            event.accept(PIPPA_URCHIN_SPAWN_EGG.get());
             event.accept(PURPLE_ALLAY_SPAWN_EGG.get());
             event.accept(WILL_O_WISP_SPAWN_EGG.get());
             event.accept(WILL_O_WISP_2_SPAWN_EGG.get());
             event.accept(PINK_DEER_SPAWN_EGG.get());
             event.accept(RARE_PINK_DEER_SPAWN_EGG.get());
             event.accept(MOM_PINK_DEER_SPAWN_EGG.get());
+            event.accept(RAT_SPAWN_EGG.get());
             event.accept(MIMIC_SPAWN_EGG.get());
             event.accept(BABY_MIMIC_SPAWN_EGG.get());
-            event.accept(MINI_DRAGON_SPAWN_EGG.get());
+            event.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
             event.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
             event.accept(SIREN_SPAWN_EGG.get());
             event.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
             event.accept(KING_ENDERMAN_SPAWN_EGG.get());
+            event.accept(WHITE_SHULKER_SPAWN_EGG.get());
+            event.accept(BLACK_SHULKER_SPAWN_EGG.get());
         }
         if (event.getTabKey() == CreativeModeTabs.COMBAT) {
             event.accept(TEMPEST_BOW.get());
@@ -1273,12 +1978,15 @@ public class Ironhold {
             event.accept(ARCANE_SCEPTER.get());
             event.accept(SOLUNA_STAFF.get());
             event.accept(WIZARD_STAFF.get());
+            event.accept(WIZARD_STICK.get());
+            event.accept(HALRIC_STAFF.get());
             event.accept(PITCHFORK.get());
             event.accept(VENGEFUL_HALBERD.get());
             // Accessories
             event.accept(HERMES_BOOTS.get());
             event.accept(BAND_OF_REGENERATION.get());
             event.accept(CLOUD_IN_A_BOTTLE.get());
+            event.accept(SEASHELL.get());
             event.accept(MIMIC_KEY.get());
             event.accept(SIRENS_RING.get());
         }
@@ -1308,6 +2016,7 @@ public class Ironhold {
             event.accept(TANZANITE_GEM.get());
             event.accept(STEEL_INGOT.get());
             event.accept(FOOLS_GOLD.get());
+            event.accept(FOOLS_GOLD_ORE_ITEM.get());
             event.accept(FILCHER_CROWN.get());
         }
     }

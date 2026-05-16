@@ -1,12 +1,11 @@
 package kingdom.smp.rtf.noise.domain;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
 import kingdom.smp.rtf.noise.module.Noise.Visitor;
 
 public record DirectWarp() implements Domain {
-	public static final Codec<DirectWarp> CODEC = Codec.unit(DirectWarp::new);
+	public static final MapCodec<DirectWarp> CODEC = MapCodec.unit(DirectWarp::new);
 	
 	@Override
 	public float getOffsetX(float x, float z, int seed) {

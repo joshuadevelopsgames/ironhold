@@ -1,11 +1,13 @@
 package kingdom.smp.mixin;
 
+import kingdom.smp.access.SlotAccessor;
+
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryInventoryAttachmentContainer;
 import kingdom.smp.accessory.AccessoryItem;
-import kingdom.smp.inventory.IronholdInventoryLayout;
 import kingdom.smp.accessory.AccessorySlot;
 import kingdom.smp.accessory.VanitySlot;
+import kingdom.smp.inventory.IronholdInventoryLayout;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -23,17 +25,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Injects 9 extra slots into the vanilla {@link InventoryMenu}:
+ * Re-skin and extension of vanilla {@link InventoryMenu}.
+ *
  * <ul>
- *   <li>5 accessory slots (row below hotbar)</li>
- *   <li>4 vanity armor slots (left-side island, aligned with real armor)</li>
+ *   <li>Repositions vanilla slots 0–45 to the Ironhold layout (see {@link IronholdInventoryLayout}).</li>
+ *   <li>Adds 5 accessory slots and 4 vanity-armor slots backed by the player's
+ *       {@link AccessoryInventory} attachment, so vanilla container sync handles
+ *       all client↔server data transfer.</li>
+ *   <li>Routes shift-click of accessory items / equippables into the new slots.</li>
  * </ul>
- * <p>
- * Slots are backed by the player's {@link AccessoryInventory} attachment,
- * so vanilla container sync handles all client↔server data transfer.
- * <p>
- * Slot indices after injection: see {@link IronholdInventoryLayout#ACCESSORY_SLOT_FIRST} /
- * {@link IronholdInventoryLayout#VANITY_SLOT_END}. If Mojang changes {@link InventoryMenu} layout, update those.
  */
 @Mixin(InventoryMenu.class)
 public abstract class InventoryMenuMixin extends AbstractContainerMenu {
@@ -43,20 +43,73 @@ public abstract class InventoryMenuMixin extends AbstractContainerMenu {
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void ironhold$addAccessorySlots(Inventory inventory, boolean active, Player player, CallbackInfo ci) {
+    private void ironhold$applyIronholdLayout(Inventory inventory, boolean active, Player player, CallbackInfo ci) {
+        ironhold$repositionVanillaSlots();
+        ironhold$addAccessoryAndVanitySlots(player);
+    }
+
+    /** Move vanilla slots 0–45 to the Ironhold layout positions. */
+    private void ironhold$repositionVanillaSlots() {
+        // 0: craft result
+        ironhold$move(0, IronholdInventoryLayout.CRAFT_RESULT_X, IronholdInventoryLayout.CRAFT_RESULT_Y);
+
+        // 1–4: 2×2 craft grid (TL, TR, BL, BR)
+        for (int row = 0; row < 2; row++) {
+            for (int col = 0; col < 2; col++) {
+                int idx = 1 + row * 2 + col;
+                ironhold$move(idx,
+                        IronholdInventoryLayout.CRAFT_GRID_X0 + col * IronholdInventoryLayout.CRAFT_GRID_PITCH,
+                        IronholdInventoryLayout.CRAFT_GRID_Y0 + row * IronholdInventoryLayout.CRAFT_GRID_PITCH);
+            }
+        }
+
+        // 5–8: armor HEAD, CHEST, LEGS, FEET (per-slot y; not uniform pitch)
+        for (int i = 0; i < 4; i++) {
+            ironhold$move(5 + i,
+                    IronholdInventoryLayout.ARMOR_X,
+                    IronholdInventoryLayout.ARMOR_Y[i]);
+        }
+
+        // 9–35: 3×9 inventory (per-row y, per-col x — non-uniform drag-tuned pitch)
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                ironhold$move(9 + row * 9 + col,
+                        IronholdInventoryLayout.INV_COL_X[col],
+                        IronholdInventoryLayout.INV_ROW_Y[row]);
+            }
+        }
+
+        // 36–44: hotbar (same column x as the inventory grid)
+        for (int col = 0; col < 9; col++) {
+            ironhold$move(36 + col,
+                    IronholdInventoryLayout.INV_COL_X[col],
+                    IronholdInventoryLayout.HOTBAR_Y);
+        }
+
+        // 45: offhand
+        ironhold$move(45, IronholdInventoryLayout.OFFHAND_X, IronholdInventoryLayout.OFFHAND_Y);
+    }
+
+    private void ironhold$move(int index, int x, int y) {
+        Slot slot = this.slots.get(index);
+        SlotAccessor acc = (SlotAccessor) slot;
+        acc.ironhold$setX(x);
+        acc.ironhold$setY(y);
+    }
+
+    private void ironhold$addAccessoryAndVanitySlots(Player player) {
         // Delegate to getData(ACCESSORY_INV) so ticks and menus share one attachment instance
-        // (raw map put during ctor could orphan data from NeoForge getData()).
         var accContainer = new AccessoryInventoryAttachmentContainer(player);
 
-        // 5 accessory slots — horizontal row under the hotbar (avoids status effect HUD)
+        // 5 accessory slots — bottom bar (slots 46–50)
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             this.addSlot(new AccessorySlot(
                     accContainer, i,
-                    IronholdInventoryLayout.ACCESSORY_SLOT_X0 + i * 18,
-                    IronholdInventoryLayout.ACCESSORY_SLOT_Y));
+                    IronholdInventoryLayout.ACCESSORY_X[i],
+                    IronholdInventoryLayout.ACCESSORY_Y));
         }
 
-        // 4 vanity slots — left of the vanilla background, aligned with armor column
+        // 4 vanity slots — left vanity panel (slots 51–54)
         EquipmentSlot[] order = {
                 EquipmentSlot.HEAD, EquipmentSlot.CHEST,
                 EquipmentSlot.LEGS, EquipmentSlot.FEET
@@ -65,7 +118,8 @@ public abstract class InventoryMenuMixin extends AbstractContainerMenu {
             this.addSlot(new VanitySlot(
                     accContainer, AccessoryInventory.ACCESSORY_SLOTS + i,
                     IronholdInventoryLayout.VANITY_SLOT_X,
-                    IronholdInventoryLayout.VANITY_SLOT_Y0 + i * 18, order[i]));
+                    IronholdInventoryLayout.VANITY_PANEL_OFFSET_Y + IronholdInventoryLayout.VANITY_SLOT_Y_LOCAL[i],
+                    order[i]));
         }
     }
 

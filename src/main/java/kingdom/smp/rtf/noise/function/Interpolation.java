@@ -29,7 +29,8 @@ public enum Interpolation implements CurveFunction, StringRepresentable {
         }
     };
 	
-	public static final Codec<Interpolation> CODEC = StringRepresentable.fromEnum(Interpolation::values);
+	public static final Codec<Interpolation> ENUM_CODEC = StringRepresentable.fromEnum(() -> Interpolation.values());
+	public static final Codec<Interpolation> CODEC = ENUM_CODEC;
 	
 	private String name;
 	
@@ -43,7 +44,7 @@ public enum Interpolation implements CurveFunction, StringRepresentable {
 	}
 	
 	@Override
-	public MapCodec<Interpolation> codec()	{
-		return CODEC;
+	public MapCodec<Interpolation> codec() {
+		return CODEC.fieldOf("interpolation");
 	}
 }

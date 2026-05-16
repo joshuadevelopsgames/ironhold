@@ -6,6 +6,8 @@ import kingdom.smp.item.AnkhShieldItem;
 import kingdom.smp.net.SirensRingActivatePayload;
 import kingdom.smp.net.CloudDoubleJumpPayload;
 import kingdom.smp.net.MagicMinecartInputPayload;
+import kingdom.smp.net.AbilityCastPayload;
+import kingdom.smp.net.KangaPushToTalkPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
@@ -22,8 +24,10 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
+import kingdom.smp.client.hud.AbilityHud;
 import kingdom.smp.client.hud.CarryWeightHud;
 import kingdom.smp.client.hud.ClassInfoHud;
+import kingdom.smp.client.hud.SneakEyeHud;
 
 /** Client-only NeoForge game-bus listeners (registered from {@link kingdom.smp.IronholdClient}). */
 public final class ClientNeoForgeEvents {
@@ -46,6 +50,8 @@ public final class ClientNeoForgeEvents {
     public static void onHudPost(RenderGuiEvent.Post event) {
         ClassInfoHud.render(event.getGuiGraphics(), event.getPartialTick());
         CarryWeightHud.render(event.getGuiGraphics(), event.getPartialTick());
+        AbilityHud.render(event.getGuiGraphics(), event.getPartialTick());
+        SneakEyeHud.render(event.getGuiGraphics(), event.getPartialTick());
     }
 
     @SubscribeEvent
@@ -215,6 +221,31 @@ public final class ClientNeoForgeEvents {
         while (IronholdKeys.SIREN_LURE.consumeClick()) {
             if (mc.player != null) {
                 ClientPayloads.sendToServer(new SirensRingActivatePayload());
+            }
+        }
+
+        // Active ability slots Z/X/C/V → server-side AbilityDispatch.
+        for (int i = 0; i < IronholdKeys.ABILITIES.length; i++) {
+            while (IronholdKeys.ABILITIES[i].consumeClick()) {
+                if (mc.player != null) {
+                    ClientPayloads.sendToServer(new AbilityCastPayload(i));
+                }
+            }
+        }
+
+        // Kanga push-to-talk toggle (default K).
+        while (IronholdKeys.KANGARUDE_PTT.consumeClick()) {
+            if (mc.player != null) {
+                ClientPayloads.sendToServer(new KangaPushToTalkPayload());
+            }
+        }
+
+        // Seashell underwater dash — each consumeClick() returns one queued
+        // press, so holding the key never auto-fires. Server validates equip +
+        // in-water before applying the velocity.
+        while (IronholdKeys.SEASHELL_DASH.consumeClick()) {
+            if (mc.player != null) {
+                ClientPayloads.sendToServer(new kingdom.smp.net.SeashellDashPayload());
             }
         }
 

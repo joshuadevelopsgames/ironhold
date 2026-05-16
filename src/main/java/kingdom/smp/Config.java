@@ -45,6 +45,49 @@ public class Config {
             .comment("OpenRouter model to use. Free options: meta-llama/llama-3.1-8b-instruct:free, mistralai/mistral-7b-instruct:free")
             .define("openrouterModel", "mistralai/mistral-7b-instruct:free");
 
+    // ── Kangarude NPC: brain ──────────────────────────────────────────────────
+    // Calls Claude (or any OpenRouter model) via the OpenRouter REST API.
+    // Uses OPENROUTER_API_KEY above (env var override: OPENROUTER_API_KEY).
+    public static final ModConfigSpec.ConfigValue<String> KANGARUDE_OPENROUTER_MODEL = BUILDER
+            .comment("OpenRouter model id for Kangarude. Default is Claude Haiku 4.5 — "
+                + "matches the rest of the voiced NPCs, lower TTFB than Grok for "
+                + "Kanga's long personality prompt. Set to 'x-ai/grok-4-fast' to "
+                + "revert. Find live ids at https://openrouter.ai/models")
+            .define("kangarudeOpenrouterModel", "anthropic/claude-haiku-4.5");
+
+    public static final ModConfigSpec.IntValue KANGARUDE_IDLE_TIMEOUT_SECONDS = BUILDER
+            .comment("How long Kangarude waits for the player to respond before walking off.")
+            .defineInRange("kangarudeIdleTimeoutSeconds", 25, 5, 600);
+
+    // ── Kangarude NPC: ElevenLabs voice ───────────────────────────────────────
+    // Server-side only. Set ELEVENLABS_API_KEY in config or via environment override.
+    public static final ModConfigSpec.ConfigValue<String> ELEVENLABS_API_KEY = BUILDER
+            .comment("ElevenLabs API key for Kangarude TTS. Server-side only — keep private.")
+            .define("elevenlabsApiKey", "");
+
+    public static final ModConfigSpec.ConfigValue<String> ELEVENLABS_VOICE_ID = BUILDER
+            .comment("ElevenLabs voice id for Kangarude. Find ids in your voice library.")
+            .define("elevenlabsVoiceId", "tdlj9WjgHdDTMKoAvBYQ");
+
+    public static final ModConfigSpec.ConfigValue<String> ELEVENLABS_MODEL = BUILDER
+            .comment("ElevenLabs model. eleven_flash_v2_5 is fastest (~200ms TTFB), eleven_multilingual_v2 is highest quality.")
+            .define("elevenlabsModel", "eleven_flash_v2_5");
+
+    // ── OpenAI Whisper STT (for Kangarude mic input) ──────────────────────────
+    // Env var OPENAI_API_KEY overrides this if set.
+    public static final ModConfigSpec.ConfigValue<String> OPENAI_API_KEY = BUILDER
+            .comment("OpenAI API key for Whisper STT (lets players talk to NPCs via mic). Server-side only.")
+            .define("openaiApiKey", "");
+
+    public static final ModConfigSpec.ConfigValue<String> OPENAI_WHISPER_MODEL = BUILDER
+            .comment("OpenAI Whisper model. whisper-1 is the standard transcription model.")
+            .define("openaiWhisperModel", "whisper-1");
+
+    /** How long (ms) of mic silence ends a player's utterance and triggers STT. */
+    public static final ModConfigSpec.IntValue STT_SILENCE_MS = BUILDER
+            .comment("Milliseconds of silence after a player stops speaking before sending the buffered audio to STT.")
+            .defineInRange("sttSilenceMs", 1000, 200, 5000);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private static boolean validateItemName(final Object obj) {

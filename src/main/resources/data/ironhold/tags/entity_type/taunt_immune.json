@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:iron_golem",
+    "minecraft:snow_golem",
+    "minecraft:wolf",
+    "minecraft:cat",
+    "minecraft:parrot",
+    "minecraft:axolotl",
+    "minecraft:villager",
+    "minecraft:wandering_trader",
+    "ironhold:kingdom_villager",
+    "ironhold:knight_recruit",
+    "ironhold:knight_man_at_arms",
+    "ironhold:knight_crossbowman",
+    "ironhold:knight_armored",
+    "ironhold:knight_crusader",
+    "ironhold:knight_gothic",
+    "ironhold:knight_gold",
+    "ironhold:knight_jouster",
+    "ironhold:knight_veteran"
+  ]
+}

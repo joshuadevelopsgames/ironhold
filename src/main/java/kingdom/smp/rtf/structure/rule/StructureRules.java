@@ -1,7 +1,7 @@
 package kingdom.smp.rtf.structure.rule;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -19,7 +19,7 @@ public class StructureRules {
 		return new CellTest(cutoff, ImmutableSet.copyOf(terrainTypeBlacklist));
 	}
 
-	private static void register(String name, Codec<? extends StructureRule> value) {
+	private static void register(String name, MapCodec<? extends StructureRule> value) {
 		RegistryUtil.register(RTFBuiltInRegistries.STRUCTURE_RULE_TYPE, name, value);
 	}
 }

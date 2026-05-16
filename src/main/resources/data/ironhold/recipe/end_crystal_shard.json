@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:end_crystal"
+  ],
+  "result": {
+    "id": "ironhold:end_crystal_shard",
+    "count": 4
+  }
+}

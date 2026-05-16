@@ -5,6 +5,10 @@ import com.google.gson.JsonParser;
 import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
 import kingdom.smp.ai.OllamaClient;
+import kingdom.smp.npc.HasNpcManifest;
+import kingdom.smp.npc.NpcItemReaction;
+import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 import kingdom.smp.entity.goal.VillagerFleeFromCombatGoal;
 import kingdom.smp.entity.goal.VillagerFollowPlayerGoal;
 import kingdom.smp.entity.goal.VillagerWanderGoal;
@@ -50,7 +54,7 @@ import java.util.UUID;
  * Kingdom Villager — an NPC with deep personality, profession-specific mechanics,
  * and (for talker professions) OpenRouter-powered AI dialogue.
  */
-public class KingdomVillagerEntity extends PathfinderMob {
+public class KingdomVillagerEntity extends PathfinderMob implements HasNpcManifest {
 
     // ── Emote types for thought bubbles ──────────────────────────────────────
     public enum EmoteType {
@@ -194,6 +198,10 @@ public class KingdomVillagerEntity extends PathfinderMob {
 
         getLookControl().setLookAt(player, 30.0F, 30.0F);
 
+        if (handleHeldItemReaction(sp)) {
+            return InteractionResult.SUCCESS;
+        }
+
         if (profession.canTalk()) {
             handleTalkingInteraction(sp);
         } else {
@@ -201,6 +209,42 @@ public class KingdomVillagerEntity extends PathfinderMob {
         }
 
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * If the player is holding an item this villager has a tasted/disdained
+     * opinion about, deliver that scripted reaction and skip the normal
+     * profession flow. Returns true if a reaction was delivered.
+     */
+    private boolean handleHeldItemReaction(ServerPlayer player) {
+        ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) return false;
+
+        NpcItemReaction.Reaction reaction = NpcItemReaction.resolve(manifest(), held);
+        if (!reaction.isPresent()) return false;
+
+        sendDialogue(reaction.line(), player);
+        personality.shiftOpinion(player.getUUID(), reaction.rapportDelta());
+        // Mood follows opinion — a strong gift lifts mood, a snub sours it.
+        personality.shiftMood(reaction.rapportDelta() / 50f);
+
+        switch (reaction.kind()) {
+            case TASTE -> sendEmote(EmoteType.SPARKLE);
+            case DISDAIN -> sendEmote(EmoteType.ANGER);
+            default -> sendEmote(EmoteType.EXCLAMATION);
+        }
+        performProfessionAction(player);
+        return true;
+    }
+
+    // ── Manifest lookup (HasNpcManifest) ─────────────────────────────────────
+
+    @Override
+    public @Nullable Identifier specificManifestId() { return null; }
+
+    @Override
+    public @Nullable Identifier fallbackManifestId() {
+        return Identifier.fromNamespaceAndPath(Ironhold.MODID, "profession/" + profession.id());
     }
 
     // ── Talking interaction (LLM-powered) ────────────────────────────────────

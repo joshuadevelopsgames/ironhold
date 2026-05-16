@@ -1,0 +1,38 @@
+{
+  "tier": "nobility",
+  "currency": "minecraft:gold_ingot",
+  "llm_flavor": "A tower-dwelling arcanist. Refuses common coin — payment is in gold, lapis, or rarer reagents. Disdains the mundane.",
+  "wares": [
+    { "item": "minecraft:enchanted_book", "base_price": 6, "stock": 1 },
+    { "item": "minecraft:lapis_lazuli",   "base_price": 1, "stock": 16 },
+    { "item": "minecraft:ender_pearl",    "base_price": 4, "stock": 2 }
+  ],
+  "secrets": [
+    {
+      "key": "ley_line_pattern",
+      "summary": "The kingdom's ley lines cross at three sites: the old tower, the cracked obelisk, and a third no map shows.",
+      "base_price": 8
+    },
+    {
+      "key": "enchant_resonance",
+      "summary": "A weapon enchanted under a waning moon binds twice as tightly. Most smiths don't know this.",
+      "base_price": 4
+    },
+    {
+      "key": "ender_pact",
+      "summary": "There is a pact one can offer the End-touched. The price is memory, not coin.",
+      "base_price": 16
+    }
+  ],
+  "tastes": [
+    { "item": "minecraft:nether_star",    "rapport_delta": 15, "reaction": "Astonishing. Where did you find such a thing? On second thought — don't tell me." },
+    { "item": "minecraft:ender_pearl",    "rapport_delta": 6,  "reaction": "A pearl, still warm. The void resents being interrupted." },
+    { "item": "minecraft:enchanted_book", "rapport_delta": 4,  "reaction": "Knowledge bound in calf-skin. Acceptable." },
+    { "item": "minecraft:lapis_lazuli",   "rapport_delta": 2,  "reaction": "The blue salt of the earth. Necessary, if dull." }
+  ],
+  "disdains": [
+    { "item": "minecraft:bread",   "rapport_delta": -4, "reaction": "Do I look like a farmer's hound?" },
+    { "item": "minecraft:emerald", "rapport_delta": -3, "reaction": "Take your peasant-stones to the market square." },
+    { "item": "minecraft:iron_pickaxe", "rapport_delta": -2, "reaction": "I do not chip stone. I unmake it." }
+  ]
+}

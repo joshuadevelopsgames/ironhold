@@ -1,13 +1,15 @@
 package kingdom.smp.rtf.noise.module;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import kingdom.smp.rtf.util.PosUtil;
 
 @Deprecated
 public record Cache2d(Noise noise, ThreadLocal<Cached> cache) implements Noise {
-	public static final Codec<Cache2d> CODEC = Noise.HOLDER_HELPER_CODEC.xmap(Cache2d::new, Cache2d::noise);
+	public static final MapCodec<Cache2d> CODEC = RecordCodecBuilder.<Cache2d>mapCodec(instance -> instance.group(
+		Noise.HOLDER_HELPER_CODEC.fieldOf("noise").forGetter(Cache2d::noise)
+	).apply(instance, Cache2d::new));
 	
 	public Cache2d(Noise noise) {
 		this(noise, ThreadLocal.withInitial(() -> {

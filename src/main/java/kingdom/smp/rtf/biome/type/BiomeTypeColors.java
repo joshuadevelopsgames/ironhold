@@ -15,6 +15,9 @@ public class BiomeTypeColors {
     private BiomeTypeColors() {
         this.colors = new HashMap<>();
         try (InputStream inputStream = BiomeType.class.getResourceAsStream("/biomes.txt")) {
+            if (inputStream == null) {
+                return;
+            }
             Properties properties = new Properties();
             properties.load(inputStream);
             for (Map.Entry<?, ?> entry : properties.entrySet()) {

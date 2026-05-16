@@ -1,0 +1,11 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "ironhold:knight_recruit_body" },
+      { "texture": "ironhold:knight_recruit_body_overlay" }
+    ],
+    "humanoid_leggings": [
+      { "texture": "ironhold:knight_recruit_body" }
+    ]
+  }
+}

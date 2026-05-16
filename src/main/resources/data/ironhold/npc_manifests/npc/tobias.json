@@ -1,0 +1,40 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.1,
+  "llm_flavor": "Master Tobias of The Iron Hearth — forty years at the anvil. Gruff, fair, doesn't haggle. Knows ore quality by the sound of the strike.",
+  "wares": [
+    { "item": "minecraft:iron_pickaxe", "base_price": 14, "stock": 1 },
+    { "item": "minecraft:iron_sword",   "base_price": 16, "stock": 1 },
+    { "item": "minecraft:iron_axe",     "base_price": 14, "stock": 1 },
+    { "item": "minecraft:shield",       "base_price": 12, "stock": 2 },
+    { "item": "minecraft:bucket",       "base_price": 4,  "stock": 4 }
+  ],
+  "secrets": [
+    {
+      "key": "iron_seam_north",
+      "summary": "Iron seam in the north caves. Deepest pocket has something living in it. Take a lantern, take a friend, take a sharper sword than that.",
+      "base_price": 8
+    },
+    {
+      "key": "filcher_camp",
+      "summary": "A Filcher camp sits two hours east, near the broken bridge. They favour copper trinkets — drop one and they'll take it instead of your purse.",
+      "base_price": 5
+    },
+    {
+      "key": "tempered_blade_method",
+      "summary": "Quench thrice, fold once. Most smiths in this kingdom have it backwards.",
+      "base_price": 10
+    }
+  ],
+  "tastes": [
+    { "item": "ironhold:high_quality_iron_ore", "rapport_delta": 12, "reaction": "Tobias hefts the ore, listens to it click. \"Now THAT'S iron. Where'd you pull this?\"" },
+    { "item": "minecraft:iron_ingot",           "rapport_delta": 3,  "reaction": "Tobias nods once. \"Honest metal. I'll find a use.\"" },
+    { "item": "minecraft:coal",                 "rapport_delta": 2,  "reaction": "\"The forge eats this faster than my boy eats bread. Appreciated.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:gold_ingot",   "rapport_delta": -3, "reaction": "Tobias barely glances at it. \"Pretty. Soft. Useless. Take it to the wizard.\"" },
+    { "item": "minecraft:copper_ingot", "rapport_delta": -2, "reaction": "\"Copper's for roofs and Filcher trinkets. Not blades.\"" },
+    { "item": "minecraft:wooden_sword", "rapport_delta": -4, "reaction": "Tobias's jaw tightens. \"Get that out of my forge before I throw it in the fire.\"" }
+  ]
+}

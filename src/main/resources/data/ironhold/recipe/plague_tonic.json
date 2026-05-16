@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:milk_bucket",
+    "minecraft:honey_bottle",
+    "minecraft:golden_apple",
+    "ironhold:plague_bubo"
+  ],
+  "result": {
+    "id": "ironhold:plague_tonic",
+    "count": 1
+  }
+}

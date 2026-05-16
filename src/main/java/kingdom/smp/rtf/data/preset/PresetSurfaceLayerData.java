@@ -26,7 +26,6 @@ import kingdom.smp.rtf.surface.condition.RTFSurfaceConditions;
 import kingdom.smp.rtf.surface.rule.LayeredSurfaceRule;
 import kingdom.smp.rtf.surface.rule.RTFSurfaceRules;
 import kingdom.smp.rtf.util.Scaling;
-import terrablender.core.TerraBlender;
 
 public class PresetSurfaceLayerData {
 	private static final SurfaceRules.RuleSource ORANGE_TERRACOTTA = makeStateRule(Blocks.ORANGE_TERRACOTTA);

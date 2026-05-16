@@ -1,0 +1,13 @@
+{
+  "_comment": "Bastions don't have their own biome — they generate inside the four nether biomes. NeoForge biome modifiers operate on biomes, not structures, so we add piglin villager spawns across all nether biomes at low weight. They'll appear most visibly in/around bastions because that's where players go in the Nether.",
+  "type": "neoforge:add_spawns",
+  "biomes": "#minecraft:is_nether",
+  "spawners": [
+    {
+      "type": "ironhold:piglin_villager",
+      "weight": 5,
+      "minCount": 1,
+      "maxCount": 2
+    }
+  ]
+}

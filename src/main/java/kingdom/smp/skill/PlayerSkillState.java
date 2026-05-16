@@ -46,7 +46,12 @@ public record PlayerSkillState(
 
     /** Defensive copy on construction so the maps/sets aren't shared references. */
     public PlayerSkillState {
-        currentRanks = new EnumMap<>(currentRanks);
+        // EnumMap's copy ctor rejects empty maps, which the codec hands us via
+        // optionalFieldOf("ranks", Map.of()) for first-login players. Fall back
+        // to the keyed empty-EnumMap ctor in that case.
+        currentRanks = currentRanks.isEmpty()
+            ? new EnumMap<>(Profession.class)
+            : new EnumMap<>(currentRanks);
         milestonesCompleted = new HashSet<>(milestonesCompleted);
     }
 

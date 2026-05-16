@@ -4,6 +4,7 @@ import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryMenu;
+import kingdom.smp.client.ClientSneakDetectionState;
 import kingdom.smp.client.VanityCache;
 import kingdom.smp.client.VillagerDialogueCache;
 import kingdom.smp.entity.MagicMinecartEntity;
@@ -12,6 +13,7 @@ import kingdom.smp.game.CloudDoubleJumpHandler;
 import kingdom.smp.item.SirensRingItem;
 import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.game.RpgXpBarSync;
+import kingdom.smp.rpg.ability.AbilityDispatch;
 import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
@@ -94,6 +96,27 @@ public final class ModNetworking {
                 }
             }));
 
+        registrar.playToServer(SeashellDashPayload.TYPE, SeashellDashPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.item.SeashellItem.tryDash(sp);
+                }
+            }));
+
+        registrar.playToServer(AbilityCastPayload.TYPE, AbilityCastPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    AbilityDispatch.tryCast(sp, payload.slot());
+                }
+            }));
+
+        registrar.playToServer(KangaPushToTalkPayload.TYPE, KangaPushToTalkPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.ai.KangaPttBridge.togglePtt(sp);
+                }
+            }));
+
         // ── Accessory / Vanity payloads ───────────────────────────────────────
 
         registrar.playToServer(OpenAccessoryPayload.TYPE, OpenAccessoryPayload.STREAM_CODEC,
@@ -128,6 +151,37 @@ public final class ModNetworking {
             (payload, ctx) -> ctx.enqueueWork(() ->
                 VillagerDialogueCache.openDialogueScreen(payload)));
 
+        // ── Warden Halric (interactive AI dialogue) ──────────────────────────
+        registrar.playToClient(OpenWardenScreenPayload.TYPE, OpenWardenScreenPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                VillagerDialogueCache.openWardenScreen(payload)));
+
+        registrar.playToClient(UpdateWardenScreenPayload.TYPE, UpdateWardenScreenPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                VillagerDialogueCache.updateWardenScreen(payload)));
+
+        registrar.playToServer(WardenChatPayload.TYPE, WardenChatPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    handleWardenChat(sp, payload);
+                }
+            }));
+
+        registrar.playToServer(WardenPttTogglePayload.TYPE, WardenPttTogglePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.ai.KangaPttBridge.togglePtt(sp);
+                }
+            }));
+
+        registrar.playToServer(NpcMutePayload.TYPE, NpcMutePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.ai.NpcMuteRegistry.get((ServerLevel) sp.level())
+                        .setMuted(sp.getUUID(), payload.npcTag(), payload.muted());
+                }
+            }));
+
         // ── Skill tree (profession-skill-system) ──────────────────────────────
         registrar.playToClient(SyncSkillStatePayload.TYPE, SyncSkillStatePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> ClientSkillData.receive(payload)));
@@ -145,6 +199,26 @@ public final class ModNetworking {
                     handleRespecAll(sp);
                 }
             }));
+
+        registrar.playToClient(SneakDetectionPayload.TYPE, SneakDetectionPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> ClientSneakDetectionState.receive(payload)));
+    }
+
+    /**
+     * Server-side handler for the player typing a reply in the dialogue
+     * screen. Validates the entity id, ensures the entity is an
+     * {@link kingdom.smp.ai.NpcChatPartner}, and forwards the message.
+     * Rejects out-of-range or wrong-type entities silently.
+     */
+    private static void handleWardenChat(ServerPlayer player, WardenChatPayload payload) {
+        var entity = player.level().getEntity(payload.entityId());
+        if (!(entity instanceof kingdom.smp.ai.NpcChatPartner partner)) return;
+        if (!(entity instanceof net.minecraft.world.entity.Entity e)) return;
+        if (e.distanceToSqr(player) > 16.0 * 16.0) return;
+        String message = payload.message();
+        if (message == null || message.isBlank()) return;
+        if (message.length() > 500) message = message.substring(0, 500);
+        partner.onPartnerChat(player, message);
     }
 
     private static void handleRespecAll(ServerPlayer player) {
@@ -210,6 +284,8 @@ public final class ModNetworking {
     private static void handleClassChoice(ServerPlayer player, ClassChoicePayload payload) {
         int idx = payload.classIndex();
         if (idx < 0 || idx >= PlayerClass.values().length) {
+            Ironhold.LOGGER.warn("Class choice from {} rejected: invalid ordinal {}",
+                player.getName().getString(), idx);
             return;
         }
         PlayerClass chosen = PlayerClass.fromIndex(idx);
@@ -220,23 +296,37 @@ public final class ModNetworking {
         PlayerClass currentClass = cur.playerClass();
         CompletedClasses completed = player.getData(ModAttachments.COMPLETED_CLASSES.get());
 
+        // Creative-mode players bypass the level gate so they can test freely.
+        boolean bypass = player.isCreative();
+
         // ── Validate the promotion ───────────────────────────────────────────
         // 1) Player must have reached the promotion level for their current tier
         int promoLevel = RpgProgression.promotionLevelForTier(currentClass.tier());
-        if (promoLevel > 0 && cur.classLevel() < promoLevel) {
-            return; // not high enough level yet
+        if (!bypass && promoLevel > 0 && cur.classLevel() < promoLevel) {
+            player.sendSystemMessage(Component.literal(
+                "§cYou must reach " + currentClass.id() + " Level " + promoLevel
+                + " before promoting (currently Level " + cur.classLevel() + ")."));
+            Ironhold.LOGGER.info("{} class choice rejected: {} L{} < required L{}",
+                player.getName().getString(), currentClass.id(), cur.classLevel(), promoLevel);
+            return;
         }
 
         // 2) Chosen class must be exactly one tier above current (or Tier 1 for Peasant)
         int expectedTier = currentClass.tier() + 1;
         if (chosen.tier() != expectedTier) {
+            player.sendSystemMessage(Component.literal(
+                "§cYou cannot promote directly to " + chosen.id()
+                + " (Tier " + chosen.tier() + ") from " + currentClass.id()
+                + " (Tier " + currentClass.tier() + ")."));
             return;
         }
 
         // 3) Prerequisites must be met: current class counts as completed + all prior completions
         CompletedClasses withCurrent = completed.withCompleted(currentClass);
         if (!chosen.canUnlock(withCurrent.asSet())) {
-            return; // prerequisites not met
+            player.sendSystemMessage(Component.literal(
+                "§cYou have not completed the prerequisites for " + chosen.id() + "."));
+            return;
         }
 
         // ── Apply the promotion ──────────────────────────────────────────────

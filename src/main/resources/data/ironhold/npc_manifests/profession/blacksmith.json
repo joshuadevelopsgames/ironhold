@@ -1,0 +1,32 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "llm_flavor": "A village blacksmith. Sells iron tools at honest prices. Respects quality ore and finds soft metals (gold, copper) decorative at best.",
+  "wares": [
+    { "item": "minecraft:iron_pickaxe", "base_price": 12, "stock": 1 },
+    { "item": "minecraft:iron_sword",   "base_price": 14, "stock": 1 },
+    { "item": "minecraft:iron_axe",     "base_price": 12, "stock": 1 },
+    { "item": "minecraft:shield",       "base_price": 10, "stock": 2 }
+  ],
+  "secrets": [
+    {
+      "key": "iron_seam_north",
+      "summary": "An iron seam lies in the caves north of Wayfarer's Hollow. The deepest pocket is guarded.",
+      "base_price": 6
+    },
+    {
+      "key": "whetstone_source",
+      "summary": "The grit you want for a proper whetstone comes from the riverbed east of the mill.",
+      "base_price": 3
+    }
+  ],
+  "tastes": [
+    { "item": "ironhold:high_quality_iron_ore", "rapport_delta": 10, "reaction": "Now THAT is iron. Whoever pulled this knew what they were doing." },
+    { "item": "minecraft:iron_ingot",           "rapport_delta": 2,  "reaction": "Honest metal. I can work with this." },
+    { "item": "minecraft:coal",                 "rapport_delta": 1,  "reaction": "Coal keeps the forge hungry. Appreciated." }
+  ],
+  "disdains": [
+    { "item": "minecraft:gold_ingot",  "rapport_delta": -2, "reaction": "Pretty. Soft. Useless." },
+    { "item": "minecraft:copper_ingot","rapport_delta": -1, "reaction": "Copper's for roofs, not blades." }
+  ]
+}

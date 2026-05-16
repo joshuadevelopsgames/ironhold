@@ -188,20 +188,24 @@ Pristine is **not** an automatic outcome of repair — it requires explicit refi
 
 ## 5. Mine system
 
-Mines are the geographic sources of quality ore. Four tiers, mapped to gear-quality drop tables:
+Mines are the geographic sources of quality ore. **Two zones**, with the in-mine zone graduated by depth:
 
-| Mine Tier | Max Quality | Poor % | Fine % | Good % | Mint % | Notes |
+| Zone | Source | Poor % | Fine % | Good % | Mint % | Notes |
 |---|---|---|---|---|---|---|
-| Wild | Fine | 70% | 30% | 0% | 0% | Public, unclaimed |
-| Claimed | Good | 25% | 50% | 25% | 0% | Basic kingdom economy |
-| Deep | Good | 10% | 35% | 50% | 5% | Contested, dangerous |
-| Royal | Mint | 5% | 20% | 50% | 25% | Strategic asset, kingdom-controlled |
+| Wild | Any ore broken outside a mine structure | 65% | 30% | 5% | 0% | Vanilla everywhere; Mint unreachable |
+| Mine — Shallow | Upper band of a generated mine | 25% | 50% | 25% | 0% | Roughly the original "Claimed" table |
+| Mine — Mid | Mid band | 10% | 35% | 50% | 5% | Roughly the original "Deep" table |
+| Mine — Deep | Bottom band | 5% | 20% | 50% | 25% | Roughly the original "Royal" table — Mint is the modal outcome |
 
-Note: Wild now caps at Fine instead of Poor — fully unclaimed wilderness should still produce *some* usable mid-grade ore so non-kingdom solo players have a viable progression path. Whether to keep Deep as a fourth distinct tier or merge it with Royal is calibration TBD (§11.3) — both work, but four mine tiers may be one too many.
+**Geographic model:** Wild ore generates as vanilla everywhere — nothing in worldgen is altered for it. Mines are *single discoverable structures* with an open-mouth surface mineshaft visible at terrain level, sloping down through three depth bands. Deeper = better; reaching Mint requires committing to a deep descent. There is no separate "Claimed" or "Royal" structure type — all mines are the same structure, and depth is the tier lever.
 
-**Mine depletion is deferred to v2.** Mines do not exhaust output in v1. (Risk of "kingdom collapses because mine ran out" is too punishing for a first cut.)
+**Politics is out-of-code.** A kingdom "owns" a mine by defending its entrance with their members and banners — there is no claim-the-mine mechanic in the mod itself. The geographic asymmetry is the only lever; player politics turns it into kingdom-level conflict.
 
-**Geographic distribution:** Wild ore generates as vanilla everywhere. Claimed/Deep/Royal mines are named in-world structures (visible stone-texture variants, ore-density clusters, optional naturally-generated entrance markers). Detailed worldgen is out of scope for this spec — see `worldgen-mines.md` (v2 followup).
+**Solo player path.** Wild rare-Good keeps unaffiliated survival viable: a patient solo miner can craft Good gear from wilderness ore, just slowly. Mint is gated behind discovering and surviving a deep mine, which can be done solo or as a kingdom raid.
+
+**Mine depletion is deferred.** Mines do not exhaust output in v1. (Risk of "kingdom collapses because mine ran out" is too punishing for a first cut.)
+
+**Worldgen rarity** is the new primary calibration knob — too common and Mint is everywhere, too rare and kingdoms can't form around mines. Detailed worldgen is in a v2 followup (`worldgen-mines.md`).
 
 ---
 
@@ -356,10 +360,11 @@ These do not block v2 implementation:
 
 1. **Multiplier tightening or widening.** Current spread is 0.5 / 0.8 / 1.0 / 1.2. Mint→Poor ratio is 2.4×. If kingdoms with Mint equipment stomp non-kingdom players too hard, tighten Mint to 1.15. If the spread feels insignificant, widen Mint to 1.3.
 2. **Per-stat multiplier override.** Currently a single multiplier applies to all five stats. Low-base-value stats (toughness 2, KBR 0.1) round to identical values across tiers — e.g., diamond toughness reads 2 across Fine/Good/Mint. If toughness/KBR differentiation matters in playtest, switch those two stats to additive deltas (Poor −1 / Fine 0 / Good 0 / Mint +1 for toughness; ±0.05 for KBR).
-3. **Deep mine tier** — keep as a fourth distinct mine tier, or merge with Royal? Both work; Deep adds one more layer of geography but also one more thing to balance.
+3. **Mine worldgen rarity** — replaces the old "Deep vs Royal merge" question (resolved: depth bands inside one structure, see §5). The live knob is now: how often do mine structures generate? Calibrate so a kingdom can plausibly find one within its claim radius, but rare enough that controlling one matters.
 4. **Royal Smith court appointment requirement** — Royal Forge usable by *any* Expert Blacksmith, or *only* the king's appointed Royal Smith? The latter is more politically textured; the former is friendlier to non-court members.
 5. **Mine depletion** (deferred from v1) — should mines exhaust over time? When this ships, the rate must be slow enough that "kingdom collapses because mine ran out" is rare, but fast enough that conquering a fresh mine has marginal value over holding an old one.
-6. **Wild mine cap** — currently Wild mines top out at Fine. If unclaimed wilderness needs to be more punishing for solo players, push Wild back to Poor cap. Counter-argument: Wild = Fine cap keeps solo Minecraft viable while still creating real demand for kingdom-controlled mines.
+6. **Silk-touched ore-block loophole** — Silk Touch drops the ore *block*, which isn't in the `ore_or_ingot` tag, so it falls through to Good default at smelt time. Fix options: (a) include ore-block items in the tag and stamp them at break time; (b) track break geography on the block-form item via a transient component; (c) leave it — Silk Touch becomes the "ignore quality" path for players who don't care.
+7. **Wild Good rate** — currently 5%. If solo wilderness progression feels too easy, push toward 0% (matching the original spec). If too punishing, push to 10%.
 
 ---
 

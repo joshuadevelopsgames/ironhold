@@ -52,6 +52,10 @@ public enum BiomeType {
         return this.lookup;
     }
 
+    List<Pair<Temperature, Humidity>> getNoisePairs() {
+        return this.noisePairs;
+    }
+
     public float getTemperature(float identity) {
     	return this.getRandomPair(identity).getFirst().midpoint();
     }

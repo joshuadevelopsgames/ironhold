@@ -1,6 +1,7 @@
 package kingdom.smp.command;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
@@ -10,6 +11,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
+import kingdom.smp.entity.KangarudeEntity;
 import kingdom.smp.entity.KingdomVillagerEntity;
 import kingdom.smp.entity.VillagerProfession;
 import kingdom.smp.game.EncumbranceHandler;
@@ -21,6 +23,9 @@ import kingdom.smp.skill.PlayerSkillState;
 import kingdom.smp.skill.Profession;
 import kingdom.smp.skill.ProfessionRank;
 import kingdom.smp.skill.SkillSavedData;
+import kingdom.smp.structure.IscScanner;
+import kingdom.smp.structure.IscStorage;
+import kingdom.smp.structure.IscStructure;
 import net.minecraft.world.item.ItemStack;
 import kingdom.smp.game.RpgProgressionActions;
 import kingdom.smp.net.ModNetworking;
@@ -33,9 +38,13 @@ import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import kingdom.smp.rpg.RpgProgression;
 import kingdom.smp.world.KingdomWorldData;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.level.ServerLevel;
@@ -82,6 +91,19 @@ public final class IronholdCommands {
         String rem = builder.getRemaining().toLowerCase();
         for (String b : new String[]{"true", "false"}) {
             if (rem.isEmpty() || b.startsWith(rem)) builder.suggest(b);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> STRUCTURE_NAME_SUGGESTIONS = (ctx, builder) -> {
+        MinecraftServer server = ctx.getSource().getServer();
+        try {
+            String rem = builder.getRemaining().toLowerCase();
+            for (String name : IscStorage.list(server)) {
+                if (rem.isEmpty() || name.startsWith(rem)) builder.suggest(name);
+            }
+        } catch (java.io.IOException ignored) {
+            // Storage dir not yet created — no suggestions to offer.
         }
         return builder.buildFuture();
     };
@@ -148,6 +170,23 @@ public final class IronholdCommands {
                                                     ctx.getSource(),
                                                     IntegerArgumentType.getInteger(ctx, "amount"))))))
                     .then(
+                        Commands.literal("classlevel")
+                            .then(
+                                Commands.literal("set")
+                                    .then(
+                                        Commands.argument("level", IntegerArgumentType.integer(1, 999))
+                                            .executes(
+                                                ctx -> setClassLevel(
+                                                    ctx.getSource(),
+                                                    IntegerArgumentType.getInteger(ctx, "level")))
+                                            .then(
+                                                Commands.argument("targets", EntityArgument.players())
+                                                    .executes(
+                                                        ctx -> setClassLevelTargets(
+                                                            ctx.getSource(),
+                                                            IntegerArgumentType.getInteger(ctx, "level"),
+                                                            EntityArgument.getPlayers(ctx, "targets")))))))
+                    .then(
                         Commands.literal("kingdomxp")
                             .then(
                                 Commands.literal("add")
@@ -165,6 +204,7 @@ public final class IronholdCommands {
                     .then(Commands.literal("classgui").executes(ctx -> openClassGui(ctx.getSource())))
                     .then(Commands.literal("kingdomgui").executes(ctx -> openKingdomGui(ctx.getSource())))
                     .then(Commands.literal("profile").executes(ctx -> openProfile(ctx.getSource())))
+                    .then(Commands.literal("questboard").executes(ctx -> openQuestBoard(ctx.getSource())))
                     .then(
                         Commands.literal("villager")
                             .then(
@@ -174,6 +214,10 @@ public final class IronholdCommands {
                                         ctx -> spawnVillager(
                                             ctx.getSource(),
                                             StringArgumentType.getString(ctx, "profession")))))
+                    .then(
+                        Commands.literal("kanga")
+                            .then(Commands.literal("join").executes(ctx -> kangaJoin(ctx.getSource())))
+                            .then(Commands.literal("leave").executes(ctx -> kangaLeave(ctx.getSource()))))
                     .then(
                         Commands.literal("gear")
                             .then(Commands.literal("info").executes(ctx -> gearInfo(ctx.getSource())))
@@ -221,7 +265,37 @@ public final class IronholdCommands {
                                             ctx.getSource(),
                                             StringArgumentType.getString(ctx, "id"),
                                             IntegerArgumentType.getInteger(ctx, "points"))))))
-                            .then(Commands.literal("reset").executes(ctx -> skillReset(ctx.getSource())))));
+                            .then(Commands.literal("reset").executes(ctx -> skillReset(ctx.getSource()))))
+                    .then(
+                        Commands.literal("struct")
+                            .then(Commands.literal("scan")
+                                .then(Commands.argument("from", BlockPosArgument.blockPos())
+                                    .then(Commands.argument("to", BlockPosArgument.blockPos())
+                                        .then(Commands.argument("name", StringArgumentType.word())
+                                            .executes(ctx -> structScan(
+                                                ctx.getSource(),
+                                                BlockPosArgument.getBlockPos(ctx, "from"),
+                                                BlockPosArgument.getBlockPos(ctx, "to"),
+                                                StringArgumentType.getString(ctx, "name")))))))
+                            .then(Commands.literal("build")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                    .suggests(STRUCTURE_NAME_SUGGESTIONS)
+                                    .executes(ctx -> structBuild(
+                                        ctx.getSource(),
+                                        StringArgumentType.getString(ctx, "name"),
+                                        null))
+                                    .then(Commands.argument("at", BlockPosArgument.blockPos())
+                                        .executes(ctx -> structBuild(
+                                            ctx.getSource(),
+                                            StringArgumentType.getString(ctx, "name"),
+                                            BlockPosArgument.getBlockPos(ctx, "at"))))))
+                            .then(Commands.literal("list").executes(ctx -> structList(ctx.getSource())))
+                            .then(Commands.literal("delete")
+                                .then(Commands.argument("name", StringArgumentType.word())
+                                    .suggests(STRUCTURE_NAME_SUGGESTIONS)
+                                    .executes(ctx -> structDelete(
+                                        ctx.getSource(),
+                                        StringArgumentType.getString(ctx, "name")))))));
 
         // /menu — all players (opens MainMenuScreen on client)
         event.getDispatcher()
@@ -284,6 +358,57 @@ public final class IronholdCommands {
         player.teleportTo(targetLevel, player.getX(), player.getY(), player.getZ(),
             java.util.Set.of(), player.getYRot(), player.getXRot(), false);
         src.sendSuccess(() -> Component.literal("Teleported to " + dim + "."), true);
+        return 1;
+    }
+
+    private static int kangaJoin(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        ServerLevel level = (ServerLevel) player.level();
+        KangarudeEntity npc = new KangarudeEntity(Ironhold.KANGARUDE.get(), level);
+        npc.setPos(player.getX() + 1.5, player.getY(), player.getZ());
+        // Face the player.
+        npc.setYRot(player.getYRot() + 180.0F);
+        npc.setYHeadRot(player.getYRot() + 180.0F);
+        level.addFreshEntity(npc);
+
+        kingdom.smp.entity.KangarudeTabList.add(src.getServer());
+
+        Component joinMsg = Component.translatable(
+                "multiplayer.player.joined",
+                Component.literal("Kangarude"))
+            .withStyle(ChatFormatting.YELLOW);
+        src.getServer().getPlayerList().broadcastSystemMessage(joinMsg, false);
+        return 1;
+    }
+
+    private static int kangaLeave(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        ServerLevel level = (ServerLevel) player.level();
+        KangarudeEntity nearest = level.getEntitiesOfClass(
+                KangarudeEntity.class,
+                player.getBoundingBox().inflate(64.0))
+            .stream()
+            .min((a, b) -> Double.compare(a.distanceToSqr(player), b.distanceToSqr(player)))
+            .orElse(null);
+        if (nearest == null) {
+            src.sendFailure(Component.literal("No Kangarude within 64 blocks."));
+            return 0;
+        }
+        nearest.discard();
+
+        kingdom.smp.entity.KangarudeTabList.remove(src.getServer());
+
+        Component leaveMsg = Component.translatable(
+                "multiplayer.player.left",
+                Component.literal("Kangarude"))
+            .withStyle(ChatFormatting.YELLOW);
+        src.getServer().getPlayerList().broadcastSystemMessage(leaveMsg, false);
         return 1;
     }
 
@@ -428,6 +553,46 @@ public final class IronholdCommands {
         return 1;
     }
 
+    private static int setClassLevel(CommandSourceStack src, int level) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        applyClassLevel(src, player, level);
+        return 1;
+    }
+
+    private static int setClassLevelTargets(CommandSourceStack src, int level, Collection<ServerPlayer> targets) {
+        for (ServerPlayer p : targets) {
+            applyClassLevel(src, p, level);
+        }
+        return targets.size();
+    }
+
+    /**
+     * Sets the player's class level directly to {@code level}, resetting xp-into-level to 0
+     * and re-applying class stats. Does not auto-promote, broadcast, or play the level-up
+     * fanfare — this is an admin/debug shortcut, not a gameplay grant.
+     */
+    private static void applyClassLevel(CommandSourceStack src, ServerPlayer player, int level) {
+        PlayerKingdomRpgData cur = player.getData(ModAttachments.PLAYER_RPG.get());
+        PlayerKingdomRpgData next = new PlayerKingdomRpgData(
+            cur.kingdomIndex(), cur.classIndex(), level, 0);
+        player.setData(ModAttachments.PLAYER_RPG.get(), next);
+        kingdom.smp.game.ClassStatHandler.apply(player, next);
+        kingdom.smp.game.RpgXpBarSync.sync(player, next);
+        kingdom.smp.net.ModNetworking.syncToClient(player);
+        src.sendSuccess(
+            () -> Component.literal(
+                "Set "
+                    + player.getName().getString()
+                    + " to "
+                    + next.playerClass().id()
+                    + " L"
+                    + level),
+            true);
+    }
+
     private static int addKingdomXp(CommandSourceStack src, int kingdom, long amount) {
         ServerLevel level = src.getLevel();
         KingdomWorldData data = overworldData(level);
@@ -496,6 +661,21 @@ public final class IronholdCommands {
         // Sync latest data then open the screen
         ModNetworking.syncToClient(player);
         PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+        return 1;
+    }
+
+    private static int openQuestBoard(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        // Open the menu via SimpleMenuProvider — server creates it with sample
+        // quest data; client reconstructs it via the no-arg ctor (which also
+        // uses QuestData.sample() so the visuals match).
+        player.openMenu(new net.minecraft.world.SimpleMenuProvider(
+            (id, playerInv, p) -> new kingdom.smp.quest.QuestBoardMenu(
+                id, playerInv, kingdom.smp.quest.QuestData.sample()),
+            Component.literal("Quest Board")));
         return 1;
     }
 
@@ -739,6 +919,94 @@ public final class IronholdCommands {
                 + " | Pristine: " + pristine
                 + " | Durability: " + (max - dmg) + "/" + max
         ), false);
+        return 1;
+    }
+
+    // ── Structure scan / build commands ───────────────────────────────────────
+
+    private static int structScan(CommandSourceStack src, BlockPos from, BlockPos to, String name) {
+        ServerLevel level = src.getLevel();
+        IscStructure structure;
+        try {
+            structure = IscScanner.scan(level, from, to);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            src.sendFailure(Component.literal("Scan failed: " + e.getMessage()));
+            return 0;
+        }
+        java.nio.file.Path path;
+        try {
+            path = IscStorage.save(src.getServer(), name, structure);
+        } catch (java.io.IOException | IllegalArgumentException e) {
+            src.sendFailure(Component.literal("Save failed: " + e.getMessage()));
+            return 0;
+        }
+        int sx = structure.sizeX(), sy = structure.sizeY(), sz = structure.sizeZ();
+        java.nio.file.Path worldRoot = src.getServer().getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT);
+        String rel = worldRoot.relativize(path).toString();
+        src.sendSuccess(() -> Component.literal(
+            "Scanned '" + name + "' (" + sx + "x" + sy + "x" + sz + ", "
+                + structure.solidCount() + " solid blocks, "
+                + structure.palette().size() + " palette entries) → " + rel),
+            true);
+        return 1;
+    }
+
+    private static int structBuild(CommandSourceStack src, String name, BlockPos at) {
+        IscStructure structure;
+        try {
+            structure = IscStorage.load(src.getServer(), name);
+        } catch (java.io.IOException | IllegalArgumentException | IscStructure.IscParseException e) {
+            src.sendFailure(Component.literal("Load failed: " + e.getMessage()));
+            return 0;
+        }
+        BlockPos origin = at;
+        if (origin == null) {
+            if (!(src.getEntity() instanceof ServerPlayer player)) {
+                src.sendFailure(Component.literal("Provide an origin position, or run as a player."));
+                return 0;
+            }
+            origin = player.blockPosition();
+        }
+        int placed = IscScanner.build(src.getLevel(), structure, origin, false);
+        final BlockPos finalOrigin = origin;
+        src.sendSuccess(() -> Component.literal(
+            "Built '" + name + "' at " + finalOrigin.getX() + " " + finalOrigin.getY() + " " + finalOrigin.getZ()
+                + " (" + placed + " blocks placed)"),
+            true);
+        return 1;
+    }
+
+    private static int structList(CommandSourceStack src) {
+        List<String> names;
+        try {
+            names = IscStorage.list(src.getServer());
+        } catch (java.io.IOException e) {
+            src.sendFailure(Component.literal("List failed: " + e.getMessage()));
+            return 0;
+        }
+        if (names.isEmpty()) {
+            src.sendSuccess(() -> Component.literal("No saved structures."), false);
+            return 0;
+        }
+        src.sendSuccess(() -> Component.literal(
+            "Saved structures (" + names.size() + "): " + String.join(", ", names)),
+            false);
+        return names.size();
+    }
+
+    private static int structDelete(CommandSourceStack src, String name) {
+        boolean removed;
+        try {
+            removed = IscStorage.delete(src.getServer(), name);
+        } catch (java.io.IOException | IllegalArgumentException e) {
+            src.sendFailure(Component.literal("Delete failed: " + e.getMessage()));
+            return 0;
+        }
+        if (!removed) {
+            src.sendFailure(Component.literal("No structure named '" + name + "'."));
+            return 0;
+        }
+        src.sendSuccess(() -> Component.literal("Deleted structure '" + name + "'."), true);
         return 1;
     }
 }

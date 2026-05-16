@@ -3,9 +3,14 @@ package kingdom.smp.rtf.biome.type;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
+import com.mojang.datafixers.util.Pair;
+
+import kingdom.smp.rtf.biome.Humidity;
+import kingdom.smp.rtf.biome.Temperature;
 import kingdom.smp.rtf.noise.NoiseUtil;
 import kingdom.smp.rtf.noise.NoiseUtil.Vec2f;
 
@@ -45,25 +50,69 @@ public class BiomeTypeLoader {
     }
     
     private void generateTypeMap() {
-        try {
-            BufferedImage image = ImageIO.read(BiomeType.class.getResourceAsStream("/biomes.png"));
-            float xf = image.getWidth() / 256.0f;
-            float yf = image.getHeight() / 256.0f;
-            for (int y = 0; y < 256; ++y) {
-                for (int x = 0; x < 256; ++x) {
-                    if (255 - y > x) {
-                        this.map[255 - y][x] = BiomeType.ALPINE;
-                    } else {
-                        int ix = NoiseUtil.round(x * xf);
-                        int iy = NoiseUtil.round(y * yf);
-                        int argb = image.getRGB(ix, iy);
-                        Color color = fromARGB(argb);
-                        this.map[255 - y][x] = forColor(color);
-                    }
+        BufferedImage image = tryLoadImage();
+        if (image != null) {
+            generateFromImage(image);
+        } else {
+            generateProcedural();
+        }
+    }
+
+    private static BufferedImage tryLoadImage() {
+        try (InputStream stream = BiomeType.class.getResourceAsStream("/biomes.png")) {
+            if (stream == null) {
+                return null;
+            }
+            return ImageIO.read(stream);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private void generateFromImage(BufferedImage image) {
+        float xf = image.getWidth() / 256.0f;
+        float yf = image.getHeight() / 256.0f;
+        for (int y = 0; y < 256; ++y) {
+            for (int x = 0; x < 256; ++x) {
+                if (255 - y > x) {
+                    this.map[255 - y][x] = BiomeType.ALPINE;
+                } else {
+                    int ix = NoiseUtil.round(x * xf);
+                    int iy = NoiseUtil.round(y * yf);
+                    int argb = image.getRGB(ix, iy);
+                    Color color = fromARGB(argb);
+                    this.map[255 - y][x] = forColor(color);
                 }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        }
+    }
+
+    private void generateProcedural() {
+        Temperature[] temperatures = Temperature.values();
+        Humidity[] humidities = Humidity.values();
+        BiomeType[][] grid = new BiomeType[humidities.length][temperatures.length];
+        for (BiomeType type : BiomeType.values()) {
+            for (Pair<Temperature, Humidity> pair : type.getNoisePairs()) {
+                int t = pair.getFirst().ordinal();
+                int h = pair.getSecond().ordinal();
+                if (grid[h][t] == null) {
+                    grid[h][t] = type;
+                }
+            }
+        }
+        for (int moist = 0; moist < 256; ++moist) {
+            int humidLevel = Math.min(humidities.length - 1, moist * humidities.length / 256);
+            for (int temp = 0; temp < 256; ++temp) {
+                int tempLevel = Math.min(temperatures.length - 1, temp * temperatures.length / 256);
+                BiomeType resolved = grid[humidLevel][tempLevel];
+                if (resolved == null) {
+                    resolved = BiomeType.GRASSLAND;
+                }
+                if (255 - (255 - moist) > temp && temp < 32 && humidLevel >= humidities.length - 1) {
+                    resolved = BiomeType.ALPINE;
+                }
+                this.map[moist][temp] = resolved;
+            }
         }
     }
     

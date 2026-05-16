@@ -1,56 +1,59 @@
 package kingdom.smp.worldgen;
 
 /**
- * EbonwoodOverworldPlacement — documents and centralises the climate parameters
- * for placing the Ebonwood Hollow biome in the overworld MultiNoise source.
+ * EbonwoodOverworldPlacement — documents the placement strategy for Ebonwood Hollow
+ * in the overworld and the rationale for the dual-path setup.
  *
  * ════════════════════════════════════════════════════════════════════════════
- * CURRENT STATUS: ACTIVE — placed via OverworldBiomeBuilderMixin
+ * CURRENT STATUS: DUAL-PATH (lithostitched + vanilla mixin)
  * ════════════════════════════════════════════════════════════════════════════
  *
- * Ebonwood Hollow is injected into the overworld MultiNoiseBiomeSource by
- * {@code kingdom.smp.mixin.OverworldBiomeBuilderMixin}, which appends one
- * Climate.ParameterPoint at the tail of {@code OverworldBiomeBuilder.addBiomes()}.
- * This fires for every world that uses the {@code minecraft:overworld} preset.
- *
- * The three original implementation paths are documented below for reference:
+ * Ebonwood Hollow is placed via TWO parallel mechanisms. Exactly one is active
+ * at runtime depending on which mods the player has loaded.
  *
  * ────────────────────────────────────────────────────────────────────────────
- * PATH A — TerraBlender (preferred, Tectonic/Terralith compatible)
+ * PATH A — lithostitched biome injector (preferred; Terralith/Tectonic compatible)
  * ────────────────────────────────────────────────────────────────────────────
- * Add TerraBlender as a dependency in build.gradle once a build for MC 26.x is
- * available from https://github.com/Glitchfiend/TerraBlender :
+ * File: data/ironhold/lithostitched/biome_injector/ebonwood_hollow.json
  *
- *   repositories {
- *       maven { url "https://maven.glitchfiend.io/public/" }
- *   }
- *   dependencies {
- *       implementation "com.github.glitchfiend:TerraBlender-neoforge:${mc_version}-${tb_version}"
- *   }
+ * When the optional dependency `lithostitched` is loaded, lithostitched takes
+ * over the climate→biome router for the overworld. It reads our biome_injector
+ * file and merges the ebonwood_hollow ParameterPoint into the parameter list.
  *
- * Then un-comment the Region class below and register it:
+ * Tectonic ≥ 2.4.3 declares lithostitched as a HARD dependency, so any player
+ * running Tectonic automatically has lithostitched and Path A activates.
  *
- *   // In Ironhold constructor:
- *   terrablender.api.RegionManager.register(new EbonwoodRegion());
+ * Terralith disables its own dimension JSON when lithostitched is present
+ * (via `neoforge:conditions` → `not mod_loaded("lithostitched")`) and instead
+ * ships its biome library through a vanilla parameter_list override with
+ * `lithostitched:biomes` extension keys. So under Terralith + lithostitched,
+ * Terralith's ~95 biomes coexist with our ebonwood_hollow via lithostitched's
+ * merge pipeline.
  *
- * ────────────────────────────────────────────────────────────────────────────
- * PATH B — Vanilla dimension override (no extra deps, conflicts w/ terrain mods)
- * ────────────────────────────────────────────────────────────────────────────
- * Create data/minecraft/dimension/overworld.json that includes ALL vanilla biomes
- * plus ironhold:ebonwood_hollow with the parameters below.  This file will
- * conflict with Terralith/Tectonic datapacks if they also override it.
+ * Common Biome Tags applied (data/c/tags/worldgen/biome/):
+ *   is_overworld, is_forest, is_cold/, is_dense_vegetation/
  *
- * The Ebonwood Hollow climate niche (mimics pale garden rarity):
- *   temperature  : [-0.45, -0.15]   — cool
- *   humidity     : [-0.35,  0.10]   — dryish
- *   continentalness: [0.30,  1.00]  — inland only
- *   erosion      : [-0.78, -0.375]  — hilly/upland
- *   weirdness    : [ 0.56,  1.00]   — high-weirdness band (rare)
- *   depth        : [0.0,    0.0]    — surface layer only
- *   offset       : 0.0
+ * Vanilla tags applied (data/minecraft/tags/worldgen/biome/):
+ *   is_overworld, is_forest, is_taiga
  *
  * ────────────────────────────────────────────────────────────────────────────
- * PATH C — Testing without overworld placement
+ * PATH B — vanilla OverworldBiomeBuilder mixin (fallback for vanilla worlds)
+ * ────────────────────────────────────────────────────────────────────────────
+ * File: kingdom.smp.mixin.OverworldBiomeBuilderMixin
+ *
+ * Injects the same Climate.ParameterPoint into vanilla's OverworldBiomeBuilder
+ * at RETURN of addBiomes(). This is the only path that works when lithostitched
+ * is NOT loaded.
+ *
+ * Caveat: the mixin still runs even when lithostitched IS loaded, because it
+ * patches the vanilla bootstrap. Whether this causes a duplicate parameter
+ * point depends on lithostitched's implementation — at worst, ebonwood appears
+ * at its expected niche from two contributing sources, which is benign (the
+ * climate parameter space cannot be double-occupied by the same biome at the
+ * same point — duplicates collapse).
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * PATH C — testing without overworld placement
  * ────────────────────────────────────────────────────────────────────────────
  * In a creative world use the single-biome preset:
  *   /gamemode creative
@@ -58,49 +61,38 @@ package kingdom.smp.worldgen;
  *   → Choose "Ebonwood Hollow" (ironhold:ebonwood_hollow)
  *
  * Or place the biome manually in any world with:
- *   /place biome ironhold:ebonwood_hollow  (1.21+ command)
- */
-
-/*
- * ─── TerraBlender Region (uncomment when TB is available for 26.x) ────────
+ *   /place biome ironhold:ebonwood_hollow
+ *   /locate biome ironhold:ebonwood_hollow
  *
- * import terrablender.api.Region;
- * import terrablender.api.RegionType;
- * import com.mojang.datafixer.util.Pair;
- * import net.minecraft.core.Registry;
- * import net.minecraft.world.level.biome.Biome;
- * import net.minecraft.world.level.biome.Climate;
- * import net.minecraft.resources.Identifier;   // renamed from ResourceLocation in MC 26.x
- * import java.util.function.Consumer;
- * import kingdom.smp.Ironhold;
+ * ════════════════════════════════════════════════════════════════════════════
+ * COMPATIBILITY MATRIX
+ * ════════════════════════════════════════════════════════════════════════════
  *
- * public class EbonwoodRegion extends Region {
+ *   Vanilla only                       → Path B (mixin)             — works
+ *   Vanilla + Tectonic                 → Path A (Tectonic pulls LS) — works
+ *   Vanilla + Terralith (no LS)        → neither path engages       — DOES NOT GENERATE
+ *   Vanilla + Terralith + lithostitched→ Path A                     — works
+ *   Vanilla + Tectonic + Terralith     → Path A                     — works
  *
- *     public EbonwoodRegion() {
- *         super(
- *             Identifier.fromNamespaceAndPath(Ironhold.MODID, "ebonwood_region"),
- *             RegionType.OVERWORLD,
- *             2   // weight = 2 → rare, roughly equivalent to pale garden frequency
- *         );
- *     }
+ * The "Terralith without lithostitched" gap is eliminated by declaring
+ * lithostitched as a REQUIRED dependency in neoforge.mods.toml. The server
+ * (or client) will refuse to load ironhold without lithostitched, surfacing
+ * the missing dep as a clear loader error instead of a silent placement
+ * failure.
  *
- *     @Override
- *     public void addBiomes(Registry<Biome> registry,
- *                           Consumer<Pair<Climate.ParameterPoint, net.minecraft.resources.ResourceKey<Biome>>> mapper) {
- *         addBiome(mapper,
- *             Climate.parameters(
- *                 Climate.Parameter.span(-0.45f, -0.15f),  // temperature
- *                 Climate.Parameter.span(-0.35f,  0.10f),  // humidity
- *                 Climate.Parameter.span( 0.30f,  1.00f),  // continentalness
- *                 Climate.Parameter.span(-0.78f, -0.375f), // erosion
- *                 Climate.Parameter.point(0.0f),            // depth (surface)
- *                 Climate.Parameter.span( 0.56f,  1.00f),  // weirdness
- *                 0.0f                                       // offset
- *             ),
- *             Ironhold.EBONWOOD_HOLLOW
- *         );
- *     }
- * }
+ * ════════════════════════════════════════════════════════════════════════════
+ * THE EBONWOOD HOLLOW CLIMATE NICHE
+ * ════════════════════════════════════════════════════════════════════════════
+ *   temperature  : [-0.45, -0.15]   — cool (taiga band)
+ *   humidity     : [-0.10,  0.30]   — moderate
+ *   continentalness: [0.30,  1.00]  — inland only
+ *   erosion      : [-0.78,  0.05]   — hilly to flat
+ *   weirdness    : [ 0.05,  0.40]   — mid-weirdness band
+ *   depth        : [0.0,    0.0]    — surface layer only
+ *   offset       : 0.0              — same priority as vanilla biomes
+ *
+ * These values are mirrored in both Path A (the biome_injector JSON) and
+ * Path B (the OverworldBiomeBuilderMixin Java). Keep them in sync when tuning.
  */
 public final class EbonwoodOverworldPlacement {
     private EbonwoodOverworldPlacement() {}

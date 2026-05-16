@@ -1,13 +1,6 @@
 package kingdom.smp.rtf.noise.module;
 
-import com.mojang.serialization.Codec;
-
 public interface MappedNoise extends Noise {
-	
-	@Override
-	default Codec<? extends Marker> codec() {
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	default Noise mapAll(Visitor visitor) {

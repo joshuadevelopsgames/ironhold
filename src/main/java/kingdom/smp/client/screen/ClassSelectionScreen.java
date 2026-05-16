@@ -1,5 +1,7 @@
 package kingdom.smp.client.screen;
 
+import com.mojang.authlib.GameProfile;
+import kingdom.smp.Ironhold;
 import kingdom.smp.client.ClientPayloads;
 import kingdom.smp.net.ClassChoicePayload;
 import kingdom.smp.net.ClientRpgData;
@@ -9,37 +11,66 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.MouseButtonEvent;
-
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.RemotePlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlot;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
- * Dynamic class selection / promotion screen with scrolling.
- * Only shows classes on the player's path (connected via prerequisites
- * to their current or completed classes).
+ * Class selection / promotion screen. Tier 1 paints four banner cards with
+ * live 3D character previews (Knight, Ranger, Wizard, Cleric). Higher tiers
+ * fall back to the same banner skeleton with a generic locked or unlocked
+ * banner texture until per-class art is produced.
+ *
+ * Render order per card (back to front):
+ *   1. Banner backdrop PNG
+ *   2. Class-color glow PNG (only when hovered/selected)
+ *   3. 3D entity (RemotePlayer with class loadout)
+ *   4. Animated 2D particle overlay
+ *   5. Class title text
  */
 public class ClassSelectionScreen extends Screen {
 
-    private static final int CARD_GAP = 6;
-    private static final int MARGIN = 12;
-    private static final int CARD_HEIGHT = 150;
-    private static final int CARD_WIDTH = 190;
+    private static final int CARD_GAP = 12;
+    private static final int MARGIN = 24;
+    private static final int CARD_HEIGHT = 368;
+    private static final int CARD_WIDTH = 220;
     private static final int HEADER_HEIGHT = 44;
     private static final int FOOTER_HEIGHT = 34;
-    private static final int MAX_COLS = 3;
+    private static final int MAX_COLS = 4;
+
+    // Source texture dimensions for the four banner PNGs (uniform).
+    private static final int BANNER_TEX_W = 216;
+    private static final int BANNER_TEX_H = 361;
+    // Glow placeholder dimensions (regenerated to match card+padding).
+    private static final int GLOW_TEX_W = 244;
+    private static final int GLOW_TEX_H = 392;
+
+    private static final Identifier GLOW_TEXTURE = Identifier.fromNamespaceAndPath(
+        Ironhold.MODID, "textures/gui/class_select/banner_glow.png");
+    private static final Identifier LOCKED_BANNER = Identifier.fromNamespaceAndPath(
+        Ironhold.MODID, "textures/gui/class_select/banner_locked.png");
 
     private int selected = -1;
     private double scrollY = 0;
 
     private final @Nullable Screen returnTo;
     private List<ClassEntry> entries = List.of();
+    private final Map<PlayerClass, RemotePlayer> previews = new EnumMap<>(PlayerClass.class);
 
     public ClassSelectionScreen() {
         this(null);
@@ -56,6 +87,7 @@ public class ClassSelectionScreen extends Screen {
         entries = buildEntries();
         selected = -1;
         scrollY = 0;
+        buildPreviews();
 
         addRenderableWidget(Button.builder(Component.literal("Confirm"), btn -> {
             if (selected >= 0 && selected < entries.size() && entries.get(selected).unlocked) {
@@ -63,6 +95,29 @@ public class ClassSelectionScreen extends Screen {
                 onClose();
             }
         }).bounds(width / 2 - 50, height - FOOTER_HEIGHT + 4, 100, 20).build());
+    }
+
+    private void buildPreviews() {
+        previews.clear();
+        Minecraft mc = Minecraft.getInstance();
+        ClientLevel level = mc.level;
+        if (level == null || mc.player == null) return;
+
+        GameProfile profile = mc.player.getGameProfile();
+        for (ClassEntry e : entries) {
+            if (!e.unlocked) continue;
+            ClassGear.Loadout gear = ClassGear.forClass(e.pc);
+            RemotePlayer preview = new RemotePlayer(level, profile);
+            preview.setCustomNameVisible(false);
+            preview.setSilent(true);
+            preview.setItemSlot(EquipmentSlot.HEAD,    gear.head());
+            preview.setItemSlot(EquipmentSlot.CHEST,   gear.chest());
+            preview.setItemSlot(EquipmentSlot.LEGS,    gear.legs());
+            preview.setItemSlot(EquipmentSlot.FEET,    gear.feet());
+            preview.setItemSlot(EquipmentSlot.MAINHAND, gear.main());
+            preview.setItemSlot(EquipmentSlot.OFFHAND,  gear.off());
+            previews.put(e.pc, preview);
+        }
     }
 
     // ── Entry building — only classes on the player's path ───────────────────
@@ -87,12 +142,6 @@ public class ClassSelectionScreen extends Screen {
         return result;
     }
 
-    /**
-     * A class is "on the player's path" if:
-     * - It has no prerequisites (Tier 1 from Peasant), OR
-     * - At least one of its prerequisites is in the player's completed set
-     *   (including current class)
-     */
     private static boolean isOnPlayerPath(PlayerClass candidate, Set<PlayerClass> completedWithCurrent) {
         List<PlayerClass> prereqs = candidate.prerequisites();
         if (prereqs.isEmpty()) return true;
@@ -129,8 +178,14 @@ public class ClassSelectionScreen extends Screen {
     private int cardWidth() {
         int c = cols();
         if (c == 0) return CARD_WIDTH;
-        int fitWidth = (width - MARGIN * 2 - CARD_GAP * (c - 1)) / c;
-        return Math.min(CARD_WIDTH, fitWidth);
+        int wBudget = (width - MARGIN * 2 - CARD_GAP * (c - 1)) / c;
+        int hBudget = Math.max(80, height - HEADER_HEIGHT - FOOTER_HEIGHT - 16);
+        int wFromHeight = (hBudget * BANNER_TEX_W) / BANNER_TEX_H;
+        return Math.min(CARD_WIDTH, Math.min(wBudget, wFromHeight));
+    }
+
+    private int cardHeight() {
+        return (cardWidth() * BANNER_TEX_H) / BANNER_TEX_W;
     }
 
     private int itemsInRow(int row) {
@@ -147,12 +202,12 @@ public class ClassSelectionScreen extends Screen {
     }
 
     private int cardY(int row) {
-        return HEADER_HEIGHT + row * (CARD_HEIGHT + CARD_GAP) - (int) scrollY;
+        return HEADER_HEIGHT + row * (cardHeight() + CARD_GAP) - (int) scrollY;
     }
 
     private int totalGridHeight() {
         int r = rows();
-        return r * CARD_HEIGHT + (r - 1) * CARD_GAP;
+        return r * cardHeight() + (r - 1) * CARD_GAP;
     }
 
     private int viewportHeight() {
@@ -176,10 +231,12 @@ public class ClassSelectionScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor gfx, int mouseX, int mouseY, float partialTick) {
+        // Full-screen dim behind everything else this stratum draws
+        gfx.fill(0, 0, width, height, 0xCC0A0A14);
+
         PlayerClass current = ClientRpgData.playerClass();
         int targetTier = current.tier() + 1;
 
-        // Title
         String titleText = current == PlayerClass.PEASANT
             ? "Choose Your Path"
             : "Promotion — Tier " + targetTier;
@@ -193,11 +250,11 @@ public class ClassSelectionScreen extends Screen {
             : "You have mastered " + current.id() + " at Level " + promoLevel + ".";
         gfx.centeredText(font, subtitle, width / 2, 26, 0xFFAAAAAA);
 
-        // Clip the card area so cards don't bleed into header/footer
         gfx.enableScissor(0, HEADER_HEIGHT, width, height - FOOTER_HEIGHT);
 
         int cw = cardWidth();
         int c = cols();
+        ClassEntry hovered = null;
 
         for (int i = 0; i < entries.size(); i++) {
             int row = i / c;
@@ -206,20 +263,25 @@ public class ClassSelectionScreen extends Screen {
             int cx = cardX(col, rowItems);
             int cy = cardY(row);
 
-            // Skip cards entirely off-screen
-            if (cy + CARD_HEIGHT < HEADER_HEIGHT || cy > height - FOOTER_HEIGHT) continue;
+            int ch = cardHeight();
+            if (cy + ch < HEADER_HEIGHT || cy > height - FOOTER_HEIGHT) continue;
 
-            boolean hovered = mouseX >= cx && mouseX < cx + cw
-                    && mouseY >= cy && mouseY < cy + CARD_HEIGHT
+            boolean isHovered = mouseX >= cx && mouseX < cx + cw
+                    && mouseY >= cy && mouseY < cy + ch
                     && mouseY >= HEADER_HEIGHT && mouseY < height - FOOTER_HEIGHT;
-            drawClassCard(gfx, entries.get(i), cx, cy, cw, hovered, i == selected);
+            if (isHovered) hovered = entries.get(i);
+            drawClassCard(gfx, entries.get(i), cx, cy, cw, isHovered, i == selected,
+                          (float) mouseX, (float) mouseY);
         }
 
         gfx.disableScissor();
 
-        // Scroll indicator
         if (maxScroll() > 0) {
             drawScrollbar(gfx);
+        }
+
+        if (hovered != null) {
+            queueTooltip(gfx, hovered, mouseX, mouseY);
         }
 
         super.extractRenderState(gfx, mouseX, mouseY, partialTick);
@@ -230,10 +292,8 @@ public class ClassSelectionScreen extends Screen {
         int trackTop = HEADER_HEIGHT;
         int trackH = viewportHeight();
 
-        // Track background
         gfx.fill(trackX, trackTop, trackX + 4, trackTop + trackH, 0x44FFFFFF);
 
-        // Thumb
         int totalH = totalGridHeight();
         int thumbH = Math.max(10, trackH * viewportHeight() / totalH);
         int thumbY = trackTop + (int) ((trackH - thumbH) * scrollY / maxScroll());
@@ -257,7 +317,7 @@ public class ClassSelectionScreen extends Screen {
                     int cx = cardX(col, rowItems);
                     int cy = cardY(row);
                     if (mx >= cx && mx < cx + cw
-                            && my >= cy && my < cy + CARD_HEIGHT) {
+                            && my >= cy && my < cy + cardHeight()) {
                         if (entries.get(i).unlocked) {
                             selected = i;
                         }
@@ -271,6 +331,7 @@ public class ClassSelectionScreen extends Screen {
 
     @Override
     public void onClose() {
+        previews.clear();
         Minecraft.getInstance().setScreen(returnTo);
     }
 
@@ -282,94 +343,202 @@ public class ClassSelectionScreen extends Screen {
     // ── Card drawing ─────────────────────────────────────────────────────────
 
     private void drawClassCard(GuiGraphicsExtractor gfx, ClassEntry entry, int x, int y,
-                               int cw, boolean hovered, boolean selected) {
+                               int cw, boolean hovered, boolean selected,
+                               float mouseX, float mouseY) {
         PlayerClass pc = entry.pc;
-        boolean locked = !entry.unlocked;
-        int color = locked ? 0xFF555555 : classColor(pc);
+        int color = entry.unlocked ? classColor(pc) : 0xFF666666;
 
-        int bgColor = locked ? 0xAA0A0A0A
-            : (selected ? 0xCC333333 : (hovered ? 0xBB222222 : 0xAA111111));
-        gfx.fill(x, y, x + cw, y + CARD_HEIGHT, bgColor);
+        int ch = cardHeight();
 
-        int borderColor = locked ? 0xFF333333
-            : (selected ? color : (hovered ? 0xFFAAAAAA : 0xFF555555));
-        gfx.outline(x, y, cw, CARD_HEIGHT, borderColor);
-        if (selected && !locked) {
-            gfx.outline(x - 1, y - 1, cw + 2, CARD_HEIGHT + 2, color);
+        // 1. Banner backdrop — scale source to (cw × ch), aspect preserved by cardHeight()
+        Identifier banner = entry.unlocked ? bannerFor(pc) : LOCKED_BANNER;
+        gfx.blit(RenderPipelines.GUI_TEXTURED, banner,
+                 x, y, 0f, 0f, cw, ch,
+                 BANNER_TEX_W, BANNER_TEX_H, BANNER_TEX_W, BANNER_TEX_H);
+
+        // 2. Class-color glow when interactive — scale glow PNG to card+padding
+        if (entry.unlocked && (hovered || selected)) {
+            int alpha = selected ? 0xFF : 0xAA;
+            int tint = (alpha << 24) | (color & 0x00FFFFFF);
+            int gw = cw + 24;
+            int gh = ch + 24;
+            gfx.blit(RenderPipelines.GUI_TEXTURED, GLOW_TEXTURE,
+                     x - 12, y - 12, 0f, 0f, gw, gh,
+                     GLOW_TEX_W, GLOW_TEX_H, GLOW_TEX_W, GLOW_TEX_H, tint);
         }
 
-        // Clip card content (nested scissor within the viewport scissor)
-        gfx.enableScissor(x + 1, Math.max(y + 1, HEADER_HEIGHT),
-                          x + cw - 1, Math.min(y + CARD_HEIGHT - 1, height - FOOTER_HEIGHT));
+        // 3. 3D character preview
+        RemotePlayer preview = previews.get(pc);
+        if (entry.unlocked && preview != null) {
+            int cx = x + cw / 2;
+            int scale = Math.max(35, Math.min(70, ch / 6));
+            int floor = y + ch - 8;                       // feet near bottom of banner
+            // Box top: full entity height (1.8) + headroom (0.15) so the head crown
+            // doesn't clip when the avatar tilts to follow the cursor. Name tag still
+            // renders ~0.5 blocks above the head, comfortably outside this box, so the
+            // scissor in renderEntityInInventory still hides it.
+            int top = floor - (int) (scale * 1.95f);
+            // Only the hovered avatar tracks the mouse; others face forward.
+            float emx = hovered ? mouseX : cx;
+            float emy = hovered ? mouseY : (top + floor) * 0.5f;
+            InventoryScreen.extractEntityInInventoryFollowsMouse(
+                gfx, cx - 52, top, cx + 52, floor,
+                scale, 0.0625F, emx, emy, preview);
+        }
 
-        int tx = x + 6;
-        int ty = y + 8;
+        // 4. Hover sparkles — fantasy-magical accent that only fires when this card is hovered
+        if (entry.unlocked && hovered) drawHoverSparkles(gfx, pc, x, y, cw, ch, color);
 
-        // Class name
-        gfx.text(font, Component.literal(pc.id())
-                        .withStyle(Style.EMPTY.withBold(true)),
-                tx, ty, color, true);
-        ty += 14;
+        // 5. Lock badge — only thing rendered on top of the banner art now
+        if (!entry.unlocked) {
+            String locked = "❌ LOCKED";
+            int lw = font.width(locked);
+            gfx.text(font, locked, x + cw / 2 - lw / 2, y + 50, 0xFFFF5555, false);
+        }
+    }
 
-        // Role + Tier
-        gfx.text(font, pc.role() + " — Tier " + pc.tier(), tx, ty, 0xFF888888, false);
-        ty += 12;
+    private static Identifier bannerFor(PlayerClass pc) {
+        String family = bannerFamily(pc);
+        if (family == null) return LOCKED_BANNER;
+        return Identifier.fromNamespaceAndPath(Ironhold.MODID,
+            "textures/gui/class_select/banner_" + family + ".png");
+    }
 
-        // Separator
-        gfx.fill(tx, ty, x + cw - 6, ty + 1, 0xFF444444);
-        ty += 5;
+    /** Maps each class to one of the four iconic banners, or null for tiers
+     *  without dedicated art (those fall back to the locked banner). */
+    private static @Nullable String bannerFamily(PlayerClass pc) {
+        return switch (pc) {
+            case SQUIRE, KNIGHT          -> "knight";
+            case ARCHER, RANGER          -> "ranger";
+            case MAGE_APPRENTICE, WIZARD -> "wizard";
+            case MEDIC, CLERIC           -> "cleric";
+            default                      -> null;
+        };
+    }
 
-        if (locked) {
-            gfx.text(font, "\u274C Locked", tx, ty, 0xFFFF5555, false);
-            ty += 14;
-            if (entry.lockReason != null) {
-                for (var line : font.split(Component.literal(entry.lockReason), cw - 14)) {
-                    gfx.text(font, line, tx, ty, 0xFFAA6666, false);
-                    ty += 10;
-                }
-            }
-        } else {
-            // Stat lines
-            gfx.text(font, "HP " + pc.statHealth() + "  ATK " + pc.statAttackDamage()
-                + "  SPD " + pc.statSpeed(), tx, ty, 0xFF55FF55, false);
-            ty += 12;
-            gfx.text(font, "DEF " + pc.statDefense() + "  MANA " + pc.statMana()
-                + "  LUCK " + pc.statLuck(), tx, ty, 0xFF55CCFF, false);
-            ty += 12;
-            gfx.text(font, "ATK SPD " + pc.statAttackSpeed()
-                + "  CARRY " + pc.maxCarryWeight(), tx, ty, 0xFFFFDD55, false);
-            ty += 14;
+    // ── Hover sparkles ───────────────────────────────────────────────────────
+    // Fantasy-magical accent: small 4-point stars rise from the bottom of the
+    // banner, twinkle in size, fade in/out, and tint to the class color. Only
+    // drawn while the card is hovered.
 
-            // Separator
-            gfx.fill(tx, ty, x + cw - 6, ty + 1, 0xFF444444);
-            ty += 5;
+    private static final Identifier SPARKLE_TEX = Identifier.fromNamespaceAndPath(
+        Ironhold.MODID, "textures/gui/class_select/particles/sparkle.png");
+    private static final int SPARKLE_COUNT = 22;
 
-            // Prerequisites
+    /** Splittable-mix-style hash → uniform float in [0,1) from an int seed. */
+    private static float hash01(int seed) {
+        int h = seed * 0x9E3779B1;
+        h ^= h >>> 16;
+        h *= 0x85EBCA6B;
+        h ^= h >>> 13;
+        h *= 0xC2B2AE35;
+        h ^= h >>> 16;
+        return ((h & 0x00FFFFFF) / (float) 0x01000000);
+    }
+
+    private void drawHoverSparkles(GuiGraphicsExtractor gfx, PlayerClass pc,
+                                   int x, int y, int cw, int ch, int classColor) {
+        long now = System.currentTimeMillis();
+        int travel = ch - 30;
+        if (travel <= 0) return;
+
+        for (int i = 0; i < SPARKLE_COUNT; i++) {
+            // Per-particle randomized parameters — different hash seeds avoid
+            // any visible diagonal/grid pattern.
+            float rX        = hash01(i * 7 + 11);
+            float rLife     = hash01(i * 13 + 23);     // lifetime variance
+            float rPhase    = hash01(i * 17 + 41);     // start phase
+            float rSwayAmp  = hash01(i * 19 + 53);     // sway amplitude
+            float rSwayFreq = hash01(i * 23 + 61);     // sway frequency
+            float rPulse    = hash01(i * 29 + 71);     // size pulse phase
+
+            long lifetime = 1200L + (long) (rLife * 1800L);          // 1.2s..3.0s
+            long phaseOff = (long) (rPhase * lifetime);
+            float t = ((now + phaseOff) % lifetime) / (float) lifetime;  // 0..1
+
+            float baseX = 6f + rX * (cw - 12f);
+            float swayAmp = 2f + rSwayAmp * 5f;
+            float swayPhase = (now / (40f + rSwayFreq * 80f)) + rPhase * 6.28f;
+            float sway = (float) Math.sin(swayPhase) * swayAmp;
+            int px = x + (int) (baseX + sway);
+
+            // Eased rise so particles don't all move at constant speed.
+            float eased = t * t * (3f - 2f * t);
+            int py = y + ch - 12 - (int) (travel * eased);
+
+            float fade;
+            if (t < 0.2f) fade = t / 0.2f;
+            else if (t > 0.8f) fade = (1f - t) / 0.2f;
+            else fade = 1f;
+
+            float pulse = 0.55f + 0.45f * (float) Math.sin(now / 110f + rPulse * 6.28f);
+            int size = Math.max(3, (int) (6 + rLife * 6f) * (int) Math.max(1, pulse * 2) / 2);
+            size = Math.max(3, Math.min(13, size));
+
+            int alpha = Math.max(0, Math.min(255, (int) (235 * fade)));
+            int tint = (alpha << 24) | (classColor & 0x00FFFFFF);
+
+            gfx.blit(RenderPipelines.GUI_TEXTURED, SPARKLE_TEX,
+                     px - size / 2, py - size / 2,
+                     0f, 0f, size, size,
+                     16, 16, 16, 16, tint);
+        }
+    }
+
+    // ── Tooltip ──────────────────────────────────────────────────────────────
+
+    private void queueTooltip(GuiGraphicsExtractor gfx, ClassEntry entry, int mouseX, int mouseY) {
+        PlayerClass pc = entry.pc;
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.literal(pc.id())
+            .withStyle(Style.EMPTY.withBold(true).withColor(classColor(pc))));
+        lines.add(Component.literal(pc.role() + " — Tier " + pc.tier())
+            .withStyle(Style.EMPTY.withColor(0xFF888888)));
+
+        if (entry.unlocked) {
+            lines.add(Component.literal("HP " + pc.statHealth()
+                + "  ATK " + pc.statAttackDamage()
+                + "  DEF " + pc.statDefense())
+                .withStyle(Style.EMPTY.withColor(0xFF55FF55)));
+            lines.add(Component.literal("MANA " + pc.statMana()
+                + "  SPD " + pc.statSpeed()
+                + "  LUCK " + pc.statLuck())
+                .withStyle(Style.EMPTY.withColor(0xFF55CCFF)));
+            lines.add(Component.literal("ATK SPD " + pc.statAttackSpeed()
+                + "  CARRY " + pc.maxCarryWeight())
+                .withStyle(Style.EMPTY.withColor(0xFFFFDD55)));
             List<PlayerClass> prereqs = pc.prerequisites();
             if (!prereqs.isEmpty()) {
-                StringBuilder sb = new StringBuilder("\u2713 From: ");
+                StringBuilder sb = new StringBuilder("✓ From: ");
                 for (int i = 0; i < prereqs.size(); i++) {
                     if (i > 0) sb.append(" + ");
                     sb.append(prereqs.get(i).id());
                 }
-                gfx.text(font, sb.toString(), tx, ty, 0xFF55AA55, false);
-            } else {
-                gfx.text(font, "No prerequisites", tx, ty, 0xFF888888, false);
+                lines.add(Component.literal(sb.toString())
+                    .withStyle(Style.EMPTY.withColor(0xFF55AA55)));
             }
+        } else if (entry.lockReason != null) {
+            lines.add(Component.literal(entry.lockReason)
+                .withStyle(Style.EMPTY.withColor(0xFFAA6666)));
         }
 
-        gfx.disableScissor();
+        gfx.setTooltipForNextFrame(font, lines, Optional.empty(), mouseX, mouseY);
     }
 
+    // ── Class color helper ───────────────────────────────────────────────────
+
     private static int classColor(PlayerClass pc) {
-        return switch (pc) {
-            case KNIGHT  -> 0xFFCCCCCC;
-            case RANGER  -> 0xFF55AA55;
-            case WIZARD  -> 0xFF7755FF;
-            case CLERIC  -> 0xFFFFDD55;
-            case PEASANT -> 0xFF888888;
-            default      -> 0xFFFFFFFF;
-        };
+        String family = bannerFamily(pc);
+        if (family != null) {
+            return switch (family) {
+                case "knight" -> 0xFFCC4444;
+                case "ranger" -> 0xFF55AA55;
+                case "wizard" -> 0xFF7755FF;
+                case "cleric" -> 0xFFFFDD55;
+                default       -> 0xFFFFFFFF;
+            };
+        }
+        return pc == PlayerClass.PEASANT ? 0xFF888888 : 0xFFFFFFFF;
     }
 
     private record ClassEntry(PlayerClass pc, boolean unlocked, @Nullable String lockReason) {}

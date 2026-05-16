@@ -9,7 +9,11 @@ import kingdom.smp.rtf.noise.module.Noise;
 
 public interface RTFRandomState {
 	void initialize(RegistryAccess registryAccess);
-	
+
+	void setPreset(@Nullable Preset preset);
+
+	void setGeneratorContext(@Nullable GeneratorContext context);
+
 	@Nullable
 	RegistryAccess registryAccess();
 	

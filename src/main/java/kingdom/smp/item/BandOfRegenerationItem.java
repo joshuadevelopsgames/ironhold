@@ -22,7 +22,10 @@ public class BandOfRegenerationItem extends AccessoryItem {
     @Override
     public void onAccessoryTick(Player player, ItemStack stack) {
         if (player.level().isClientSide()) return;
-        // Refresh every tick so regeneration is continuous (tickCount % 80 delayed the first pulse for ~4s).
+        // Re-apply every 40 ticks; the 55-tick effect duration overlaps the next
+        // refresh comfortably so regeneration stays continuous without spamming
+        // addEffect every single tick.
+        if (player.tickCount % 40 != 0) return;
         player.addEffect(new MobEffectInstance(
                 MobEffects.REGENERATION, 55, 0, true, false, true));
     }

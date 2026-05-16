@@ -1,0 +1,18 @@
+{
+  "type": "lithostitched:add_points",
+  "dimension": "minecraft:overworld",
+  "points": [
+    {
+      "biome": "ironhold:ebonwood_hollow",
+      "parameters": {
+        "temperature": [-0.45, -0.15],
+        "humidity": [-0.10, 0.30],
+        "continentalness": [0.30, 1.00],
+        "erosion": [-0.78, 0.05],
+        "depth": [0.0, 0.0],
+        "weirdness": [0.05, 0.40],
+        "offset": 0.0
+      }
+    }
+  ]
+}

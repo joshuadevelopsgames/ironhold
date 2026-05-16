@@ -1,5 +1,9 @@
 package kingdom.smp.game;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
 import kingdom.smp.accessory.AccessoryInventory;
@@ -26,9 +30,17 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public final class AccessoryTickHandler {
     private AccessoryTickHandler() {}
 
-    /** ~Speed I (+20% move speed); transient, re-applied each tick only while Hermes is in an accessory slot. */
+    /** ~Speed I (+20% move speed); transient, re-applied only when equipped state changes. */
     private static final Identifier HERMES_MOVE =
             Identifier.fromNamespaceAndPath(Ironhold.MODID, "accessory_hermes_movement");
+
+    /**
+     * Cached "is Hermes equipped" state per player. We only mutate the movement
+     * attribute when the boolean flips — previously the handler did a
+     * remove-and-conditionally-re-add on every server tick (20×/sec/player)
+     * even though the answer rarely changes.
+     */
+    private static final Map<UUID, Boolean> hermesActive = new ConcurrentHashMap<>();
 
     // ── Accessory buff ticks ──────────────────────────────────────────────────
 
@@ -58,12 +70,18 @@ public final class AccessoryTickHandler {
             MimicKeyItem.removeAllCompanions(player);
         }
 
-        var move = player.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (move != null) {
-            move.removeModifier(HERMES_MOVE);
-            if (hermesEquipped) {
-                move.addTransientModifier(
-                        new AttributeModifier(HERMES_MOVE, 0.2, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        // Only mutate the movement attribute when Hermes equipped-state changes.
+        Boolean prev = hermesActive.get(player.getUUID());
+        if (prev == null || prev != hermesEquipped) {
+            hermesActive.put(player.getUUID(), hermesEquipped);
+            var move = player.getAttribute(Attributes.MOVEMENT_SPEED);
+            if (move != null) {
+                move.removeModifier(HERMES_MOVE);
+                if (hermesEquipped) {
+                    move.addTransientModifier(
+                            new AttributeModifier(HERMES_MOVE, 0.2,
+                                AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+                }
             }
         }
 
@@ -71,6 +89,14 @@ public final class AccessoryTickHandler {
         if (inv.isVanityDirty()) {
             inv.clearVanityDirty();
             broadcastVanity(player);
+        }
+    }
+
+    /** Drop cached state when a player logs out so a re-login re-applies cleanly. */
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            hermesActive.remove(sp.getUUID());
         }
     }
 

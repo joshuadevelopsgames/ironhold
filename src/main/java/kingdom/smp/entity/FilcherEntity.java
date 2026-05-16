@@ -667,6 +667,7 @@ public class FilcherEntity extends Zombie {
     /** Promotes this filcher to king: equips the crown and announces the event. */
     private void crownSelf() {
         setItemSlot(EquipmentSlot.HEAD, new ItemStack(kingdom.smp.Ironhold.FILCHER_CROWN.get()));
+        applyKingStats();
         // Fanfare: happy-villager particles + pitched-up contentment chirps
         if (level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(
@@ -678,6 +679,23 @@ public class FilcherEntity extends Zombie {
             net.minecraft.sounds.SoundEvents.AMETHYST_BLOCK_CHIME,
             net.minecraft.sounds.SoundSource.HOSTILE,
             1.2F, 1.8F + random.nextFloat() * 0.4F);
+    }
+
+    /** Max HP for a crowned king filcher (vs 10.0 for a regular one). */
+    public static final float KING_MAX_HEALTH = 30.0F;
+
+    /**
+     * Buff applied when a filcher becomes (or is loaded as) a king: bumps MAX_HEALTH to
+     * {@link #KING_MAX_HEALTH} and refills health to the new max. Idempotent — safe to
+     * call every load. The king's other "more dangerous" trait — bypassing the steal
+     * cooldown — lives in {@link kingdom.smp.entity.goal.FilcherStealGoal}.
+     */
+    public void applyKingStats() {
+        var hp = getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH);
+        if (hp != null && hp.getBaseValue() < KING_MAX_HEALTH) {
+            hp.setBaseValue(KING_MAX_HEALTH);
+            setHealth(KING_MAX_HEALTH);
+        }
     }
 
     // ── Drops ────────────────────────────────────────────────────────────────
@@ -754,6 +772,9 @@ public class FilcherEntity extends Zombie {
         if (dx != Integer.MIN_VALUE) {
             this.denPos = new BlockPos(dx, input.getIntOr("DenY", 0), input.getIntOr("DenZ", 0));
         }
+        // Re-apply the king HP buff after load — equipment is restored by super, so
+        // isKing() is reliable at this point. applyKingStats is idempotent.
+        if (isKing()) applyKingStats();
     }
 
     // ── Silence — filchers are stealthy; sounds fire via goal code ────────────

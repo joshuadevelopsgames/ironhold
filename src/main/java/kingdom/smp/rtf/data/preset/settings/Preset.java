@@ -11,22 +11,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
-import kingdom.smp.rtf.compat.terrablender.TBNoiseRouterData;
-import kingdom.smp.rtf.data.preset.PresetBiomeData;
-import kingdom.smp.rtf.data.preset.PresetBiomeModifierData;
-import kingdom.smp.rtf.data.preset.PresetConfiguredCarvers;
-import kingdom.smp.rtf.data.preset.PresetConfiguredFeatures;
-import kingdom.smp.rtf.data.preset.PresetData;
-import kingdom.smp.rtf.data.preset.PresetDimensionTypes;
-import kingdom.smp.rtf.data.preset.PresetNoiseData;
+
+import net.minecraft.core.Cloner;
+
 import kingdom.smp.rtf.data.preset.PresetNoiseGeneratorSettings;
-import kingdom.smp.rtf.data.preset.PresetNoiseParameters;
-import kingdom.smp.rtf.data.preset.PresetNoiseRouterData;
-import kingdom.smp.rtf.data.preset.PresetPlacedFeatures;
-import kingdom.smp.rtf.data.preset.PresetStructureRuleData;
-import kingdom.smp.rtf.data.preset.PresetStructureSets;
-import kingdom.smp.rtf.data.preset.PresetSurfaceLayerData;
-import kingdom.smp.rtf.registries.RTFRegistries;
 
 //TODO make this actually immutable when we rework the gui
 public record Preset(WorldSettings world, SurfaceSettings surface, CaveSettings caves, ClimateSettings climate, TerrainSettings terrain, RiverSettings rivers, FilterSettings filters, MiscellaneousSettings miscellaneous) {
@@ -68,7 +56,7 @@ public record Preset(WorldSettings world, SurfaceSettings surface, CaveSettings 
 //			TBNoiseRouterData.bootstrap(ctx);
 //		});
 		this.addPatch(builder, Registries.NOISE_SETTINGS, PresetNoiseGeneratorSettings::bootstrap);
-		return builder.buildPatch(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY), registries);
+		return builder.buildPatch(RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY), registries, new Cloner.Factory()).full();
 	}
 	
 	private <T> void addPatch(RegistrySetBuilder builder, ResourceKey<? extends Registry<T>> key, Patch<T> patch) {

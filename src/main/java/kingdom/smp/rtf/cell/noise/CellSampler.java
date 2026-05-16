@@ -2,7 +2,6 @@ package kingdom.smp.rtf.cell.noise;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -19,7 +18,16 @@ public class CellSampler implements MappedNoise {
 	public CellSampler(CellField field) {
 		this.field = field;
 	}
-	
+
+	public static final MapCodec<CellSampler> CELL_CODEC = RecordCodecBuilder.<CellSampler>mapCodec(instance -> instance.group(
+		CellField.CODEC.fieldOf("field").forGetter(s -> s.field)
+	).apply(instance, CellSampler::new));
+
+	@Override
+	public MapCodec<? extends Noise> codec() {
+		return CELL_CODEC;
+	}
+
 	@Override
 	public float compute(float x, float z, int seed) {
 		return this.field.read(this.provider.cacheCell);
@@ -35,7 +43,7 @@ public class CellSampler implements MappedNoise {
 		return 1.0F;
 	}
 	
-	public static class Provider implements Visitor {
+	public static class Provider implements Noise.Visitor {
 		@Nullable
 		private Cell cacheCell;
 		

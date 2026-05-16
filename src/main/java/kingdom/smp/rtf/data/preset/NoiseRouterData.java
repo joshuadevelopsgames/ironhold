@@ -65,8 +65,8 @@ public class NoiseRouterData {
     public static final ResourceKey<DensityFunction> SPAGHETTI_2D_THICKNESS_MODULATOR = NoiseRouterData.createKey("overworld/caves/spaghetti_2d_thickness_modulator");
     public static final ResourceKey<DensityFunction> SPAGHETTI_2D = NoiseRouterData.createKey("overworld/caves/spaghetti_2d");
 
-    private static ResourceKey<DensityFunction> createKey(String string) {
-        return ResourceKey.create(Registries.DENSITY_FUNCTION, new Identifier(string));
+    private static ResourceKey<DensityFunction> createKey(String path) {
+        return ResourceKey.create(Registries.DENSITY_FUNCTION, Identifier.withDefaultNamespace(path));
     }
 
     public static Holder<? extends DensityFunction> bootstrap(BootstrapContext<DensityFunction> bootstapContext) {

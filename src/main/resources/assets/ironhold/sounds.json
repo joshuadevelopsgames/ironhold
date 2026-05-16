@@ -1,4 +1,10 @@
 {
+  "item.halric_staff.chain_clink": {
+    "sounds": [
+      "ironhold:item/halric_staff/chain_clink"
+    ],
+    "subtitle": "subtitles.ironhold.item.halric_staff.chain_clink"
+  },
   "music.minecraft_remix": {
     "sounds": [
       {
@@ -49,5 +55,35 @@
       }
     ],
     "subtitle": "subtitles.ironhold.entity.pink_deer.mom.hurt"
+  },
+  "entity.kangabrine.dramatic_descent": {
+    "sounds": [
+      {
+        "name": "ironhold:kangabrine/dramatic_descent",
+        "stream": false
+      }
+    ],
+    "subtitle": "subtitles.ironhold.entity.kangabrine.dramatic_descent"
+  },
+  "entity.kangabrine.eerie_ambient": {
+    "sounds": [
+      {
+        "name": "ironhold:kangabrine/eerie_ambient",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.ironhold.entity.kangabrine.eerie_ambient"
+  },
+  "entity.kangabrine.banshee_scream": {
+    "sounds": [
+      { "name": "ironhold:kangabrine/banshee_scream", "stream": false }
+    ],
+    "subtitle": "subtitles.ironhold.entity.kangabrine.banshee_scream"
+  },
+  "entity.kangabrine.evil_laugh": {
+    "sounds": [
+      { "name": "ironhold:kangabrine/evil_laugh", "stream": false }
+    ],
+    "subtitle": "subtitles.ironhold.entity.kangabrine.evil_laugh"
   }
 }

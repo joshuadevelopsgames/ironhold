@@ -1,0 +1,10 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "ironhold:knight_gothic_body" }
+    ],
+    "humanoid_leggings": [
+      { "texture": "ironhold:knight_gothic_body" }
+    ]
+  }
+}
