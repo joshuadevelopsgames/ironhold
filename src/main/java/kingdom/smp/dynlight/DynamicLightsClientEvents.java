@@ -7,18 +7,20 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 
 /**
- * Plumbing for Ironhold's built-in dynamic lights:
+ * Game-bus plumbing for Ironhold's built-in dynamic lights:
  * <ul>
- *   <li>Registers the {@link DynamicLightLoader} on the client resource manager.</li>
  *   <li>Walks the entity list every tick to keep the active-source set fresh.</li>
  *   <li>Drops all sources when the player disconnects so a fresh world starts clean.</li>
  * </ul>
+ *
+ * <p>The {@link DynamicLightLoader} is registered separately via
+ * {@link #onAddClientReloadListeners(AddClientReloadListenersEvent)} on the mod bus —
+ * keeping the buses split keeps NeoForge from rejecting either side at registration.
  */
 public final class DynamicLightsClientEvents {
     private DynamicLightsClientEvents() {}
 
-    /** Fired on the mod bus during client construction. */
-    @SubscribeEvent
+    /** Mod-bus event handler — invoked via {@code modEventBus.addListener(...)} from {@code IronholdClient}. */
     public static void onAddClientReloadListeners(AddClientReloadListenersEvent event) {
         event.addListener(DynamicLightLoader.LISTENER_ID, new DynamicLightLoader());
     }

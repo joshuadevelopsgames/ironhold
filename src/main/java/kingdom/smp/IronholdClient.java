@@ -84,7 +84,7 @@ public class IronholdClient {
         kingdom.smp.client.entity.KnightArmorClientExtensions.register(modEventBus);
         // Built-in dynamic lights (held light-source items, registered wands, glowing mobs).
         // Reload-listener registration is a mod-bus event; tick/logout are on the game bus.
-        modEventBus.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
+        modEventBus.addListener(kingdom.smp.dynlight.DynamicLightsClientEvents::onAddClientReloadListeners);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         NeoForge.EVENT_BUS.register(ClientNeoForgeEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
