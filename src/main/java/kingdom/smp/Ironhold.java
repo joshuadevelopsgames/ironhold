@@ -995,6 +995,12 @@ public class Ironhold {
                     net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
                 .build()));
 
+    // Masquerade — invisible plant left by reverse-pickpocket; hover reveals what + who
+    public static final DeferredItem<Item> MASQUERADE = ITEMS.registerItem(
+        "masquerade",
+        kingdom.smp.item.MasqueradeItem::new,
+        props -> props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.EPIC));
+
     // Pitchfork — throwable spear weapon (trident-like)
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.ThrownPitchforkEntity>> THROWN_PITCHFORK =
         ENTITY_TYPES.registerEntityType(

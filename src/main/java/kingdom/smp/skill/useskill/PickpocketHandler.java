@@ -152,11 +152,23 @@ public final class PickpocketHandler {
         }
         lastAttempt.put(key, now);
 
+        // Capture sleep state so we can restore it after the interaction.
+        // Pickpocketing should NOT wake sleeping villagers or players —
+        // a quiet lift in the night is the whole point of bedroom raids.
+        boolean wasSleeping = target.isSleeping();
+        java.util.Optional<net.minecraft.core.BlockPos> sleepPos =
+            wasSleeping ? target.getSleepingPos() : java.util.Optional.empty();
+
         if (player.getMainHandItem().isEmpty()) {
             doLift(player, target);
         } else {
             doPlant(player, target);
         }
+
+        if (wasSleeping && !target.isSleeping() && sleepPos.isPresent()) {
+            target.startSleeping(sleepPos.get());
+        }
+
         cancel(event);
     }
 
@@ -247,10 +259,19 @@ public final class PickpocketHandler {
 
         ItemStack planted = held.split(1);
         String plantedName = planted.getHoverName().getString();
-        if (target instanceof Villager) {
-            markAsPlanted(planted);
+        ItemStack delivered;
+        if (target instanceof ServerPlayer) {
+            // Player plants go in as an invisible MasqueradeItem — empty slot, hover-reveals.
+            delivered = kingdom.smp.item.MasqueradeItem.wrap(
+                planted, player.getName().getString(), pickpocketLevel,
+                kingdom.smp.Ironhold.MASQUERADE.get());
+        } else {
+            delivered = planted;
+            if (target instanceof Villager) {
+                markAsPlanted(delivered);
+            }
         }
-        givePlanted(target, planted);
+        givePlanted(target, delivered);
 
         playPlantSound(target);
         spawnSuccessParticles(target);

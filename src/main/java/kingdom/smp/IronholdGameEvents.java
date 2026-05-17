@@ -54,6 +54,7 @@ public final class IronholdGameEvents {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         IronholdCommands.register(event);
+        kingdom.smp.command.SkillsCommand.register(event);
     }
 
     @SubscribeEvent

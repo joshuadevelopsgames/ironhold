@@ -25,7 +25,9 @@ public final class KnightShieldBlockGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return knight.getTarget() != null && knight.getOffhandItem().is(Items.SHIELD);
+        return knight.getTarget() != null
+            && knight.getOffhandItem().is(Items.SHIELD)
+            && !knight.isShieldDisabled();
     }
 
     @Override

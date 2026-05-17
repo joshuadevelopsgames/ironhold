@@ -2,11 +2,14 @@ package kingdom.smp.entity;
 
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.Mob;
@@ -16,7 +19,7 @@ import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -35,15 +38,38 @@ public class KnightEntity extends Monster {
 
     /** Server-side: drop pursuit after this many ticks without refresh, if still far. */
     private int knightAggroUntilTick;
+    /** Tick when the shield comes back online after an axe-disable. -1 = never disabled. */
+    private int shieldDisabledUntilTick = -1;
+
+    /** Duration (ticks) a shield stays disabled after an axe hit — matches vanilla player. */
+    private static final int SHIELD_DISABLE_TICKS = 100;
+
+    public boolean isShieldDisabled() {
+        return this.tickCount < this.shieldDisabledUntilTick;
+    }
+
+    /** Disable the shield for the given duration, drop the current block, and play the break sound. */
+    public void disableShield(int ticks) {
+        this.shieldDisabledUntilTick = this.tickCount + ticks;
+        if (this.isUsingItem()) {
+            this.stopUsingItem();
+        }
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+            SoundEvents.SHIELD_BREAK.value(), SoundSource.NEUTRAL, 0.9f, 1.0f);
+    }
 
     public KnightEntity(EntityType<? extends KnightEntity> type, Level level) {
         super(type, level);
     }
 
-    /** Ground + shallow/deep water pathing so knights can cross fluids instead of stalling on GroundPathNavigation. */
+    /**
+     * Villager / iron-golem style land pathing: avoid water at all costs.
+     * {@link FloatGoal} (registered in idle goals) keeps the knight at the
+     * surface if it falls in. Doors are walkable.
+     */
     @Override
     protected PathNavigation createNavigation(Level level) {
-        AmphibiousPathNavigation navigation = new AmphibiousPathNavigation(this, level);
+        GroundPathNavigation navigation = new GroundPathNavigation(this, level);
         navigation.setCanFloat(true);
         navigation.setCanOpenDoors(true);
         return navigation;
@@ -147,6 +173,17 @@ public class KnightEntity extends Monster {
     public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
         if (source.getEntity() instanceof KnightEntity attacker && attacker != this) {
             return false;
+        }
+        // Axe-disables-shield: when actively blocking and struck by an axe-wielder,
+        // drop the block and lock the shield out for SHIELD_DISABLE_TICKS, same as
+        // a vanilla player. The knight then falls back to pure-melee from
+        // MeleeAttackGoal until the shield comes back online.
+        if (!this.isShieldDisabled()
+            && this.isUsingItem()
+            && this.getUseItem().is(Items.SHIELD)
+            && source.getEntity() instanceof LivingEntity axeWielder
+            && axeWielder.getMainHandItem().is(ItemTags.AXES)) {
+            this.disableShield(SHIELD_DISABLE_TICKS);
         }
         boolean ok = super.hurtServer(level, source, amount);
         if (ok && this.getTarget() != null) {

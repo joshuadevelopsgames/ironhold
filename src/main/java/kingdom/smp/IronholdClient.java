@@ -82,8 +82,12 @@ public class IronholdClient {
         // via NeoForge's getHumanoidArmorModel hook — same approach as Epic Knights' own
         // NeoForge port, and the call site lives in EquipmentLayerRenderer.renderLayers.
         kingdom.smp.client.entity.KnightArmorClientExtensions.register(modEventBus);
+        // Built-in dynamic lights (held light-source items, registered wands, glowing mobs).
+        // Reload-listener registration is a mod-bus event; tick/logout are on the game bus.
+        modEventBus.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         NeoForge.EVENT_BUS.register(ClientNeoForgeEvents.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ScepterDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.SneakEyeDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.SneakHoldInputHandler.class);

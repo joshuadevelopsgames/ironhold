@@ -1,12 +1,11 @@
 # Third-Party Assets & Dependencies
 
-## LambDynamicLights (runtime dependency)
+## LambDynamicLights (technique attribution; no code reused)
 - **Author:** LambdAurora
-- **License:** MIT
 - **Source:** https://github.com/LambdAurora/LambDynamicLights
 - **Modrinth:** https://modrinth.com/mod/lambdynamiclights
-- **Usage:** Dynamic light emission from held items (Arcane Scepter). Registered via JSON data pack (`dynamiclights/item/arcane_scepter.json`), no code dependency.
-- **Version:** 4.10.0+26.1
+- **Usage:** Ironhold ships its own minimal dynamic-lighting system at `src/main/java/kingdom/smp/dynlight/` (clean-room, no LambDynamicLights source incorporated). The lightmap-injection technique it uses — sampling vanilla per-block light at `LevelRenderer#getLightCoords`, comparing against a per-source falloff `(1 - dist/7.75) * luminance`, replacing the block-light bits when the dynamic value wins — is documented openly by LambdAurora in their "How does it work?" reference and was originally suggested by MaryWeeb; credit for the approach goes to them. The JSON file layout under `assets/<ns>/dynamiclights/{item,entity}/` mirrors LambDynamicLights so existing data packs remain readable, but the loader is our own.
+- **Scope (Ironhold-specific):** Held items light up only if they are registered in `assets/ironhold/dynamiclights/item/` or are `BlockItem`s with a positive light emission. Entities light up only if their type is registered in `assets/ironhold/dynamiclights/entity/`. No automatic glow for blazes, magma cubes, TNT, particles, etc.
 
 ## Ebonwood Hollow Ambient Sound
 - **Author:** CreativeMD

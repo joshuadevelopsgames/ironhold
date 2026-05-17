@@ -103,15 +103,20 @@ public final class SneakDetectionTracker {
     }
 
     /**
-     * True if this entity counts as a "judgmental" witness — a player,
-     * villager, monster, or golem that is alive and awake. Animals, fish,
-     * and ambient mobs (bats) don't count; neither do sleeping or dead
-     * entities (no awareness while in bed).
+     * True if this entity counts as a "judgmental" witness — a villager,
+     * monster, or golem that is alive and awake. Animals, fish, and ambient
+     * mobs (bats) don't count; neither do sleeping or dead entities (no
+     * awareness while in bed).
+     *
+     * <p>NOTE: other players are intentionally excluded for now. When the
+     * kingdom-faction system lands, the gate becomes "player is a witness
+     * iff they belong to a different kingdom than the sneaker" — re-enable
+     * the Player case here with that check.
      */
     public static boolean countsAsWitness(LivingEntity entity) {
         if (!entity.isAlive()) return false;
         if (entity.isSleeping()) return false;
-        if (entity instanceof Player) return true;
+        if (entity instanceof Player) return false; // TODO: re-enable via kingdom check
         if (entity instanceof Animal) return false;
         if (entity instanceof AmbientCreature) return false;
         if (entity instanceof AbstractFish) return false;
