@@ -5,6 +5,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 
 /**
  * Game-bus plumbing for Ironhold's built-in dynamic lights:
@@ -36,5 +37,18 @@ public final class DynamicLightsClientEvents {
     @SubscribeEvent
     public static void onPlayerLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
         DynamicLights.reset();
+    }
+
+    /**
+     * Fires once per render frame, before the level renders. Refreshes interpolated source
+     * positions so the per-frame {@code patchLightmap} reads track the moving entity model
+     * instead of the 20 Hz tick position. This is the dominant reason held-item lighting now
+     * tracks the holder smoothly instead of strobing.
+     */
+    @SubscribeEvent
+    public static void onRenderFramePre(RenderFrameEvent.Pre event) {
+        if (Minecraft.getInstance().level == null) return;
+        float partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        DynamicLights.updateRenderPositions(partialTick);
     }
 }
