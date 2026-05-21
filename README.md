@@ -1,17 +1,19 @@
-# Kingdom 2.0 (NeoForge mod)
+# Ironhold (NeoForge mod)
 
-**Minecraft `1.21.11`** · **NeoForge** (`gradle.properties` → `neo_version`) · **Java 21**
+**Mod id `ironhold`** · **Minecraft `26.1.2`** · **NeoForge `26.1.2.48-beta`** (`gradle.properties` → `neo_version`) · **Java 21**
 
 Playable / testable dev runs:
 
 ```bash
 ./gradlew runClient    # client with mod loaded
 ./gradlew runServer    # dedicated test server (then connect via localhost)
-./gradlew build        # output: build/libs/kingdom20-<version>.jar
+./gradlew build        # output: build/libs/ironhold-<version>.jar
 ```
 
-Planning docs live in **`../Kingdom SMP 2.0/`** (markdown). This folder is the **implementation**;  
-**Minecraft 26.1** remains a future port when mod support matures.
+Ironhold is a large kingdom-themed RPG overhaul: kingdoms & classes, a skill/profession
+system, voiced AI NPCs, custom entities (knights, mages, mimics, deer, shulker castes),
+seasons, built-in dynamic lighting, fishing/blacksmithing minigames, accessories, and a
+custom terrain framework. The Java packages live under `kingdom.smp`.
 
 ### Implemented from the markdowns (stubs)
 
