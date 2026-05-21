@@ -1,6 +1,8 @@
 package kingdom.smp.net;
 
 import kingdom.smp.client.screen.ClassSelectionScreen;
+import kingdom.smp.client.screen.FishingMinigameScreen;
+import kingdom.smp.client.screen.ForgeMinigameScreen;
 import kingdom.smp.client.screen.KingdomSelectionScreen;
 import kingdom.smp.client.screen.KingsConsoleScreen;
 import kingdom.smp.client.screen.MainMenuScreen;
@@ -53,6 +55,14 @@ public final class ClientRpgData {
     public static void openProfile()         { Minecraft.getInstance().setScreen(new ProfileScreen()); }
     public static void openMenu()            { Minecraft.getInstance().setScreen(new MainMenuScreen()); }
     public static void openConsole()         { Minecraft.getInstance().setScreen(new KingsConsoleScreen()); }
+    public static void openFishingMinigame(FishingBiteStartPayload p) {
+        Minecraft.getInstance().setScreen(new FishingMinigameScreen(
+                p.hookZoneHeight(), p.motionPattern(), p.catchPreview()));
+    }
+    public static void openForgeMinigame(ForgeMinigameStartPayload p) {
+        Minecraft.getInstance().setScreen(new ForgeMinigameScreen(
+                p.itemPreview(), p.rankOrdinal()));
+    }
 
     // ── RPG data getters ──────────────────────────────────────────────────────
     public static int         kingdomIndex()   { return kingdomIndex; }

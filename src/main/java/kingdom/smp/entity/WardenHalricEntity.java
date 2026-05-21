@@ -2,6 +2,7 @@ package kingdom.smp.entity;
 
 import kingdom.smp.Ironhold;
 import kingdom.smp.ModAttachments;
+import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.ElevenLabsClient;
 import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
@@ -194,6 +195,7 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
         dynamic.append("\n\n").append(memoryBlock);
         if (!questBlock.isEmpty()) dynamic.append("\n\n").append(questBlock);
         if (!runtimeBlock.isEmpty()) dynamic.append(runtimeBlock);
+        dynamic.append(NpcRapport.onConversationTurn(player, tag()));
         return new PromptParts(cacheable, dynamic.toString());
     }
 
@@ -456,6 +458,11 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Halric"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return "Warden Halric"; }
+    @Override public String displaySubtitle() { return "Warden  •  Wayfarer's Hollow"; }
+    @Override public void speakAloud(ServerPlayer player, String line) { speakLine(line, player); }
+    @Override public void beginConversationWith(ServerPlayer player) { beginConversation(player); }
 
     @Override
     public void onPartnerChat(ServerPlayer player, String message) {

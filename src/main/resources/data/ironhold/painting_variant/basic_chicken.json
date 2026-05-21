@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:basic_chicken",
+  "width": 4,
+  "height": 5,
+  "title": {
+    "translate": "painting.ironhold.basic_chicken.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.basic_chicken.author",
+    "color": "gray"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:the_dark_knight",
+  "width": 3,
+  "height": 4,
+  "title": {
+    "translate": "painting.ironhold.the_dark_knight.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.the_dark_knight.author",
+    "color": "gray"
+  }
+}

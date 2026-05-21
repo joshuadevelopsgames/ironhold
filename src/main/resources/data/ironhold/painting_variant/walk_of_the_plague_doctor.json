@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:walk_of_the_plague_doctor",
+  "width": 2,
+  "height": 2,
+  "title": {
+    "translate": "painting.ironhold.walk_of_the_plague_doctor.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.walk_of_the_plague_doctor.author",
+    "color": "gray"
+  }
+}

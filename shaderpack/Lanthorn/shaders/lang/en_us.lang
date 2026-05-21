@@ -1,0 +1,27 @@
+# Shader-option labels
+option.GODRAYS=Volumetric god-rays
+option.GODRAY_SAMPLES=God-ray sample count
+option.GODRAY_INTENSITY=God-ray intensity
+option.GODRAY_DECAY=God-ray reach
+
+option.BLOOM=Light bloom
+option.BLOOM_THRESHOLD=Bloom threshold
+option.BLOOM_INTENSITY=Bloom intensity
+
+option.PAINTERLY=Painterly post-process
+option.PAINTERLY_STRENGTH=Painterly strength
+option.VIGNETTE=Vignette
+option.VIGNETTE_STRENGTH=Vignette strength
+
+option.TORCH_WARMTH=Torch warmth
+option.MOON_COOLNESS=Moon coolness
+option.NIGHT_BLUE=Night sky tint
+
+option.BIOME_GRADING=Biome-aware grading
+option.GRADING_STRENGTH=Grading strength
+
+screen.WARMTH=Light Temperature
+screen.GODRAYS_GROUP=God Rays
+screen.BLOOM_GROUP=Bloom
+screen.PAINTERLY_GROUP=Painterly
+screen.GRADING_GROUP=Color Grading

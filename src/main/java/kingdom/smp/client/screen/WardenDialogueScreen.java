@@ -1,10 +1,13 @@
 package kingdom.smp.client.screen;
 
+import kingdom.smp.ModAttachments;
 import kingdom.smp.client.ClientPayloads;
 import kingdom.smp.net.NpcMutePayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import kingdom.smp.net.WardenChatPayload;
 import kingdom.smp.net.WardenPttTogglePayload;
+import kingdom.smp.npc.NpcRapport;
+import kingdom.smp.npc.PlayerNpcBonds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -13,13 +16,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.LivingEntity;
 import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +47,8 @@ public class WardenDialogueScreen extends Screen {
     private static final int INPUT_H      = 18;
     private static final int LINE_SPACING = 2;
     private static final int CHARS_PER_TICK = 3;
+    /** How long a fully-revealed page lingers before auto-advancing to the next (ticks). */
+    private static final int AUTO_ADVANCE_TICKS = 20 * 5; // 5 seconds
     private static final int ACCENT_COLOR = 0xFFBB9944; // weathered bronze — matches "warden"
 
     // ── Data ─────────────────────────────────────────────────────────────────
@@ -63,9 +70,25 @@ public class WardenDialogueScreen extends Screen {
     private int boxX, boxY, boxW, boxH;
     private int textX, textY, textW;
 
-    // ── Typewriter state ─────────────────────────────────────────────────────
-    private int charsShown = 0;
+    // ── Typewriter + pagination state ────────────────────────────────────────
     private int tick = 0;
+    /** The current dialogue split into pages, each a list of pre-wrapped line strings. */
+    private List<List<String>> dialoguePages = new ArrayList<>();
+    /** Which dialogue page is showing. */
+    private int dialoguePageIndex = 0;
+    /** Typewriter position within the current page (char count across its lines). */
+    private int pageCharsShown = 0;
+    /** Tick at which the current page finished revealing, or -1 if still revealing. */
+    private int pageRevealedTick = -1;
+    /** Auto-advance is disabled once the player manually pages back/forth. */
+    private boolean autoAdvance = true;
+    // Cache keys — pages are rebuilt only when one of these changes.
+    private @Nullable String paginatedFor = null;
+    private int paginatedMaxLines = -1;
+    private int paginatedTextW = -1;
+    // Pager arrow hitboxes (set during render when more than one page exists).
+    private int prevArrowX0, prevArrowX1, nextArrowX0, nextArrowX1, arrowY0, arrowY1;
+    private boolean pagerVisible = false;
 
     // ── Widgets ──────────────────────────────────────────────────────────────
     private EditBox inputBox;
@@ -73,6 +96,11 @@ public class WardenDialogueScreen extends Screen {
     private Button talkButton;
     private Button muteButton;
     private Button closeButton;
+    private Button talkTabBtn;
+    private Button bondsTabBtn;
+
+    /** Which page is showing: 0 = Talk (dialogue), 1 = Bonds (rapport, hearts, gift state). */
+    private int activeTab = 0;
 
     public WardenDialogueScreen(int entityId, String npcName, String npcTag,
                                 String subtitle, String openingLine, boolean muted) {
@@ -152,7 +180,38 @@ public class WardenDialogueScreen extends Screen {
             .build();
         addRenderableWidget(closeButton);
 
+        // ── Tab strip — sits above the box, two chips: Talk / Bonds ─────────
+        int tabY = boxY - BTN_H - 2;
+        int tabW = 64;
+        talkTabBtn = Button.builder(Component.literal("✍ Talk"), btn -> setActiveTab(0))
+            .bounds(boxX + PADDING, tabY, tabW, BTN_H)
+            .build();
+        addRenderableWidget(talkTabBtn);
+        bondsTabBtn = Button.builder(Component.literal("♥ Bonds"), btn -> setActiveTab(1))
+            .bounds(boxX + PADDING + tabW + 4, tabY, tabW, BTN_H)
+            .build();
+        addRenderableWidget(bondsTabBtn);
+
+        applyTabVisibility();
         refreshButtons();
+    }
+
+    private void setActiveTab(int tab) {
+        if (tab == activeTab) return;
+        activeTab = tab;
+        applyTabVisibility();
+        refreshButtons();
+    }
+
+    /** Hide the talk-only widgets when on the Bonds tab; restore them on Talk. */
+    private void applyTabVisibility() {
+        boolean talk = (activeTab == 0);
+        if (inputBox  != null) inputBox.visible  = talk;
+        if (sendButton != null) sendButton.visible = talk;
+        if (talkButton != null) talkButton.visible = talk;
+        // Mute + Close + tab buttons remain visible on both pages.
+        if (talkTabBtn  != null) talkTabBtn.active  = !talk;   // dim active tab to show selection
+        if (bondsTabBtn != null) bondsTabBtn.active = talk;
     }
 
     private void toggleMute() {
@@ -167,9 +226,104 @@ public class WardenDialogueScreen extends Screen {
     public void tick() {
         super.tick();
         tick++;
-        if (charsShown < dialogue.length()) {
-            charsShown = Math.min(charsShown + CHARS_PER_TICK, dialogue.length());
+        rebuildPagesIfNeeded();
+        if (dialoguePages.isEmpty()) return;
+
+        int pageTotal = totalChars(dialoguePages.get(dialoguePageIndex));
+        if (pageCharsShown < pageTotal) {
+            pageCharsShown = Math.min(pageCharsShown + CHARS_PER_TICK, pageTotal);
         }
+        if (pageCharsShown >= pageTotal && pageRevealedTick < 0) {
+            pageRevealedTick = tick;
+        }
+        // Auto-advance to the next page after the current one has lingered.
+        if (autoAdvance && pageCharsShown >= pageTotal
+                && dialoguePageIndex < dialoguePages.size() - 1
+                && pageRevealedTick >= 0
+                && tick - pageRevealedTick >= AUTO_ADVANCE_TICKS) {
+            dialoguePageIndex++;
+            pageCharsShown = 0;
+            pageRevealedTick = -1;
+        }
+    }
+
+    // ── Pagination ────────────────────────────────────────────────────────────
+
+    /** Lines of dialogue text that fit in the text area above the input row.
+     *  Mirrors the geometry render uses for the text-start baseline. */
+    private int computeMaxLines() {
+        int textStart = boxY + PADDING + 2 * font.lineHeight + 12;
+        int echoTop = boxY + boxH - BTN_H - INPUT_H - 12 - font.lineHeight - 4;
+        int availableHeight = echoTop - textStart;
+        return Math.max(1, availableHeight / (font.lineHeight + LINE_SPACING));
+    }
+
+    private void rebuildPagesIfNeeded() {
+        int maxLines = computeMaxLines();
+        if (dialogue.equals(paginatedFor) && maxLines == paginatedMaxLines && textW == paginatedTextW) {
+            return;
+        }
+        paginatedFor = dialogue;
+        paginatedMaxLines = maxLines;
+        paginatedTextW = textW;
+        dialoguePages = buildPages(dialogue, textW, maxLines);
+        dialoguePageIndex = 0;
+        pageCharsShown = 0;
+        pageRevealedTick = -1;
+    }
+
+    private List<List<String>> buildPages(String text, int width, int maxLines) {
+        List<List<String>> pages = new ArrayList<>();
+        if (text == null || text.isBlank()) return pages;
+        List<String> wrapped = new ArrayList<>();
+        for (FormattedText ft : font.getSplitter().splitLines(text, width, Style.EMPTY)) {
+            wrapped.add(ft.getString());
+        }
+        for (int i = 0; i < wrapped.size(); i += maxLines) {
+            pages.add(new ArrayList<>(wrapped.subList(i, Math.min(i + maxLines, wrapped.size()))));
+        }
+        return pages;
+    }
+
+    private static int totalChars(List<String> page) {
+        int n = 0;
+        for (String s : page) n += s.length();
+        return n;
+    }
+
+    private void gotoPage(int index) {
+        if (index < 0 || index >= dialoguePages.size() || index == dialoguePageIndex) return;
+        autoAdvance = false; // player took control
+        dialoguePageIndex = index;
+        // Show the page in full immediately on manual navigation.
+        pageCharsShown = totalChars(dialoguePages.get(index));
+        pageRevealedTick = tick;
+    }
+
+    /** Right-aligned "◄ x/y ►" pager on the echo row; records arrow hitboxes. */
+    private void drawPager(GuiGraphicsExtractor gfx) {
+        int rowY = boxY + boxH - BTN_H - INPUT_H - 12 - font.lineHeight - 4;
+        String prev = "◄";
+        String next = "►";
+        String mid = " " + (dialoguePageIndex + 1) + "/" + dialoguePages.size() + " ";
+        int prevW = font.width(prev);
+        int midW = font.width(mid);
+        int nextW = font.width(next);
+        int rightX = boxX + boxW - PADDING;
+        int nextX = rightX - nextW;
+        int midX = nextX - midW;
+        int prevX = midX - prevW;
+
+        boolean canPrev = dialoguePageIndex > 0;
+        boolean canNext = dialoguePageIndex < dialoguePages.size() - 1;
+        gfx.text(font, prev, prevX, rowY, canPrev ? 0xFFDDDDDD : 0xFF555555, false);
+        gfx.text(font, mid, midX, rowY, 0xFFAAAAAA, false);
+        gfx.text(font, next, nextX, rowY, canNext ? 0xFFDDDDDD : 0xFF555555, false);
+
+        prevArrowX0 = prevX - 1; prevArrowX1 = prevX + prevW + 1;
+        nextArrowX0 = nextX - 1; nextArrowX1 = nextX + nextW + 1;
+        arrowY0 = rowY - 1; arrowY1 = rowY + font.lineHeight + 1;
+        pagerVisible = true;
     }
 
     // ── Server -> client updates ─────────────────────────────────────────────
@@ -179,7 +333,10 @@ public class WardenDialogueScreen extends Screen {
         switch (status) {
             case UpdateWardenScreenPayload.STATUS_REPLY -> {
                 dialogue = text == null ? "" : text;
-                charsShown = 0;
+                // A new reply re-enables auto-advance; rebuildPagesIfNeeded resets
+                // the page index + typewriter on the next tick/render.
+                autoAdvance = true;
+                paginatedFor = null;
                 awaitingReply = false;
                 lastHeardEcho = null;
                 refreshButtons();
@@ -294,8 +451,16 @@ public class WardenDialogueScreen extends Screen {
         gfx.fill(tx, ty, boxX + boxW - PADDING, ty + 1, 0xFF332211);
         ty += 5;
 
-        // ── Dialogue text ────────────────────────────────────────────────────
-        if (awaitingReply && (dialogue.isEmpty() || charsShown >= dialogue.length())) {
+        // ── Bonds page short-circuit ─────────────────────────────────────────
+        if (activeTab == 1) {
+            renderBondsPage(gfx, tx, ty);
+            super.extractRenderState(gfx, mouseX, mouseY, partialTick);
+            return;
+        }
+
+        // ── Dialogue text (paginated) ──────────────────────────────────────────
+        pagerVisible = false;
+        if (awaitingReply) {
             // Show a "thinking" indicator while we wait for the server.
             String dots = switch ((tick / 8) % 4) {
                 case 0 -> "";
@@ -304,51 +469,43 @@ public class WardenDialogueScreen extends Screen {
                 default -> "...";
             };
             gfx.text(font, Component.literal("§7…thinking" + dots), tx, ty, 0xFFAAAAAA, false);
-            ty += font.lineHeight + LINE_SPACING;
         } else {
-            String visible = dialogue.substring(0, Math.min(charsShown, dialogue.length()));
-            List<FormattedCharSequence> allLines = font.split(Component.literal(visible), textW);
+            rebuildPagesIfNeeded();
+            if (!dialoguePages.isEmpty()) {
+                List<String> page = dialoguePages.get(dialoguePageIndex);
+                int pageTotal = totalChars(page);
+                boolean typing = pageCharsShown < pageTotal;
 
-            // Hard cap on how many lines we draw. Lower bound of the text
-            // area = where the "You said:" echo row begins (computed below as
-            // echoTop). Anything below that would visually crash into the
-            // input row. Previous version subtracted an extra "safety" line
-            // on top of an already-over-reserved budget, which was clipping
-            // text at 2 lines when 4 actually fit cleanly.
-            int echoTop = boxY + boxH - BTN_H - INPUT_H - 12 - font.lineHeight - 4;
-            int availableHeight = echoTop - ty;
-            int maxLines = Math.max(1,
-                availableHeight / (font.lineHeight + LINE_SPACING));
+                int remaining = pageCharsShown;
+                String lastVisibleLine = "";
+                int lastLineY = ty;
+                for (String line : page) {
+                    String vis;
+                    if (remaining >= line.length()) {
+                        vis = line;
+                        remaining -= line.length();
+                    } else {
+                        vis = line.substring(0, Math.max(0, remaining));
+                        remaining = 0;
+                    }
+                    gfx.text(font, vis, tx, ty, 0xFFDDDDDD, false);
+                    lastVisibleLine = vis;
+                    lastLineY = ty;
+                    ty += font.lineHeight + LINE_SPACING;
+                    if (remaining <= 0 && typing) break; // stop at the typewriter head
+                }
 
-            int linesToDraw = Math.min(allLines.size(), maxLines);
-            for (int i = 0; i < linesToDraw; i++) {
-                gfx.text(font, allLines.get(i), tx, ty, 0xFFDDDDDD, false);
-                ty += font.lineHeight + LINE_SPACING;
-            }
+                // Blinking cursor while the page is still revealing.
+                if (typing && (tick / 8) % 2 == 0) {
+                    int lastW = font.width(lastVisibleLine);
+                    int cursorX = lastW < textW ? tx + lastW : tx;
+                    gfx.text(font, "█", cursorX, lastLineY, 0xAAFFFFFF, false);
+                }
 
-            // If we clipped, draw a dim "…" right after the last visible
-            // line so the player can tell there's more they didn't see.
-            boolean clipped = allLines.size() > maxLines;
-            if (clipped) {
-                FormattedCharSequence lastLine = allLines.get(linesToDraw - 1);
-                int lastW = font.width(lastLine);
-                int dotsX = (lastW < textW - 12)
-                    ? tx + lastW + 2
-                    : tx + textW - font.width("…") - 1;
-                int dotsY = ty - font.lineHeight - LINE_SPACING;
-                gfx.text(font, "…", dotsX, dotsY, 0xFFAAAAAA, false);
-            }
-
-            // Typewriter cursor — only when the visible content is still
-            // unfolding AND we haven't already clipped (no point blinking at
-            // text the player can't see).
-            boolean typing = charsShown < dialogue.length();
-            if (typing && !clipped && linesToDraw > 0 && (tick / 8) % 2 == 0) {
-                FormattedCharSequence lastLine = allLines.get(linesToDraw - 1);
-                int lastW = font.width(lastLine);
-                int cursorX = lastW < textW ? tx + lastW : tx;
-                int cursorY = ty - font.lineHeight - LINE_SPACING;
-                gfx.text(font, "█", cursorX, cursorY, 0xAAFFFFFF, false);
+                // Page arrows + "x/y" indicator when the reply spans pages.
+                if (dialoguePages.size() > 1) {
+                    drawPager(gfx);
+                }
             }
         }
 
@@ -394,6 +551,24 @@ public class WardenDialogueScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (pagerVisible && event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            double mx = event.x(), my = event.y();
+            if (my >= arrowY0 && my <= arrowY1) {
+                if (mx >= prevArrowX0 && mx <= prevArrowX1) {
+                    gotoPage(dialoguePageIndex - 1);
+                    return true;
+                }
+                if (mx >= nextArrowX0 && mx <= nextArrowX1) {
+                    gotoPage(dialoguePageIndex + 1);
+                    return true;
+                }
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
     public void onClose() {
         Minecraft.getInstance().setScreen(null);
     }
@@ -401,5 +576,72 @@ public class WardenDialogueScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    // ── Bonds page ────────────────────────────────────────────────────────────
+
+    private static final int MAX_RAPPORT       = NpcRapport.MAX_RAPPORT;
+    private static final int RAPPORT_PER_HEART = NpcRapport.RAPPORT_PER_HEART;
+    private static final int DAILY_GIFT_CAP    = 1;
+    private static final long TICKS_PER_DAY    = 24000L;
+
+    /** Right-of-portrait Bonds layout: hearts row, tier label, rapport count, today's gift dot. */
+    private void renderBondsPage(GuiGraphicsExtractor gfx, int tx, int startY) {
+        Minecraft mc = Minecraft.getInstance();
+        PlayerNpcBonds bonds = (mc.player != null)
+            ? mc.player.getData(ModAttachments.NPC_BONDS.get())
+            : PlayerNpcBonds.empty();
+        PlayerNpcBonds.Entry e = bonds.get(npcTag);
+
+        int rapport = clamp(e.rapport(), 0, MAX_RAPPORT);
+        int filled  = rapport / RAPPORT_PER_HEART;
+
+        int y = startY;
+
+        // ── Hearts row (10) ─────────────────────────────────────────────────
+        int heartW = font.width("♥") + 1;
+        int hx = tx;
+        for (int i = 0; i < 10; i++) {
+            boolean lit = i < filled;
+            String glyph = lit ? "♥" : "♡";
+            int color = lit ? ACCENT_COLOR : 0xFF555555;
+            gfx.text(font, glyph, hx, y, color, false);
+            hx += heartW;
+        }
+        // Numeric tail.
+        String tail = "  " + rapport + " / " + MAX_RAPPORT;
+        gfx.text(font, tail, hx + 4, y, 0xFFAAAAAA, false);
+        y += font.lineHeight + 4;
+
+        // ── Tier label ──────────────────────────────────────────────────────
+        gfx.text(font, Component.literal(tierLabel(rapport))
+                .withStyle(Style.EMPTY.withBold(true)),
+            tx, y, ACCENT_COLOR, false);
+        y += font.lineHeight + 6;
+
+        // ── Today's gift indicator ──────────────────────────────────────────
+        long today = (mc.level != null) ? (mc.level.getGameTime() / TICKS_PER_DAY) : 0L;
+        int giftsToday = (e.lastGiftDay() == today) ? e.giftsToday() : 0;
+        StringBuilder dots = new StringBuilder("Gifts today: ");
+        for (int i = 0; i < DAILY_GIFT_CAP; i++) {
+            dots.append(i < giftsToday ? "● " : "○ ");
+        }
+        gfx.text(font, dots.toString(), tx, y, 0xFFCCCCCC, false);
+        y += font.lineHeight + 6;
+
+        // ── Hint row ────────────────────────────────────────────────────────
+        gfx.text(font, "§7Sneak + right-click them holding an item to gift.",
+            tx, y, 0xFF888888, false);
+        y += font.lineHeight + 2;
+        gfx.text(font, "§7One gift per day grows your bond fastest.",
+            tx, y, 0xFF888888, false);
+    }
+
+    private static String tierLabel(int rapport) {
+        return NpcRapport.tierLabel(rapport);
+    }
+
+    private static int clamp(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 }

@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:natural_habitat",
+  "width": 1,
+  "height": 1,
+  "title": {
+    "translate": "painting.ironhold.natural_habitat.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.natural_habitat.author",
+    "color": "gray"
+  }
+}

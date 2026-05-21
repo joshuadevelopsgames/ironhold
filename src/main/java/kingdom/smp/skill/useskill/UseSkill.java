@@ -15,9 +15,11 @@ import net.minecraft.util.StringRepresentable;
  * <p>Levels 0–100. See {@link UseSkillCurve} for the XP→level curve.
  */
 public enum UseSkill implements StringRepresentable {
-    PICKPOCKET("pickpocket", "Pickpocket"),
-    SNEAK("sneak", "Sneak");
+    PICKPOCKET("pickpocket", "Pickpocket", 100),
+    SNEAK("sneak", "Sneak", 100),
+    FISHING("fishing", "Fishing", 50);
 
+    /** Absolute ceiling — no per-skill cap may exceed this. */
     public static final int MAX_LEVEL = 100;
 
     public static final Codec<UseSkill> CODEC = StringRepresentable.fromEnum(UseSkill::values);
@@ -26,13 +28,18 @@ public enum UseSkill implements StringRepresentable {
 
     private final String id;
     private final String displayName;
+    private final int maxLevel;
 
-    UseSkill(String id, String displayName) {
+    UseSkill(String id, String displayName, int maxLevel) {
         this.id = id;
         this.displayName = displayName;
+        this.maxLevel = maxLevel;
     }
 
     public String displayName() { return displayName; }
+
+    /** Per-skill level cap. Fishing tops out lower than Pickpocket / Sneak. */
+    public int maxLevel() { return maxLevel; }
 
     @Override
     public String getSerializedName() { return id; }

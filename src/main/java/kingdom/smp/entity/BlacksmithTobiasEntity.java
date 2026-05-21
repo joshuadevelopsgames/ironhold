@@ -13,6 +13,7 @@ import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import kingdom.smp.npc.HasNpcManifest;
 import kingdom.smp.npc.NpcManifestPrompt;
+import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.npc.NpcSessionGreetings;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -246,6 +247,11 @@ public class BlacksmithTobiasEntity extends PathfinderMob implements NpcChatPart
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Tobias"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return "Master Tobias"; }
+    @Override public String displaySubtitle() { return "Blacksmith  •  The Iron Hearth"; }
+    @Override public void speakAloud(net.minecraft.server.level.ServerPlayer player, String line) { speakLine(line, player); }
+    @Override public void beginConversationWith(net.minecraft.server.level.ServerPlayer player) { beginConversation(player); }
 
     @Override
     public void onPartnerChat(ServerPlayer player, String message) {
@@ -268,7 +274,8 @@ public class BlacksmithTobiasEntity extends PathfinderMob implements NpcChatPart
 
         replyInFlight = true;
         String dynamicCtx = IronholdLore.runtimeContext(player.getUUID())
-            + NpcManifestPrompt.build(manifest(), player.getMainHandItem());
+            + NpcManifestPrompt.build(manifest(), player.getMainHandItem())
+            + NpcRapport.onConversationTurn(player, tag());
         OpenRouterClient.chatWithCache(
             OPENROUTER_MODEL, MAX_REPLY_TOKENS, SAMPLING_TEMPERATURE,
             SYSTEM_PROMPT, dynamicCtx,

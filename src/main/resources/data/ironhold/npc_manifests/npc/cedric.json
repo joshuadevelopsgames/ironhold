@@ -1,0 +1,27 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Brother Cedric — priest of the Chapel of the Old Light. Gentle, never takes a tithe, speaks in soft parables. Quiet faith, not pious.",
+  "birthday": { "season": "winter", "day": 1 },
+  "theme":    { "accent": "#E8C77A", "voice": "cedric" },
+  "tastes": [
+    { "item": "minecraft:candle",          "rapport_delta": 10, "reaction": "\"For the evening row. The chapel will be brighter for it.\"" },
+    { "item": "minecraft:white_candle",    "rapport_delta": 10, "reaction": "\"White for the vigil. Bless you.\"" },
+    { "item": "minecraft:soul_lantern",    "rapport_delta": 10, "reaction": "\"A softer flame. I have a hook by the altar that's been waiting.\"" },
+    { "item": "minecraft:torchflower",     "rapport_delta": 8,  "reaction": "\"A flower that drinks the dark. I'll plant it by the door.\"" },
+    { "item": "minecraft:enchanted_book",  "rapport_delta": 10, "reaction": "Cedric runs a thumb over the gilt. \"Knowledge is its own quiet prayer.\"" },
+    { "item": "minecraft:book",            "rapport_delta": 6,  "reaction": "\"Pages are patient. Thank you.\"" },
+    { "item": "minecraft:writable_book",   "rapport_delta": 6,  "reaction": "\"For sermons I haven't written yet. Bless you.\"" },
+    { "item": "minecraft:glow_berries",    "rapport_delta": 6,  "reaction": "\"Light that grows from a vine. The old gardeners would have wept.\"" },
+    { "item": "minecraft:bread",           "rapport_delta": 3,  "reaction": "\"Shared, it lasts longer. My thanks.\"" },
+    { "item": "minecraft:white_dye",       "rapport_delta": 3,  "reaction": "\"For the altar cloth. Good.\"" },
+    { "item": "minecraft:paper",           "rapport_delta": 3,  "reaction": "\"Margin for a sermon. Thank you.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:gunpowder",  "rapport_delta": -5,  "reaction": "Cedric flinches. \"Please. Not in the chapel.\"" },
+    { "item": "minecraft:iron_sword", "rapport_delta": -3,  "reaction": "\"No swords. Some hands lay them down here.\"" },
+    { "item": "minecraft:wither_skull","rapport_delta": -12, "reaction": "\"Out. Out, child. Some things will not be blessed.\"" },
+    { "item": "ironhold:void_core",   "rapport_delta": -8,  "reaction": "Cedric does not touch it. \"The old light does not reach into that. Take it away.\"" }
+  ]
+}

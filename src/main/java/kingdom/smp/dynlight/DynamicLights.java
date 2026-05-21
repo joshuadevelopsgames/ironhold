@@ -63,10 +63,15 @@ public final class DynamicLights {
 
     /** Falloff radius in blocks — matches the canonical 7.75 cap (keeps affected sections to 3³). */
     public static final double RADIUS = 7.75;
-    /** Re-mesh affected sections if the source has moved at least this many blocks since the last rebuild. */
-    public static final double REBUILD_MOVE_THRESHOLD = 1.0;
-    /** And at least this many client ticks have passed (caps rebuild rate at ~10 Hz while sprinting). */
-    public static final int REBUILD_THROTTLE_TICKS = 2;
+    /**
+     * Re-mesh affected sections if the source has moved at least this many blocks since the last
+     * rebuild. The size of the per-rebuild visual "jump" on terrain equals the source's movement
+     * between rebuilds, so this needs to stay well below 1 block for the lighting to look smooth
+     * rather than stepping at block boundaries. 0.25 ≈ 0.2–0.4 block jumps at walk/sprint pace.
+     */
+    public static final double REBUILD_MOVE_THRESHOLD = 0.25;
+    /** Minimum client ticks between rebuilds for a single source (1 = up to 20 Hz). */
+    public static final int REBUILD_THROTTLE_TICKS = 1;
     /** Display luminance moves at most this much per tick toward the target (≈700 ms ramp 0↔15). */
     public static final double LUMINANCE_RAMP_PER_TICK = 1.0;
 

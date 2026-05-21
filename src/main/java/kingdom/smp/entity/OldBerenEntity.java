@@ -6,10 +6,20 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
+import kingdom.smp.npc.NpcRapport;
+import kingdom.smp.npc.NpcCompanion;
+import kingdom.smp.npc.NpcDisposition;
 import kingdom.smp.ai.NpcMuteRegistry;
 import kingdom.smp.ai.OpenRouterClient;
 import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.entity.goal.AlwaysLookNearestPlayerGoal;
+import kingdom.smp.entity.goal.NpcFollowOwnerGoal;
+import kingdom.smp.entity.goal.NpcStationGoal;
+import kingdom.smp.entity.goal.NpcStationWanderGoal;
+import kingdom.smp.entity.goal.NpcStationChestGoal;
+import kingdom.smp.entity.goal.NpcStationFlowerGoal;
+import kingdom.smp.entity.goal.NpcStationSleepGoal;
+import net.minecraft.core.BlockPos;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import net.minecraft.network.chat.Component;
@@ -40,7 +50,7 @@ import java.util.UUID;
  * tavern steps. Slurred war stories, bitter humor. Half of what he says is
  * true, and he can't tell you which half.
  */
-public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
+public class OldBerenEntity extends PathfinderMob implements NpcChatPartner, NpcCompanion {
 
     private static final int COOLDOWN_TICKS = 20;
     private static final int IDLE_TIMEOUT_TICKS = 20 * 90;
@@ -139,6 +149,11 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
 
     private long lastInteractTick = 0;
     private @Nullable UUID partnerId;
+
+    // ── Companion state ──────────────────────────────────────────────────────
+    private NpcDisposition disposition = NpcDisposition.FREE;
+    private @Nullable UUID companionOwnerId;
+    private @Nullable BlockPos stationPos;
     private long lastTurnGameTime;
     private final List<OpenRouterClient.Message> history = new ArrayList<>();
     private boolean replyInFlight;
@@ -153,7 +168,9 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
     public static AttributeSupplier.Builder createAttributes() {
         return PathfinderMob.createMobAttributes()
             .add(Attributes.MAX_HEALTH, 30.0)
-            .add(Attributes.MOVEMENT_SPEED, 0.0)
+            // Non-zero so companion goals can move him; he has no wander goal,
+            // so he stays put unless FOLLOWING/STATIONED tells him otherwise.
+            .add(Attributes.MOVEMENT_SPEED, 0.30)
             .add(Attributes.KNOCKBACK_RESISTANCE, 1.0)
             .add(Attributes.FOLLOW_RANGE, 16.0);
     }
@@ -161,8 +178,14 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new AlwaysLookNearestPlayerGoal(this, 16.0, this::getPartnerId));
-        this.goalSelector.addGoal(2, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(1, new NpcFollowOwnerGoal(this));
+        this.goalSelector.addGoal(1, new NpcStationGoal(this));          // leash back to base
+        this.goalSelector.addGoal(2, new NpcStationSleepGoal(this));     // sleep at night
+        this.goalSelector.addGoal(3, new NpcStationChestGoal(this));     // peek in chests
+        this.goalSelector.addGoal(4, new NpcStationFlowerGoal(this));    // plant flowers outside
+        this.goalSelector.addGoal(5, new NpcStationWanderGoal(this));    // amble around the yard
+        this.goalSelector.addGoal(6, new AlwaysLookNearestPlayerGoal(this, 16.0, this::getPartnerId));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
     }
 
     @Override
@@ -246,6 +269,11 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Beren"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return "Old Beren"; }
+    @Override public String displaySubtitle() { return "Veteran  •  The Tavern Steps"; }
+    @Override public void speakAloud(net.minecraft.server.level.ServerPlayer player, String line) { speakLine(line, player); }
+    @Override public void beginConversationWith(net.minecraft.server.level.ServerPlayer player) { beginConversation(player); }
 
     @Override
     public void onPartnerChat(ServerPlayer player, String message) {
@@ -269,7 +297,8 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
         replyInFlight = true;
         OpenRouterClient.chatWithCache(
             OPENROUTER_MODEL, MAX_REPLY_TOKENS, SAMPLING_TEMPERATURE,
-            SYSTEM_PROMPT, IronholdLore.runtimeContext(player.getUUID()),
+            SYSTEM_PROMPT,
+            IronholdLore.runtimeContext(player.getUUID()) + NpcRapport.onConversationTurn(player, tag()),
             snapshot, userMessage, "Beren",
             reply -> {
                 if (server == null) return;
@@ -338,11 +367,66 @@ public class OldBerenEntity extends PathfinderMob implements NpcChatPartner {
         super.remove(reason);
     }
 
+    // ── NpcCompanion ─────────────────────────────────────────────────────────
+
+    @Override public PathfinderMob companionMob() { return this; }
+    @Override public NpcDisposition disposition() { return disposition; }
+    @Override public @Nullable UUID companionOwnerId() { return companionOwnerId; }
+    @Override public @Nullable BlockPos stationPos() { return stationPos; }
+
+    @Override
+    public void cycleCompanionState(ServerPlayer player) {
+        switch (disposition) {
+            case FREE -> {
+                disposition = NpcDisposition.FOLLOWING;
+                companionOwnerId = player.getUUID();
+                stationPos = null;
+                giftReaction(player, "Aye, I'll walk with you a while. Mind the pace — these knees fought wars before you were weaned.");
+            }
+            case FOLLOWING -> {
+                disposition = NpcDisposition.STATIONED;
+                stationPos = blockPosition();
+                giftReaction(player, "Here's good. I'll set my pack down and keep an eye on the place — like it's my own hearth.");
+            }
+            case STATIONED -> {
+                disposition = NpcDisposition.FREE;
+                companionOwnerId = null;
+                stationPos = null;
+                giftReaction(player, "Back to my own wanderin', then. You know where to find me when the drink's gone and the road's long.");
+            }
+        }
+        getNavigation().stop();
+    }
+
+    @Override
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput out) {
+        super.addAdditionalSaveData(out);
+        out.putString("Disposition", disposition.name());
+        if (companionOwnerId != null) out.putString("CompanionOwner", companionOwnerId.toString());
+        if (stationPos != null) {
+            out.putInt("StationX", stationPos.getX());
+            out.putInt("StationY", stationPos.getY());
+            out.putInt("StationZ", stationPos.getZ());
+        }
+    }
+
     @Override
     protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
         super.readAdditionalSaveData(in);
         this.setCustomName(Component.literal("§c§oOld Beren§r§7, Veteran"));
         this.setCustomNameVisible(true);
         this.setPersistenceRequired();
+
+        this.disposition = NpcDisposition.byName(in.getStringOr("Disposition", "FREE"), NpcDisposition.FREE);
+        String owner = in.getStringOr("CompanionOwner", "");
+        this.companionOwnerId = owner.isBlank() ? null : tryParseUuid(owner);
+        int sx = in.getIntOr("StationX", Integer.MIN_VALUE);
+        this.stationPos = (sx == Integer.MIN_VALUE)
+            ? null
+            : new BlockPos(sx, in.getIntOr("StationY", 0), in.getIntOr("StationZ", 0));
+    }
+
+    private static @Nullable UUID tryParseUuid(String s) {
+        try { return UUID.fromString(s); } catch (IllegalArgumentException e) { return null; }
     }
 }

@@ -43,6 +43,9 @@ public class PossessedArmorEntity extends Monster {
     private static final int DASH_EVERY = 5;
     private static final double DASH_SPEED = 1.8;
 
+    /** Mansion-spawned variants (rerolled from a Vindicator) drop a Wraith's Sigil on death. */
+    private boolean dropsWraithsSigil = false;
+
     public PossessedArmorEntity(EntityType<? extends PossessedArmorEntity> type, Level level) {
         super(type, level);
         ItemStack helmet = new ItemStack(Items.NETHERITE_HELMET);
@@ -76,6 +79,30 @@ public class PossessedArmorEntity extends Monster {
         for (ItemStack piece : pieces) {
             piece.set(DataComponents.TRIM, trim);
         }
+    }
+
+    public void setDropsWraithsSigil(boolean drops) {
+        this.dropsWraithsSigil = drops;
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel level, DamageSource source, boolean killedByPlayer) {
+        super.dropCustomDeathLoot(level, source, killedByPlayer);
+        if (dropsWraithsSigil) {
+            this.spawnAtLocation(level, new ItemStack(kingdom.smp.Ironhold.WRAITHS_SIGIL.get()));
+        }
+    }
+
+    @Override
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("DropsWraithsSigil", dropsWraithsSigil);
+    }
+
+    @Override
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.dropsWraithsSigil = input.getBooleanOr("DropsWraithsSigil", false);
     }
 
     // ── Attributes ───────────────────────────────────────────────────────────

@@ -10,13 +10,11 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.function.UnaryOperator;
-
 /**
  * Registers and accesses the per-item DataComponents used by the gear quality system:
- * quality (Standard/Fine/Mint), repair fatigue (0–5), and Pristine refinement flag.
+ * quality (Standard/Fine/Mint) and the Pristine refinement flag.
  *
- * Items without these components fall back to Fine quality, fresh fatigue, and not-Pristine,
+ * Items without these components fall back to Fine quality and not-Pristine,
  * so unmodded vanilla items behave as Fine baseline without explicit migration.
  *
  * @see <a href="../../../../specs/ore-quality-system.md">ore-quality-system.md</a>
@@ -31,11 +29,6 @@ public final class GearComponents {
             COMPONENTS.registerComponentType("quality", builder -> builder
                     .persistent(ItemQuality.CODEC)
                     .networkSynchronized(ItemQuality.STREAM_CODEC));
-
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<RepairFatigue>> FATIGUE =
-            COMPONENTS.registerComponentType("repair_fatigue", builder -> builder
-                    .persistent(RepairFatigue.CODEC)
-                    .networkSynchronized(RepairFatigue.STREAM_CODEC));
 
     /**
      * Pristine flag — boolean component. Present-and-true means the item has been refined
@@ -62,22 +55,6 @@ public final class GearComponents {
         } else {
             stack.set(QUALITY.get(), quality);
         }
-    }
-
-    public static RepairFatigue getFatigue(ItemStack stack) {
-        return stack.getOrDefault(FATIGUE.get(), RepairFatigue.FRESH);
-    }
-
-    public static void setFatigue(ItemStack stack, RepairFatigue fatigue) {
-        if (fatigue.level() == 0) {
-            stack.remove(FATIGUE.get());
-        } else {
-            stack.set(FATIGUE.get(), fatigue);
-        }
-    }
-
-    public static void mutateFatigue(ItemStack stack, UnaryOperator<RepairFatigue> op) {
-        setFatigue(stack, op.apply(getFatigue(stack)));
     }
 
     public static boolean isPristine(ItemStack stack) {

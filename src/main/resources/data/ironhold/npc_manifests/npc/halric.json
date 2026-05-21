@@ -1,0 +1,27 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Warden Halric — keeper of the gate at Wayfarer's Hollow. Old battle-mage turned warden. Weathered, dutiful, plainspoken. Sees the road in every traveler.",
+  "birthday": { "season": "autumn", "day": 14 },
+  "theme":    { "accent": "#3D5C7C", "voice": "halric" },
+  "tastes": [
+    { "item": "minecraft:enchanted_book",   "rapport_delta": 12, "reaction": "Halric weighs the book in his palm. \"Sharper than my old eyes. Aye, this is a kindness.\"" },
+    { "item": "minecraft:compass",          "rapport_delta": 10, "reaction": "\"A north-finder. I'll keep it in my coat.\"" },
+    { "item": "minecraft:recovery_compass", "rapport_delta": 10, "reaction": "Halric studies the needle. \"For when a man wanders. Useful.\"" },
+    { "item": "minecraft:filled_map",       "rapport_delta": 8,  "reaction": "\"Every road on this is one I've walked, or buried someone on. Thank you.\"" },
+    { "item": "ironhold:steel_ingot",       "rapport_delta": 10, "reaction": "\"Steel. The good kind. I'll see Tobias gets it.\"" },
+    { "item": "ironhold:knight_veteran_helm","rapport_delta": 12, "reaction": "Halric runs a thumb along the dent. \"This was a soldier's. Treat it as such.\"" },
+    { "item": "minecraft:bread",            "rapport_delta": 4,  "reaction": "\"Honest food on a long watch. Appreciated.\"" },
+    { "item": "minecraft:lantern",          "rapport_delta": 4,  "reaction": "\"The road is darker every year. I'll hang it.\"" },
+    { "item": "minecraft:string",           "rapport_delta": 3,  "reaction": "\"For a bow, then. Useful.\"" },
+    { "item": "minecraft:shield",           "rapport_delta": 5,  "reaction": "\"A shield given is a shield earned. My thanks.\"" },
+    { "item": "minecraft:cooked_beef",      "rapport_delta": 4,  "reaction": "\"Hot food at the gate. Bless you.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:music_disc_pigstep","rapport_delta": -3, "reaction": "\"Loud music dulls the ear. I need mine.\"" },
+    { "item": "minecraft:firework_rocket",   "rapport_delta": -3, "reaction": "\"Fireworks at the gate? You'd wake the dead.\"" },
+    { "item": "minecraft:phantom_membrane",  "rapport_delta": -8, "reaction": "Halric's hand goes still. \"Take this away. I have seen what hunts at night.\"" },
+    { "item": "minecraft:wither_skull",      "rapport_delta": -12,"reaction": "\"Out. Burn it. Whatever you must — not at my gate.\"" }
+  ]
+}

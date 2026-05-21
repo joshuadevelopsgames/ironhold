@@ -84,6 +84,9 @@ public final class ElevenLabsClient {
 
         /** Halric-style preset — slight wobble + theatrical weight for an old wizard cadence. */
         public static final VoiceSettings OLD_WIZARD = new VoiceSettings(0.45, 0.80, 0.35, true);
+
+        /** Stoic, declamatory recitation with theatrical weight — for a records-herald. */
+        public static final VoiceSettings BRISK_HERALD = new VoiceSettings(0.70, 0.75, 0.45, true);
     }
 
     /**

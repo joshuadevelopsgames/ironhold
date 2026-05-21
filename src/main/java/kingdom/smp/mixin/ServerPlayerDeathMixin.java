@@ -33,6 +33,6 @@ public abstract class ServerPlayerDeathMixin {
     )
     private Component ironhold$replaceDeathMessage(CombatTracker tracker) {
         ServerPlayer self = (ServerPlayer) (Object) this;
-        return DeathMessageHandler.buildDeathMessage(self, this.ironhold$lastDeathCause);
+        return DeathMessageHandler.buildDeathMessage(self, this.ironhold$lastDeathCause, tracker);
     }
 }

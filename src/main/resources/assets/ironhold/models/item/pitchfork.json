@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "ironhold:item/pitchfork"
+    "layer0": "ironhold:item/pitchfork_gui"
   }
 }

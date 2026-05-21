@@ -8,6 +8,7 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
+import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
 import kingdom.smp.ai.OpenRouterClient;
 import kingdom.smp.ai.SvcVoiceBridge;
@@ -635,6 +636,11 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Kangarude"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return SKIN_OWNER_NAME; }
+    @Override public String displaySubtitle() { return "Wanderer  •  Wayfarer's Hollow"; }
+    @Override public void speakAloud(net.minecraft.server.level.ServerPlayer player, String line) { speakLine(line); }
+    @Override public void beginConversationWith(net.minecraft.server.level.ServerPlayer player) { beginConversation(player); }
 
     private void tickConversationTimeout() {
         if (partnerId == null) return;
@@ -692,7 +698,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
             "anthropic/claude-haiku-4.5",
             150,        // maxTokens — keep replies tight + fast
             0.85,       // temperature — Kanga is allowed to be wild
-            parts.cacheable(), parts.dynamic(),
+            parts.cacheable(), parts.dynamic() + NpcRapport.onConversationTurn(player, tag()),
             snapshot, userMessage, "Kangarude",
             reply -> {
                 if (server == null) return;

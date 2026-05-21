@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:alchemists_brew",
+  "width": 1,
+  "height": 1,
+  "title": {
+    "translate": "painting.ironhold.alchemists_brew.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.alchemists_brew.author",
+    "color": "gray"
+  }
+}

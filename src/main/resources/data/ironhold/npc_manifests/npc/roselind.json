@@ -1,0 +1,25 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Captain Roselind — Captain of the Watch. No-nonsense, refuses bribes, runs the streets clean. Earns respect, never fear.",
+  "birthday": { "season": "summer", "day": 18 },
+  "theme":    { "accent": "#9E2E2E", "voice": "roselind" },
+  "tastes": [
+    { "item": "minecraft:shield",            "rapport_delta": 10, "reaction": "Roselind tests the grip. \"Honest weight. The Watch will use it.\"" },
+    { "item": "minecraft:netherite_ingot",   "rapport_delta": 12, "reaction": "\"This is a Captain's gift. I won't forget it.\"" },
+    { "item": "minecraft:diamond_sword",     "rapport_delta": 10, "reaction": "\"Sharper than mine. I'll carry it on the gate watch.\"" },
+    { "item": "ironhold:steel_ingot",        "rapport_delta": 10, "reaction": "\"Steel keeps the Watch standing. My thanks.\"" },
+    { "item": "ironhold:armor_polish",       "rapport_delta": 10, "reaction": "\"You've noticed how the Watch dresses, I see. Appreciated.\"" },
+    { "item": "ironhold:knight_veteran_chest","rapport_delta": 12, "reaction": "Roselind inspects the dent. \"From the Hollow. A Sergeant wore this. Treat the memory well.\"" },
+    { "item": "minecraft:iron_ingot",        "rapport_delta": 4,  "reaction": "\"For repairs. Useful.\"" },
+    { "item": "minecraft:string",            "rapport_delta": 3,  "reaction": "\"For bows. The archers thank you.\"" },
+    { "item": "minecraft:bread",             "rapport_delta": 3,  "reaction": "\"Field rations. Bless.\"" },
+    { "item": "minecraft:cooked_beef",       "rapport_delta": 4,  "reaction": "\"Hot food for the next shift. Thanks.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:emerald",     "rapport_delta": -5, "reaction": "Roselind steps back. \"Try that again and you sleep in a cell.\"" },
+    { "item": "minecraft:gold_ingot",  "rapport_delta": -4, "reaction": "\"Officer politics. Take it elsewhere.\"" },
+    { "item": "minecraft:ender_pearl", "rapport_delta": -8, "reaction": "\"Smugglers' tool. If I see another of these, civilian, we have a problem.\"" }
+  ]
+}

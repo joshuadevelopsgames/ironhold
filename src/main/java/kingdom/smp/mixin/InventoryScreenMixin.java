@@ -1,200 +1,141 @@
 package kingdom.smp.mixin;
 
-import kingdom.smp.access.SlotAccessor;
-
-import kingdom.smp.Ironhold;
-import kingdom.smp.client.IronholdSlotDebug;
 import kingdom.smp.inventory.IronholdInventoryLayout;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Reskin of the survival inventory screen with the Ironhold custom layout:
- * <ul>
- *   <li>Resizes the main panel to {@link IronholdInventoryLayout#MAIN_W}×{@link IronholdInventoryLayout#MAIN_H}.</li>
- *   <li>Replaces vanilla's stone bg + paperdoll blit entirely with our own textures and paperdoll position.</li>
- *   <li>Hides the vanilla recipe book button + component (Ironhold recommends JEI/REI/EMI).</li>
- *   <li>Suppresses vanilla "Crafting" / "Inventory" labels — the texture has them painted in.</li>
- *   <li>Live-applies {@link IronholdSlotDebug} positions every frame (F4 in-game toggles edit mode).</li>
- * </ul>
+ * Adds the vanilla-native accessory + vanity side panels to the otherwise-stock
+ * survival inventory.
  *
- * <p>Slot positions are first set by {@link InventoryMenuMixin}; this mixin overrides them
- * each frame from the debug state so they can be tuned live without restarting.
+ * <p>The inventory itself is left fully vanilla (stone GUI, paperdoll, labels and
+ * recipe book all unmodified). {@link InventoryMenuMixin} appends the 5 accessory
+ * and 4 vanity slots; this mixin draws beveled gray panels and sunken slot cells
+ * behind them — a vanity panel docked to the left and an accessory bar below.
  */
 @Mixin(InventoryScreen.class)
-public abstract class InventoryScreenMixin extends AbstractContainerScreen<net.minecraft.world.inventory.InventoryMenu> {
+public abstract class InventoryScreenMixin extends AbstractContainerScreen<InventoryMenu> {
 
-    private static final Identifier MAIN_TEXTURE =
-            Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/gui/inventory/inventory_main.png");
-    private static final Identifier VANITY_TEXTURE =
-            Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/gui/inventory/vanity_panel.png");
-    private static final Identifier SKILLS_TEXTURE =
-            Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/gui/inventory/skills_panel.png");
+    private static final int PANEL_BG     = 0xFFC6C6C6;
+    private static final int PANEL_HI     = 0xFFFFFFFF;
+    private static final int PANEL_LO     = 0xFF555555;
+    private static final int PANEL_BORDER = 0xFF000000;
+    private static final int SLOT_DARK    = 0xFF373737;
+    private static final int SLOT_LIGHT   = 0xFFFFFFFF;
+    private static final int SLOT_FACE    = 0xFF8B8B8B;
+    private static final int LABEL_COLOR  = 0xFF404040;
+
+    /** Recipe-book button's natural Y offset below the GUI top (captured at init, before the shift). */
+    private int ironhold$recipeBtnOffsetY = 34;
 
     /** Synthesized constructor — never invoked. The mixin code is merged into InventoryScreen. */
-    protected InventoryScreenMixin(net.minecraft.world.inventory.InventoryMenu menu,
+    protected InventoryScreenMixin(InventoryMenu menu,
                                    net.minecraft.world.entity.player.Inventory inv,
                                    net.minecraft.network.chat.Component title) {
         super(menu, inv, title);
     }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    private void ironhold$resizePanel(Player player, CallbackInfo ci) {
-        AbstractContainerScreenAccessor acc = (AbstractContainerScreenAccessor) this;
-        acc.ironhold$setImageWidth(IronholdInventoryLayout.MAIN_W);
-        acc.ironhold$setImageHeight(IronholdInventoryLayout.MAIN_H);
-        // Texture has its own painted "CRAFTING" / "ACCESSORIES" labels.
-        this.titleLabelX = -10000;
-        this.inventoryLabelX = -10000;
-    }
-
-    @Inject(method = "init", at = @At("TAIL"))
-    private void ironhold$dropRecipeBook(CallbackInfo ci) {
-        // The recipe-book toggle ImageButton lives in children — remove it so users can't reopen.
-        List<GuiEventListener> toRemove = new ArrayList<>();
-        for (GuiEventListener child : this.children()) {
-            if (child instanceof ImageButton) {
-                toRemove.add(child);
-            }
-        }
-        for (GuiEventListener child : toRemove) {
-            if (child instanceof AbstractWidget w) {
-                this.removeWidget(w);
-            }
-        }
-
-        // The RecipeBookComponent itself is a private field on AbstractRecipeBookScreen,
-        // rendered explicitly in extractRenderState. Toggling its visibility off prevents
-        // the panel from drawing.
-        RecipeBookComponent<?> book = ((AbstractRecipeBookScreenAccessor) this).ironhold$getRecipeBookComponent();
-        if (book != null && book.isVisible()) {
-            book.toggleVisibility();
-        }
-
-        // Recipe book updateScreenPosition() shifted leftPos; restore centering.
-        this.leftPos = (this.width - this.imageWidth) / 2;
-    }
-
     /**
-     * Replace vanilla's extractBackground entirely. Vanilla blits the 176×166 stone GUI
-     * (which leaves transparent gaps around our larger custom panel) and renders the player
-     * paperdoll at hardcoded coords. We draw our own textures + paperdoll instead.
+     * Nudge the whole inventory up so the accessory bar + label fit below it. Record the recipe-book
+     * button's natural offset from the GUI top first; it's re-pinned every frame in
+     * {@link #ironhold$drawDockedPanels} because vanilla resets its Y whenever the book is toggled.
      */
-    @Inject(method = "extractBackground", at = @At("HEAD"), cancellable = true)
-    private void ironhold$drawCustomBackground(GuiGraphicsExtractor gfx, int mouseX, int mouseY,
-                                               float partialTick, CallbackInfo ci) {
-        // Apply live debug positions to every slot before they render.
-        ironhold$applyDebugPositions();
+    @Inject(method = "init", at = @At("TAIL"))
+    private void ironhold$initLayout(CallbackInfo ci) {
+        for (var child : this.children()) {
+            if (child instanceof net.minecraft.client.gui.components.ImageButton btn) {
+                ironhold$recipeBtnOffsetY = btn.getY() - this.topPos;
+            }
+        }
+        this.topPos -= IronholdInventoryLayout.GUI_SHIFT_UP;
+    }
 
+    /** Draw the docked panels after vanilla's background (slot items render later, on top). */
+    @Inject(method = "extractBackground", at = @At("TAIL"))
+    private void ironhold$drawDockedPanels(GuiGraphicsExtractor gfx, int mouseX, int mouseY,
+                                           float partialTick, CallbackInfo ci) {
         int left = this.leftPos;
         int top = this.topPos;
 
-        // Full-screen dim covers in-world HUD bleeding through around the custom panel.
-        gfx.fill(0, 0, this.width, this.height, 0xC0101010);
-
-        // Main panel
-        ironhold$blit(gfx, MAIN_TEXTURE, left, top,
-                IronholdInventoryLayout.MAIN_W, IronholdInventoryLayout.MAIN_H);
-
-        // Vanity panel — left of main (offset is debug-tunable)
-        int[] vp = IronholdSlotDebug.vanityPanelOffset();
-        ironhold$blit(gfx, VANITY_TEXTURE, left + vp[0], top + vp[1],
-                IronholdInventoryLayout.VANITY_PANEL_W, IronholdInventoryLayout.VANITY_PANEL_H);
-
-        // Skills panel — right of main (offset is debug-tunable)
-        int[] sp = IronholdSlotDebug.skillsPanelOffset();
-        ironhold$blit(gfx, SKILLS_TEXTURE, left + sp[0], top + sp[1],
-                IronholdInventoryLayout.SKILLS_PANEL_W, IronholdInventoryLayout.SKILLS_PANEL_H);
-
-        // Player paperdoll — bounds debug-tunable
-        Player player = Minecraft.getInstance().player;
-        if (player != null) {
-            int[] pd = IronholdSlotDebug.paperdoll();
-            InventoryScreen.extractEntityInInventoryFollowsMouse(
-                    gfx,
-                    left + pd[0], top + pd[1],
-                    left + pd[2], top + pd[3],
-                    pd[4], 0.0625F, mouseX, mouseY, player);
-        }
-
-        // Edit-mode overlay: outline the selected slot in cyan, plus a header.
-        if (IronholdSlotDebug.isEditMode()) {
-            ironhold$drawEditModeOverlay(gfx);
-        }
-
-        ci.cancel();
-    }
-
-    private void ironhold$applyDebugPositions() {
-        int n = Math.min(IronholdSlotDebug.SLOT_COUNT, this.menu.slots.size());
-        for (int i = 0; i < n; i++) {
-            int[] xy = IronholdSlotDebug.slotPos(i);
-            Slot slot = this.menu.slots.get(i);
-            SlotAccessor acc = (SlotAccessor) slot;
-            acc.ironhold$setX(xy[0]);
-            acc.ironhold$setY(xy[1]);
-        }
-    }
-
-    private void ironhold$drawEditModeOverlay(GuiGraphicsExtractor gfx) {
-        // Header strip at the top of the screen
-        gfx.fill(0, 0, this.width, 12, 0xCC000000);
-        gfx.text(this.font, "[ironhold edit] " + IronholdSlotDebug.summary()
-                + "  |  F4=off  Tab=cycle  Arrows=nudge  1234=group  P=print  R=reset",
-                4, 2, 0xFF55FFFF, false);
-
-        // Outline whatever is currently selected
-        int left = this.leftPos;
-        int top = this.topPos;
-        switch (IronholdSlotDebug.group()) {
-            case SLOT -> {
-                int[] xy = IronholdSlotDebug.slotPos(IronholdSlotDebug.selectedIndex());
-                ironhold$drawOutline(gfx, left + xy[0] - 1, top + xy[1] - 1, 18, 18, 0xFF55FFFF);
-            }
-            case PAPERDOLL -> {
-                int[] pd = IronholdSlotDebug.paperdoll();
-                ironhold$drawOutline(gfx, left + pd[0], top + pd[1],
-                        pd[2] - pd[0], pd[3] - pd[1], 0xFFFF55FF);
-            }
-            case VANITY_PANEL -> {
-                int[] vp2 = IronholdSlotDebug.vanityPanelOffset();
-                ironhold$drawOutline(gfx, left + vp2[0], top + vp2[1],
-                        IronholdInventoryLayout.VANITY_PANEL_W, IronholdInventoryLayout.VANITY_PANEL_H, 0xFF55FF55);
-            }
-            case SKILLS_PANEL -> {
-                int[] sp2 = IronholdSlotDebug.skillsPanelOffset();
-                ironhold$drawOutline(gfx, left + sp2[0], top + sp2[1],
-                        IronholdInventoryLayout.SKILLS_PANEL_W, IronholdInventoryLayout.SKILLS_PANEL_H, 0xFFFFFF55);
+        // Keep the recipe-book button pinned to the shifted GUI (vanilla resets its Y on toggle).
+        for (var child : this.children()) {
+            if (child instanceof net.minecraft.client.gui.components.ImageButton btn) {
+                btn.setY(top + ironhold$recipeBtnOffsetY);
             }
         }
+
+        boolean bookOpen = ironhold$recipeBookOpen();
+
+        // Vanity slots live in the left dock; the open recipe book covers that area, so hide them
+        // (move the slots off-screen) and skip drawing the panel while the book is open.
+        for (int i = 0; i < IronholdInventoryLayout.VANITY_DOCK_SLOT_Y.length; i++) {
+            var acc = (kingdom.smp.access.SlotAccessor) this.menu.slots.get(IronholdInventoryLayout.ACCESSORY_SLOT_END + i);
+            if (bookOpen) {
+                acc.ironhold$setX(-9999);
+                acc.ironhold$setY(-9999);
+            } else {
+                acc.ironhold$setX(IronholdInventoryLayout.VANITY_DOCK_SLOT_X);
+                acc.ironhold$setY(IronholdInventoryLayout.VANITY_DOCK_SLOT_Y[i]);
+            }
+        }
+
+        if (!bookOpen) {
+            // Vanity panel — docked left of the inventory: "Vanity" header above 4 vertical slots.
+            int vx0 = left + IronholdInventoryLayout.VANITY_DOCK_X;
+            int vy0 = top + IronholdInventoryLayout.VANITY_DOCK_Y;
+            ironhold$panel(gfx, vx0, vy0,
+                    vx0 + IronholdInventoryLayout.VANITY_DOCK_W, vy0 + IronholdInventoryLayout.VANITY_DOCK_H);
+            gfx.text(this.font, "Vanity",
+                    left + IronholdInventoryLayout.VANITY_DOCK_CENTER_X - this.font.width("Vanity") / 2,
+                    top + IronholdInventoryLayout.VANITY_DOCK_TITLE_Y, LABEL_COLOR, false);
+            for (int i = 0; i < IronholdInventoryLayout.VANITY_DOCK_SLOT_Y.length; i++) {
+                ironhold$slotCell(gfx,
+                        left + IronholdInventoryLayout.VANITY_DOCK_SLOT_X - 1,
+                        top + IronholdInventoryLayout.VANITY_DOCK_SLOT_Y[i] - 1);
+            }
+        }
+
+        // Accessory bar — docked below: 5 centered slots with "Accessories" label beneath.
+        int ax0 = left + IronholdInventoryLayout.ACC_PANEL_X;
+        int ay0 = top + IronholdInventoryLayout.ACC_PANEL_Y;
+        ironhold$panel(gfx, ax0, ay0,
+                ax0 + IronholdInventoryLayout.ACC_PANEL_W, ay0 + IronholdInventoryLayout.ACC_PANEL_H);
+        for (int i = 0; i < 5; i++) {
+            ironhold$slotCell(gfx,
+                    left + IronholdInventoryLayout.ACC_SLOT_X0 + i * IronholdInventoryLayout.COSMETIC_SLOT_PITCH - 1,
+                    top + IronholdInventoryLayout.ACC_ROW_Y - 1);
+        }
+        gfx.text(this.font, "Accessories",
+                left + IronholdInventoryLayout.ACC_CENTER_X - this.font.width("Accessories") / 2,
+                top + IronholdInventoryLayout.ACC_LABEL_Y, LABEL_COLOR, false);
     }
 
-    private static void ironhold$drawOutline(GuiGraphicsExtractor gfx, int x, int y, int w, int h, int color) {
-        gfx.fill(x,         y,         x + w, y + 1, color);  // top
-        gfx.fill(x,         y + h - 1, x + w, y + h, color);  // bottom
-        gfx.fill(x,         y,         x + 1, y + h, color);  // left
-        gfx.fill(x + w - 1, y,         x + w, y + h, color);  // right
+    private boolean ironhold$recipeBookOpen() {
+        if (!(this instanceof AbstractRecipeBookScreenAccessor acc)) return false;
+        var book = acc.ironhold$getRecipeBookComponent();
+        return book != null && book.isVisible();
     }
 
-    private static void ironhold$blit(GuiGraphicsExtractor gfx, Identifier tex,
-                                      int x, int y, int w, int h) {
-        gfx.blit(RenderPipelines.GUI_TEXTURED, tex, x, y, 0f, 0f, w, h, w, h, w, h);
+    /** Classic beveled gray Minecraft container panel. */
+    private static void ironhold$panel(GuiGraphicsExtractor gfx, int x0, int y0, int x1, int y1) {
+        gfx.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, PANEL_BORDER);
+        gfx.fill(x0, y0, x1, y1, PANEL_BG);
+        gfx.fill(x0, y0, x1, y0 + 2, PANEL_HI);
+        gfx.fill(x0, y0, x0 + 2, y1, PANEL_HI);
+        gfx.fill(x0, y1 - 2, x1, y1, PANEL_LO);
+        gfx.fill(x1 - 2, y0, x1, y1, PANEL_LO);
+    }
+
+    /** Vanilla sunken 18×18 slot cell (dark top-left, light bottom-right). */
+    private static void ironhold$slotCell(GuiGraphicsExtractor gfx, int x, int y) {
+        gfx.fill(x, y, x + 18, y + 18, SLOT_DARK);
+        gfx.fill(x + 1, y + 1, x + 18, y + 18, SLOT_LIGHT);
+        gfx.fill(x + 1, y + 1, x + 17, y + 17, SLOT_FACE);
     }
 }

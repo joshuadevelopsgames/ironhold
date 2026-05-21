@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:an_old_wives_tale",
+  "width": 2,
+  "height": 3,
+  "title": {
+    "translate": "painting.ironhold.an_old_wives_tale.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.an_old_wives_tale.author",
+    "color": "gray"
+  }
+}

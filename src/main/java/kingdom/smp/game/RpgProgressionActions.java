@@ -7,6 +7,8 @@ import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import kingdom.smp.rpg.RpgProgression;
+import kingdom.smp.skill.PlayerSkillState;
+import kingdom.smp.skill.SkillSavedData;
 import kingdom.smp.world.KingdomWorldData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
@@ -31,6 +33,17 @@ public final class RpgProgressionActions {
         if (amount <= 0) {
             return player.getData(ModAttachments.PLAYER_RPG.get());
         }
+        // Class XP is frozen while a promotion is pending. Kingdom-pool XP still
+        // accumulates — that's a shared kingdom resource and shouldn't be held
+        // hostage by one player who hasn't picked yet. We also nudge the player
+        // toward the class-selection screen on every blocked grant.
+        if (hasPendingPromotion(player)) {
+            PlayerKingdomRpgData rpg = player.getData(ModAttachments.PLAYER_RPG.get());
+            KingdomWorldData world = overworldData(player);
+            world.addKingdomXp(rpg.kingdomIndexClamped(), amount);
+            nagPendingPromotion(player);
+            return rpg;
+        }
         PlayerKingdomRpgData cur = player.getData(ModAttachments.PLAYER_RPG.get());
         int oldLevel = cur.classLevel();
         PlayerKingdomRpgData leveled = RpgProgression.addClassXp(cur, amount);
@@ -43,10 +56,113 @@ public final class RpgProgressionActions {
 
         if (leveled.classLevel() > oldLevel) {
             celebrateLevelUp(player, leveled, oldLevel);
+            awardSkillPointsForCrossedGates(player, oldLevel, leveled.classLevel());
             checkPromotion(player, leveled, oldLevel);
         }
 
         return leveled;
+    }
+
+    // ── Pending-promotion enforcement ────────────────────────────────────────
+
+    /** Ticks between reopen-screen nags while a promotion is pending. */
+    private static final int PROMOTION_REOPEN_INTERVAL = 100;
+
+    /**
+     * True when the player is at-or-past their tier's promotion threshold AND
+     * has at least one unlockable next-tier class. Creative-mode players are
+     * always exempt (matches the level-gate bypass in
+     * {@code ModNetworking.handleClassChoice}).
+     */
+    public static boolean hasPendingPromotion(ServerPlayer player) {
+        if (player.isCreative()) return false;
+        PlayerKingdomRpgData rpg = player.getData(ModAttachments.PLAYER_RPG.get());
+        PlayerClass pc = rpg.playerClass();
+        int tier = pc.tier();
+        if (tier >= 4) return false;
+        int promoLevel = RpgProgression.promotionLevelForTier(tier);
+        if (promoLevel <= 0 || rpg.classLevel() < promoLevel) return false;
+
+        CompletedClasses completed = player.getData(ModAttachments.COMPLETED_CLASSES.get())
+                .withCompleted(pc);
+        int nextTier = tier + 1;
+        for (PlayerClass candidate : PlayerClass.values()) {
+            if (candidate.tier() == nextTier && candidate.canUnlock(completed.asSet())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Called every player tick — if a promotion is pending and the player isn't
+     * already in some menu, re-open the class-selection screen every
+     * {@value #PROMOTION_REOPEN_INTERVAL} ticks (≈5s) so they can't dismiss it
+     * indefinitely. Also shows a persistent action-bar nag.
+     */
+    public static void reopenPromotionScreenIfNeeded(ServerPlayer player) {
+        if (!hasPendingPromotion(player)) return;
+        // Action-bar nag every second so even players with a container open know.
+        if (player.tickCount % 20 == 0) {
+            player.sendSystemMessage(
+                Component.literal("§6§lPromotion required — choose your next class!"),
+                true);
+        }
+        // Only re-open if the player isn't currently in another menu. Players in
+        // their own inventory have containerMenu == inventoryMenu; we treat that
+        // as "no menu open" and re-show the class-selection screen.
+        if (player.containerMenu != player.inventoryMenu) return;
+        if (player.tickCount % PROMOTION_REOPEN_INTERVAL != 0) return;
+        PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+    }
+
+    private static void nagPendingPromotion(ServerPlayer player) {
+        player.sendSystemMessage(Component.literal(
+            "§cYou must choose a promotion before gaining more class XP."));
+        PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+    }
+
+    // ── Skill-point gates ────────────────────────────────────────────────────
+
+    /** Class levels divisible by this grant skill-tree points. */
+    private static final int SKILL_POINT_GATE_INTERVAL = 5;
+    /** Skill points awarded per gate. */
+    private static final int SKILL_POINTS_PER_GATE = 1;
+
+    /**
+     * Awards one skill-tree point for each multiple-of-{@value #SKILL_POINT_GATE_INTERVAL}
+     * class level the player crossed during this grant. Each gate is tracked as a stable
+     * milestone id ({@code "class_level_N"}), so {@link PlayerSkillState#withMilestone}
+     * short-circuits double-awards if the player resets and re-levels.
+     */
+    private static void awardSkillPointsForCrossedGates(ServerPlayer player, int oldLevel, int newLevel) {
+        int firstGate = ((oldLevel / SKILL_POINT_GATE_INTERVAL) + 1) * SKILL_POINT_GATE_INTERVAL;
+        if (firstGate > newLevel) return;
+
+        SkillSavedData data = SkillSavedData.get((ServerLevel) player.level());
+        PlayerSkillState state = data.stateFor(player.getUUID());
+        int totalAwarded = 0;
+        for (int gate = firstGate; gate <= newLevel; gate += SKILL_POINT_GATE_INTERVAL) {
+            String milestoneId = "class_level_" + gate;
+            PlayerSkillState updated = state.withMilestone(milestoneId, SKILL_POINTS_PER_GATE);
+            if (updated == state) continue; // already awarded — idempotent
+            state = updated;
+            totalAwarded += SKILL_POINTS_PER_GATE;
+        }
+        if (totalAwarded == 0) return;
+
+        data.setState(player.getUUID(), state);
+        ModNetworking.syncSkillsToClient(player);
+
+        final int awarded = totalAwarded;
+        final int totalUnspent = state.unspentProfessionPoints();
+        player.sendSystemMessage(
+            Component.empty()
+                .append(Component.literal("★ ").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFD700))))
+                .append(Component.literal("+" + awarded + " skill point" + (awarded > 1 ? "s" : ""))
+                    .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFD700)).withBold(true)))
+                .append(Component.literal(" (" + totalUnspent + " unspent)")
+                    .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAAAA)))));
     }
 
     // ── Level-up celebration ─────────────────────────────────────────────────

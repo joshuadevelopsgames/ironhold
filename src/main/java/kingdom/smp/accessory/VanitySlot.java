@@ -1,8 +1,10 @@
 package kingdom.smp.accessory;
 
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.Equippable;
@@ -30,6 +32,22 @@ public class VanitySlot extends Slot {
     @Override
     public int getMaxStackSize() {
         return 1;
+    }
+
+    /**
+     * Show the same empty-slot silhouette vanilla armor slots use (helmet / chestplate /
+     * leggings / boots), so players know what goes where. Vanilla only renders this when the
+     * slot is empty, so it disappears once a piece is equipped.
+     */
+    @Override
+    public Identifier getNoItemIcon() {
+        return switch (requiredSlot) {
+            case HEAD -> InventoryMenu.EMPTY_ARMOR_SLOT_HELMET;
+            case CHEST -> InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE;
+            case LEGS -> InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS;
+            case FEET -> InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS;
+            default -> super.getNoItemIcon();
+        };
     }
 
     public EquipmentSlot getRequiredSlot() {

@@ -14,18 +14,25 @@ import kingdom.smp.ModAttachments;
 import kingdom.smp.entity.KangarudeEntity;
 import kingdom.smp.entity.KingdomVillagerEntity;
 import kingdom.smp.entity.VillagerProfession;
+import kingdom.smp.food.CookingRecipe;
+import kingdom.smp.food.CookingRecipes;
+import kingdom.smp.food.CookingService;
 import kingdom.smp.game.EncumbranceHandler;
 import kingdom.smp.gear.GearComponents;
 import kingdom.smp.gear.ItemCondition;
 import kingdom.smp.gear.ItemQuality;
-import kingdom.smp.gear.RepairFatigue;
 import kingdom.smp.skill.PlayerSkillState;
 import kingdom.smp.skill.Profession;
 import kingdom.smp.skill.ProfessionRank;
 import kingdom.smp.skill.SkillSavedData;
+import kingdom.smp.skill.useskill.PlayerUseSkills;
+import kingdom.smp.skill.useskill.UseSkill;
+import kingdom.smp.skill.useskill.UseSkillCurve;
 import kingdom.smp.structure.IscScanner;
 import kingdom.smp.structure.IscStorage;
 import kingdom.smp.structure.IscStructure;
+import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import kingdom.smp.game.RpgProgressionActions;
 import kingdom.smp.net.ModNetworking;
@@ -117,6 +124,35 @@ public final class IronholdCommands {
         return builder.buildFuture();
     };
 
+    /** Profession ranks plus the literal "none" for clearing. */
+    private static final SuggestionProvider<CommandSourceStack> PROFESSION_RANK_SUGGESTIONS = (ctx, builder) -> {
+        String rem = builder.getRemaining().toLowerCase();
+        if ("none".startsWith(rem)) builder.suggest("none");
+        for (ProfessionRank r : ProfessionRank.values()) {
+            String id = r.getSerializedName();
+            if (rem.isEmpty() || id.startsWith(rem)) builder.suggest(id);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> USESKILL_NAME_SUGGESTIONS = (ctx, builder) -> {
+        String rem = builder.getRemaining().toLowerCase();
+        for (UseSkill s : UseSkill.values()) {
+            String id = s.getSerializedName();
+            if (rem.isEmpty() || id.startsWith(rem)) builder.suggest(id);
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> RECIPE_ID_SUGGESTIONS = (ctx, builder) -> {
+        String rem = builder.getRemaining().toLowerCase();
+        for (CookingRecipe r : CookingRecipes.all()) {
+            String id = r.id().toString();
+            if (rem.isEmpty() || id.startsWith(rem)) builder.suggest(id);
+        }
+        return builder.buildFuture();
+    };
+
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher()
             .register(
@@ -133,7 +169,16 @@ public final class IronholdCommands {
                                             .executes(
                                                 ctx -> setClass(
                                                     ctx.getSource(),
-                                                    StringArgumentType.getString(ctx, "id"))))))
+                                                    StringArgumentType.getString(ctx, "id")))))
+                            .then(
+                                Commands.literal("clear")
+                                    .executes(ctx -> clearClassSelf(ctx.getSource()))
+                                    .then(
+                                        Commands.argument("targets", EntityArgument.players())
+                                            .executes(
+                                                ctx -> clearClassTargets(
+                                                    ctx.getSource(),
+                                                    EntityArgument.getPlayers(ctx, "targets"))))))
                     .then(
                         Commands.literal("kingdom")
                             .then(
@@ -227,11 +272,6 @@ public final class IronholdCommands {
                                     .executes(ctx -> setGearQuality(
                                         ctx.getSource(),
                                         StringArgumentType.getString(ctx, "quality")))))
-                            .then(Commands.literal("setfatigue")
-                                .then(Commands.argument("level", IntegerArgumentType.integer(0, RepairFatigue.MAX_LEVEL))
-                                    .executes(ctx -> setGearFatigue(
-                                        ctx.getSource(),
-                                        IntegerArgumentType.getInteger(ctx, "level")))))
                             .then(Commands.literal("setpristine")
                                 .then(Commands.argument("flag", StringArgumentType.word())
                                     .suggests(BOOL_SUGGESTIONS)
@@ -265,7 +305,45 @@ public final class IronholdCommands {
                                             ctx.getSource(),
                                             StringArgumentType.getString(ctx, "id"),
                                             IntegerArgumentType.getInteger(ctx, "points"))))))
-                            .then(Commands.literal("reset").executes(ctx -> skillReset(ctx.getSource()))))
+                            .then(Commands.literal("reset").executes(ctx -> skillReset(ctx.getSource())))
+                            .then(Commands.literal("setrank")
+                                .then(Commands.argument("profession", StringArgumentType.word())
+                                    .suggests(PROFESSION_NAME_SUGGESTIONS)
+                                    .then(Commands.argument("rank", StringArgumentType.word())
+                                        .suggests(PROFESSION_RANK_SUGGESTIONS)
+                                        .executes(ctx -> skillSetRank(
+                                            ctx.getSource(),
+                                            StringArgumentType.getString(ctx, "profession"),
+                                            StringArgumentType.getString(ctx, "rank")))))))
+                    .then(
+                        Commands.literal("useskill")
+                            .then(Commands.literal("info").executes(ctx -> useSkillInfo(ctx.getSource())))
+                            .then(Commands.literal("setlevel")
+                                .then(Commands.argument("skill", StringArgumentType.word())
+                                    .suggests(USESKILL_NAME_SUGGESTIONS)
+                                    .then(Commands.argument("level", IntegerArgumentType.integer(0, UseSkill.MAX_LEVEL))
+                                        .executes(ctx -> useSkillSetLevel(
+                                            ctx.getSource(),
+                                            StringArgumentType.getString(ctx, "skill"),
+                                            IntegerArgumentType.getInteger(ctx, "level")))))))
+                    .then(
+                        Commands.literal("cook")
+                            .then(Commands.argument("recipe", IdentifierArgument.id())
+                                .suggests(RECIPE_ID_SUGGESTIONS)
+                                .executes(ctx -> cookRecipe(ctx.getSource(),
+                                    IdentifierArgument.getId(ctx, "recipe")))))
+                    .then(
+                        Commands.literal("cookbook")
+                            .then(Commands.literal("learn")
+                                .then(Commands.argument("recipe", IdentifierArgument.id())
+                                    .suggests(RECIPE_ID_SUGGESTIONS)
+                                    .executes(ctx -> cookbookLearn(ctx.getSource(),
+                                        IdentifierArgument.getId(ctx, "recipe")))))
+                            .then(Commands.literal("forget")
+                                .then(Commands.argument("recipe", IdentifierArgument.id())
+                                    .suggests(RECIPE_ID_SUGGESTIONS)
+                                    .executes(ctx -> cookbookForget(ctx.getSource(),
+                                        IdentifierArgument.getId(ctx, "recipe"))))))
                     .then(
                         Commands.literal("struct")
                             .then(Commands.literal("scan")
@@ -485,6 +563,45 @@ public final class IronholdCommands {
         player.setData(ModAttachments.PLAYER_RPG.get(), next);
         src.sendSuccess(() -> Component.literal("Class set to " + c.id()), false);
         return 1;
+    }
+
+    private static int clearClassSelf(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only — pass a target selector to clear someone else."));
+            return 0;
+        }
+        applyClassClear(src, player);
+        return 1;
+    }
+
+    private static int clearClassTargets(CommandSourceStack src, Collection<ServerPlayer> targets) {
+        for (ServerPlayer p : targets) {
+            applyClassClear(src, p);
+        }
+        return targets.size();
+    }
+
+    /**
+     * Resets a player to PEASANT L1 0xp, wipes all profession skill ranks and milestones,
+     * preserves their kingdom assignment, re-applies class stats and resyncs to client.
+     */
+    private static void applyClassClear(CommandSourceStack src, ServerPlayer player) {
+        PlayerKingdomRpgData cur = player.getData(ModAttachments.PLAYER_RPG.get());
+        PlayerKingdomRpgData next = new PlayerKingdomRpgData(
+            cur.kingdomIndex(), PlayerClass.PEASANT.ordinal(), 1, 0);
+        player.setData(ModAttachments.PLAYER_RPG.get(), next);
+        kingdom.smp.game.ClassStatHandler.apply(player, next);
+        kingdom.smp.game.RpgXpBarSync.sync(player, next);
+        kingdom.smp.net.ModNetworking.syncToClient(player);
+
+        SkillSavedData skillData = SkillSavedData.get((ServerLevel) player.level());
+        skillData.reset(player.getUUID());
+        kingdom.smp.net.ModNetworking.syncSkillsToClient(player);
+
+        src.sendSuccess(
+            () -> Component.literal("Cleared class & skill levels for "
+                + player.getName().getString() + " → Peasant L1, skill state reset"),
+            true);
     }
 
     private static int setKingdom(CommandSourceStack src, int index) {
@@ -770,14 +887,6 @@ public final class IronholdCommands {
         return 1;
     }
 
-    private static int setGearFatigue(CommandSourceStack src, int level) {
-        ItemStack held = heldDamageable(src);
-        if (held.isEmpty()) return 0;
-        GearComponents.setFatigue(held, new RepairFatigue(level));
-        src.sendSuccess(() -> Component.literal("Set fatigue → " + level), false);
-        return 1;
-    }
-
     private static int setGearPristine(CommandSourceStack src, boolean flag) {
         ItemStack held = heldDamageable(src);
         if (held.isEmpty()) return 0;
@@ -885,6 +994,99 @@ public final class IronholdCommands {
         return 1;
     }
 
+    private static int skillSetRank(CommandSourceStack src, String professionRaw, String rankRaw) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        Profession profession = parseProfession(src, professionRaw);
+        if (profession == null) return 0;
+
+        // Special-case "none" clears the rank entirely.
+        boolean clear = rankRaw.equalsIgnoreCase("none");
+        ProfessionRank rank = null;
+        if (!clear) {
+            for (ProfessionRank r : ProfessionRank.values()) {
+                if (r.getSerializedName().equalsIgnoreCase(rankRaw)) { rank = r; break; }
+            }
+            if (rank == null) {
+                src.sendFailure(Component.literal("Unknown rank: " + rankRaw
+                    + " (use novice|apprentice|journeyman|expert|master|none)"));
+                return 0;
+            }
+        }
+
+        SkillSavedData data = SkillSavedData.get((ServerLevel) player.level());
+        PlayerSkillState state = data.stateFor(player.getUUID());
+        java.util.Map<Profession, ProfessionRank> newRanks = new java.util.EnumMap<>(state.currentRanks());
+        if (clear) {
+            newRanks.remove(profession);
+        } else {
+            newRanks.put(profession, rank);
+        }
+        PlayerSkillState updated = new PlayerSkillState(
+            state.unspentProfessionPoints(),
+            newRanks,
+            state.milestonesCompleted());
+        data.setState(player.getUUID(), updated);
+        ModNetworking.syncSkillsToClient(player);
+        final ProfessionRank finalRank = rank;
+        src.sendSuccess(() -> Component.literal(
+            profession.displayName() + " → " + (clear ? "(cleared)" : finalRank.displayName())
+                + " (free admin set; points unchanged)"), false);
+        return 1;
+    }
+
+    private static int useSkillInfo(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        PlayerUseSkills data = player.getData(ModAttachments.USE_SKILLS.get());
+        StringBuilder sb = new StringBuilder();
+        for (UseSkill s : UseSkill.values()) {
+            float xp = data.xpFor(s);
+            int level = data.levelFor(s);
+            float into = UseSkillCurve.xpIntoLevel(xp);
+            float next = level >= UseSkill.MAX_LEVEL ? 0f : UseSkillCurve.xpForNext(level);
+            if (sb.length() > 0) sb.append(" | ");
+            sb.append(s.displayName()).append(": L").append(level)
+              .append(" (").append(String.format("%.1f", into))
+              .append("/").append(String.format("%.1f", next)).append(" xp)");
+        }
+        src.sendSuccess(() -> Component.literal(sb.toString()), false);
+        return 1;
+    }
+
+    private static int useSkillSetLevel(CommandSourceStack src, String skillRaw, int level) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        UseSkill skill = null;
+        for (UseSkill s : UseSkill.values()) {
+            if (s.getSerializedName().equalsIgnoreCase(skillRaw)) { skill = s; break; }
+        }
+        if (skill == null) {
+            src.sendFailure(Component.literal("Unknown use-skill: " + skillRaw));
+            return 0;
+        }
+        // Total XP needed = sum of xpForNext for levels 0..level-1, plus a hair
+        // to clear the threshold (avoids float-precision rounding to level-1).
+        float xpAcc = 0f;
+        for (int i = 0; i < level; i++) xpAcc += UseSkillCurve.xpForNext(i);
+        if (level > 0) xpAcc += 0.01f;
+        final float total = xpAcc;
+
+        PlayerUseSkills cur = player.getData(ModAttachments.USE_SKILLS.get());
+        java.util.EnumMap<UseSkill, Float> next = new java.util.EnumMap<>(cur.xp());
+        next.put(skill, total);
+        player.setData(ModAttachments.USE_SKILLS.get(), new PlayerUseSkills(next));
+
+        final UseSkill finalSkill = skill;
+        src.sendSuccess(() -> Component.literal(
+            finalSkill.displayName() + " set to L" + level + " ("
+                + String.format("%.1f", total) + " total xp)"), false);
+        return 1;
+    }
+
     private static int skillReset(CommandSourceStack src) {
         if (!(src.getEntity() instanceof ServerPlayer player)) {
             src.sendFailure(Component.literal("Players only.")); return 0;
@@ -893,6 +1095,52 @@ public final class IronholdCommands {
         data.reset(player.getUUID());
         ModNetworking.syncSkillsToClient(player);
         src.sendSuccess(() -> Component.literal("Skill state reset to fresh defaults (3 unspent points)."), false);
+        return 1;
+    }
+
+    // ── Cooking gate debug commands (Phase 0) ─────────────────────────────────
+
+    private static int cookRecipe(CommandSourceStack src, Identifier recipeId) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        CookingService.Result result = CookingService.tryCook(player, recipeId);
+        if (result.status() == CookingService.Status.SUCCESS) {
+            src.sendSuccess(result::message, false);
+            return 1;
+        }
+        src.sendFailure(result.message());
+        return 0;
+    }
+
+    private static int cookbookLearn(CommandSourceStack src, Identifier recipeId) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        if (CookingRecipes.get(recipeId) == null) {
+            src.sendFailure(Component.literal("Unknown recipe: " + recipeId));
+            return 0;
+        }
+        boolean newlyLearned = CookingService.learn(player, recipeId);
+        src.sendSuccess(() -> Component.literal(newlyLearned
+                ? "Learned recipe: " + recipeId
+                : "Already knew: " + recipeId), false);
+        return 1;
+    }
+
+    private static int cookbookForget(CommandSourceStack src, Identifier recipeId) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only.")); return 0;
+        }
+        kingdom.smp.food.KnownRecipes known = player.getData(ModAttachments.KNOWN_RECIPES.get());
+        if (!known.knows(recipeId)) {
+            src.sendFailure(Component.literal("Don't know: " + recipeId));
+            return 0;
+        }
+        java.util.Set<Identifier> next = new java.util.HashSet<>(known.learned());
+        next.remove(recipeId);
+        player.setData(ModAttachments.KNOWN_RECIPES.get(), new kingdom.smp.food.KnownRecipes(next));
+        src.sendSuccess(() -> Component.literal("Forgot recipe: " + recipeId), false);
         return 1;
     }
 
@@ -907,7 +1155,6 @@ public final class IronholdCommands {
             ), false);
             return 1;
         }
-        RepairFatigue f = GearComponents.getFatigue(held);
         boolean pristine = GearComponents.isPristine(held);
         ItemCondition cond = ItemCondition.fromStack(held);
         int max = held.getMaxDamage();
@@ -915,7 +1162,6 @@ public final class IronholdCommands {
         src.sendSuccess(() -> Component.literal(
                 "Quality: " + q.displayName()
                 + " | Condition: " + cond.displayName()
-                + " | Fatigue: " + f.level() + "/" + RepairFatigue.MAX_LEVEL
                 + " | Pristine: " + pristine
                 + " | Durability: " + (max - dmg) + "/" + max
         ), false);

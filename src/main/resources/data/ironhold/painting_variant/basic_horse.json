@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:basic_horse",
+  "width": 1,
+  "height": 1,
+  "title": {
+    "translate": "painting.ironhold.basic_horse.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.basic_horse.author",
+    "color": "gray"
+  }
+}

@@ -37,8 +37,13 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.minecraft.world.entity.monster.MagmaCube;
+import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -50,11 +55,29 @@ public final class IronholdGameEvents {
     /** Sync interval: send RPG data packet every N ticks (not every tick). */
     private static final int SYNC_INTERVAL = 10;
 
+    /** Chance for the smallest (baby) slime to drop a Pink Slime Ball on death. */
+    private static final float PINK_SLIME_BALL_DROP_CHANCE = 0.025F;
+
+    /** Drop a Pink Slime Ball 2.5% of the time a baby (smallest) slime dies. */
+    @SubscribeEvent
+    public static void onBabySlimeDrops(LivingDropsEvent event) {
+        if (!(event.getEntity() instanceof Slime slime)) return;
+        if (slime instanceof MagmaCube) return;
+        if (slime.getSize() != 1) return; // size 1 = smallest "baby" slime
+        if (slime.getRandom().nextFloat() >= PINK_SLIME_BALL_DROP_CHANCE) return;
+
+        ItemStack drop = new ItemStack(Ironhold.PINK_SLIME_BALL.get());
+        event.getDrops().add(new ItemEntity(slime.level(),
+            slime.getX(), slime.getY(), slime.getZ(), drop));
+    }
+
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         IronholdCommands.register(event);
         kingdom.smp.command.SkillsCommand.register(event);
+        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
+        // kingdom.smp.seasons.SeasonsCommand.register(event);
     }
 
     @SubscribeEvent
@@ -105,6 +128,10 @@ public final class IronholdGameEvents {
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         NpcSessionGreetings.forgetPlayer(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer sp) {
+            kingdom.smp.fishing.FishingMinigameManager.clear(sp);
+            kingdom.smp.blacksmithing.BlacksmithingMinigameManager.clear(sp);
+        }
     }
 
     @SubscribeEvent
@@ -119,10 +146,30 @@ public final class IronholdGameEvents {
         ModNetworking.syncToClient(player);
         // Sync profession-skill state for the SkillTreeScreen
         ModNetworking.syncSkillsToClient(player);
+        // Sync use-to-level skills for the Practice tab
+        ModNetworking.syncUseSkillsToClient(player);
         // Backfill any currently-online Kangarude/Kangabrine tab-list entries
         // so they appear in this player's list immediately on login (rather than
         // waiting for the next entity tick to broadcast).
         kingdom.smp.entity.KangarudePlayerListSync.resendAllTo(player);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        var rpg = player.getData(ModAttachments.PLAYER_RPG.get());
+        // Class attribute modifiers are transient, so they're wiped when the
+        // player entity is recreated on respawn. Re-apply them so the class's
+        // bonus hearts (and other stats) survive death instead of resetting.
+        ClassStatHandler.apply(player, rpg);
+        // On a death respawn, start at the full class-adjusted max health rather
+        // than the vanilla default 20. End-portal returns keep their prior health.
+        if (!event.isEndConquered()) {
+            player.setHealth(player.getMaxHealth());
+        }
+        RpgXpBarSync.sync(player, rpg);
     }
 
     @SubscribeEvent
@@ -137,9 +184,15 @@ public final class IronholdGameEvents {
         EncumbranceHandler.tick(player, ModAttachments.PLAYER_RPG.get());
         RpgXpBarSync.sync(player, rpg);
 
+        // Force pending promotions — re-show the class-selection screen on a
+        // throttle until the player picks. Class XP gain is already blocked at
+        // the grant site.
+        kingdom.smp.game.RpgProgressionActions.reopenPromotionScreenIfNeeded(player);
+
         // Periodic RPG data sync to client (every SYNC_INTERVAL ticks)
         if (player.tickCount % SYNC_INTERVAL == 0) {
             ModNetworking.syncToClient(player);
+            ModNetworking.syncUseSkillsToClient(player);
         }
 
     }
@@ -293,6 +346,129 @@ public final class IronholdGameEvents {
             kingdom.smp.entity.HalricQuestSavedData.State.COMPLETED);
         killer.sendSystemMessage(Component.literal(
             "§6§o[The Mimic falls. Word will reach Warden Halric.]"));
+    }
+
+    /** Small chance for a special drop on every Nth player kill of certain mobs. */
+    private static final int BREEZE_DROP_INTERVAL = 8;
+    private static final int DROWNED_DROP_INTERVAL = 10;
+    /** Chance a Woodland Mansion vindicator is rerolled into a Possessed Armor. */
+    private static final float MANSION_POSSESSED_ARMOR_CHANCE = 0.10F;
+    /** Every Nth pillager spawned at a Pillager Outpost is rerolled into a Possessed Armor. */
+    private static final int OUTPOST_POSSESSED_ARMOR_INTERVAL = 15;
+    private static final java.util.concurrent.atomic.AtomicInteger OUTPOST_PILLAGER_COUNT =
+        new java.util.concurrent.atomic.AtomicInteger();
+
+    /**
+     * Periodic special drops: every 8th Breeze yields a Breeze in a Bottle and
+     * every 10th Drowned yields a Seashell. Only player kills count, tallied
+     * world-wide via {@link kingdom.smp.world.KillTallyData}.
+     */
+    @SubscribeEvent
+    public static void onSpecialMobDrops(LivingDeathEvent event) {
+        var victim = event.getEntity();
+        if (!(victim.level() instanceof ServerLevel level)) return;
+        if (!(event.getSource().getEntity() instanceof ServerPlayer)) return;
+
+        if (victim instanceof net.minecraft.world.entity.monster.breeze.Breeze) {
+            if (killTally(level).recordAndShouldDrop("breeze", BREEZE_DROP_INTERVAL)) {
+                victim.spawnAtLocation(level, new ItemStack(Ironhold.CLOUD_IN_A_BOTTLE.get()));
+            }
+        } else if (victim instanceof net.minecraft.world.entity.monster.zombie.Drowned) {
+            if (killTally(level).recordAndShouldDrop("drowned", DROWNED_DROP_INTERVAL)) {
+                victim.spawnAtLocation(level, new ItemStack(Ironhold.SEASHELL.get()));
+            }
+        } else if (victim instanceof kingdom.smp.entity.ArcaneMageEntity) {
+            // The naturally-spawning arcane mob yields a Totem of Undying when slain by a player.
+            victim.spawnAtLocation(level, new ItemStack(net.minecraft.world.item.Items.TOTEM_OF_UNDYING));
+        }
+    }
+
+    private static kingdom.smp.world.KillTallyData killTally(ServerLevel level) {
+        return level.getServer().getLevel(Level.OVERWORLD)
+            .getDataStorage().computeIfAbsent(kingdom.smp.world.KillTallyData.TYPE);
+    }
+
+    /**
+     * Reroll a small fraction of Woodland Mansion vindicators into Possessed
+     * Armor. The structure check gates this to mansion spawns only — raid and
+     * wild vindicators are untouched. The rerolled armor is flagged to drop a
+     * Wraith's Sigil at 100% on death.
+     */
+    @SubscribeEvent
+    public static void onMansionVindicatorJoin(EntityJoinLevelEvent event) {
+        if (event.loadedFromDisk()) return;
+        if (event.getEntity().getClass() != net.minecraft.world.entity.monster.illager.Vindicator.class) return;
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+
+        var vindicator = event.getEntity();
+        StructureStart mansion = level.structureManager()
+            .getStructureWithPieceAt(vindicator.blockPosition(),
+                holder -> holder.is(BuiltinStructures.WOODLAND_MANSION));
+        if (!mansion.isValid()) return;
+        if (level.getRandom().nextFloat() >= MANSION_POSSESSED_ARMOR_CHANCE) return;
+
+        kingdom.smp.entity.PossessedArmorEntity armor =
+            Ironhold.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
+        if (armor == null) return;
+        armor.snapTo(vindicator.getX(), vindicator.getY(), vindicator.getZ(),
+            vindicator.getYRot(), vindicator.getXRot());
+        armor.setDropsWraithsSigil(true);
+        armor.finalizeSpawn(level, level.getCurrentDifficultyAt(vindicator.blockPosition()),
+            EntitySpawnReason.STRUCTURE, null);
+        level.addFreshEntity(armor);
+        event.setCanceled(true);
+    }
+
+    /**
+     * Reroll every Nth pillager that spawns at a Pillager Outpost into a
+     * Possessed Armor. The structure check gates this to outpost spawns only —
+     * raid and wild pillagers are untouched. Uses a world-wide counter so the
+     * cadence is deterministic rather than probabilistic.
+     */
+    @SubscribeEvent
+    public static void onOutpostPillagerJoin(EntityJoinLevelEvent event) {
+        if (event.loadedFromDisk()) return;
+        if (event.getEntity().getClass() != net.minecraft.world.entity.monster.illager.Pillager.class) return;
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+
+        var pillager = event.getEntity();
+        StructureStart outpost = level.structureManager()
+            .getStructureWithPieceAt(pillager.blockPosition(),
+                holder -> holder.is(BuiltinStructures.PILLAGER_OUTPOST));
+        if (!outpost.isValid()) return;
+        if (OUTPOST_PILLAGER_COUNT.incrementAndGet() % OUTPOST_POSSESSED_ARMOR_INTERVAL != 0) return;
+
+        kingdom.smp.entity.PossessedArmorEntity armor =
+            Ironhold.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
+        if (armor == null) return;
+        armor.snapTo(pillager.getX(), pillager.getY(), pillager.getZ(),
+            pillager.getYRot(), pillager.getXRot());
+        armor.finalizeSpawn(level, level.getCurrentDifficultyAt(pillager.blockPosition()),
+            EntitySpawnReason.STRUCTURE, null);
+        level.addFreshEntity(armor);
+        event.setCanceled(true);
+    }
+
+    /**
+     * Keep village knights and iron golems from fighting each other. Knights
+     * extend Monster (so a golem's anti-Enemy targeting picks them up) and a hurt
+     * knight retaliates via its HurtByTarget goal — cancelling the target change
+     * in both directions short-circuits the feud no matter who provoked it.
+     */
+    @SubscribeEvent
+    public static void onKnightGolemTarget(LivingChangeTargetEvent event) {
+        var seeker = event.getEntity();
+        var target = event.getNewAboutToBeSetTarget();
+        if (target == null) return;
+        boolean knightVsGolem =
+            seeker instanceof kingdom.smp.entity.KnightEntity
+                && target instanceof net.minecraft.world.entity.animal.golem.IronGolem;
+        boolean golemVsKnight =
+            seeker instanceof net.minecraft.world.entity.animal.golem.IronGolem
+                && target instanceof kingdom.smp.entity.KnightEntity;
+        if (knightVsGolem || golemVsKnight) {
+            event.setCanceled(true);
+        }
     }
 
     /** Routes the active partner's chat messages to a Kangarude they're talking with. */

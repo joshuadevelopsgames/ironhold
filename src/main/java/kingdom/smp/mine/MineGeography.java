@@ -8,8 +8,9 @@ import net.minecraft.util.RandomSource;
  *
  * Two zones in the v2 worldgen model: WILD (everywhere outside a mine structure)
  * and MINE_* depth bands inside a generated mine. Wild guarantees Minecraft is
- * still solo-playable — Mint is unreachable in the wild but rare Good keeps the
- * lower band lukewarm. Mine depth bands collapse the original spec §5 four-tier
+ * still solo-playable — Good is rare (~5%) and Mint is very rare (~1%), so
+ * vanilla mining still yields the occasional jackpot but the high tiers remain
+ * a mine-zone reward. Mine depth bands collapse the original spec §5 four-tier
  * table (Wild/Claimed/Deep/Royal) into "deeper inside the same shaft = better,"
  * which retires open-question §11.3.
  *
@@ -19,8 +20,8 @@ import net.minecraft.util.RandomSource;
  * @see <a href="../../../../specs/ore-quality-system.md">ore-quality-system.md §5</a>
  */
 public enum MineGeography {
-    /** Default for any ore broken outside a mine structure. */
-    WILD(65, 30, 5, 0),
+    /** Default for any ore broken outside a mine structure. Good is rare, Mint is very rare. */
+    WILD(64, 30, 5, 1),
     /** Upper band of a mine — visible from the entrance. */
     MINE_SHALLOW(25, 50, 25, 0),
     /** Mid band — Mint becomes reachable. */

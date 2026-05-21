@@ -1,7 +1,9 @@
 package kingdom.smp;
 
 import kingdom.smp.accessory.AccessoryInventory;
+import kingdom.smp.food.KnownRecipes;
 import kingdom.smp.game.CloudJumpState;
+import kingdom.smp.npc.PlayerNpcBonds;
 import kingdom.smp.rpg.CompletedClasses;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
 import kingdom.smp.rpg.ability.AbilityCooldowns;
@@ -102,6 +104,56 @@ public final class ModAttachments {
             () -> AttachmentType.builder(PlayerUseSkills::defaultData)
                 .serialize(PlayerUseSkills.CODEC)
                 .copyOnDeath()
+                .build());
+
+    /**
+     * Per-player Stardew-style bonds with each named NPC (rapport, daily gift counter).
+     * Survives death so the player keeps their friendships through respawns.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerNpcBonds>> NPC_BONDS =
+        ATTACHMENT_TYPES.register(
+            "npc_bonds",
+            () -> AttachmentType.builder(PlayerNpcBonds::empty)
+                .serialize(PlayerNpcBonds.CODEC)
+                .copyOnDeath()
+                .sync(PlayerNpcBonds.STREAM_CODEC)
+                .build());
+
+    /**
+     * Per-player set of cooking-recipe ids the player has learned. Backs the knowledge half
+     * of the cooking progression model (rank gate is read directly from {@link kingdom.smp.skill.SkillSavedData}).
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<KnownRecipes>> KNOWN_RECIPES =
+        ATTACHMENT_TYPES.register(
+            "known_recipes",
+            () -> AttachmentType.builder(KnownRecipes::empty)
+                .serialize(KnownRecipes.MAP_CODEC)
+                .copyOnDeath()
+                .build());
+
+    /**
+     * Last server-day (gameTime / 24000) the player claimed their Tallykeeper
+     * daily reward. -1 = never. copyOnDeath so a death doesn't grant a second
+     * payout the same day.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Long>> TALLYKEEPER_LAST_CLAIM_DAY =
+        ATTACHMENT_TYPES.register(
+            "tallykeeper_last_claim_day",
+            () -> AttachmentType.builder(() -> -1L)
+                .serialize(com.mojang.serialization.Codec.LONG.fieldOf("day"))
+                .copyOnDeath()
+                .build());
+
+    /**
+     * Marks a naturally-generated chest's block entity as already counted by the
+     * mimic-spawn system, so a chunk reloading never re-tallies (or re-converts) it.
+     * Serialized into the chest's NBT; defaults to {@code false}.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Boolean>> MIMIC_CHECKED =
+        ATTACHMENT_TYPES.register(
+            "mimic_checked",
+            () -> AttachmentType.builder(() -> Boolean.FALSE)
+                .serialize(com.mojang.serialization.Codec.BOOL.fieldOf("checked"))
                 .build());
 
     public static void register(IEventBus modBus) {

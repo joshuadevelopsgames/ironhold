@@ -4,8 +4,11 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "AttachmentHolderInvoker",
+    "AnvilForgeGateMixin",
     "BatFlowerMixin",
     "BatSpawnMixin",
+    "FishingHookBiteMixin",
+    "FishingHookRetrieveMixin",
     "MapEbonwoodMixin",
     "MonsterSpawnEbonwoodMixin",
     "PlayerInfoUpdatePacketAccessor",
@@ -14,8 +17,11 @@
     "ItemStackMaxDamageMixin",
     "LocateCommandAsyncMixin",
     "OverworldBiomeBuilderMixin",
+    "PaintingPreferCustomMixin",
     "ServerPlayerDeathMixin",
     "SlotMixin",
+    "SpawnProtectionInteractMixin",
+    "SpawnProtectionPlacementMixin",
     "SpiderEbonwoodMixin",
     "SurfaceSystemMixin",
     "VanillaRegistriesMixin"
@@ -29,12 +35,15 @@
     "ScepterAnimationMixin",
     "InventoryScreenMixin",
     "InventoryScreenSkillButtonMixin",
+    "AnvilHammerButtonMixin",
     "ItemStackRenderStateAccessor",
     "ItemModelResolverMixin",
     "AbstractContainerScreenAccessor",
     "AbstractRecipeBookScreenAccessor",
     "DynLightLevelRendererMixin",
-    "DynLightEntityRenderDispatcherMixin"
+    "DynLightEntityRenderDispatcherMixin",
+    "MinecraftSkipOnboardingMixin",
+    "RecipeBookComponentMixin"
   ],
   "injectors": {
     "defaultRequire": 1

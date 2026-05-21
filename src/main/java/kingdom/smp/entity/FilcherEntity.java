@@ -119,6 +119,11 @@ public class FilcherEntity extends Zombie {
         this.filcherName = FilcherArchetype.nameFor(this.uuid.getLeastSignificantBits());
     }
 
+    @Override
+    public boolean causeFallDamage(double fallDistance, float damageModifier, DamageSource damageSource) {
+        return false;
+    }
+
     // ── Always baby-sized ────────────────────────────────────────────────────
 
     @Override

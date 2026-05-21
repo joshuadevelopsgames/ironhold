@@ -34,6 +34,15 @@ if (findProperty("noWorldgenResources")?.toString() == "true") {
     }
 }
 
+// Build without in-progress source packages that don't compile against the
+// current MC version. Pass -PnoWipSources=true.
+// (milkucha/trmt/ removed — the NeoForge port compiles against 26.1.2.)
+if (findProperty("noWipSources")?.toString() == "true") {
+    sourceSets.main.java {
+        exclude("kingdom/smp/seasons/**")
+    }
+}
+
 base {
     archivesName = mod_id
 }
@@ -62,6 +71,10 @@ neoForge {
 
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // Experimental per-area colored-light path (v1.28.0). Default OFF in production —
+            // enabled here so dev launches always test the new path. Remove this line to dev-test
+            // the shipping lightmap-uniform path instead.
+            systemProperty 'ironhold.coloredLightField', 'true'
         }
 
         server {

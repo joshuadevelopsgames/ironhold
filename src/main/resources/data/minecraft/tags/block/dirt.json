@@ -1,6 +1,9 @@
 {
   "replace": false,
   "values": [
-    "ironhold:ebonwood_grass"
+    "ironhold:ebonwood_grass",
+    "trmt:eroded_grass_block",
+    "trmt:eroded_dirt",
+    "trmt:eroded_coarse_dirt"
   ]
 }

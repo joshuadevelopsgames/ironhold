@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "package": "milkucha.trmt.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "minVersion": "0.8",
+  "mixins": [
+    "BoneMealItemMixin",
+    "BrushItemMixin",
+    "GrassBlockMixin",
+    "HoeItemMixin",
+    "MobEntityMixin",
+    "SandBlockMixin",
+    "ServerPlayerEntityMixin",
+    "ShovelItemMixin",
+    "SugarCaneBlockMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

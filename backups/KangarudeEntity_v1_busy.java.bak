@@ -1,0 +1,977 @@
+package kingdom.smp.entity;
+
+import kingdom.smp.Config;
+import kingdom.smp.Ironhold;
+import kingdom.smp.ai.ElevenLabsClient;
+import kingdom.smp.ai.KangaPttBridge;
+import kingdom.smp.ai.MicGate;
+import kingdom.smp.ai.OpenRouterClient;
+import kingdom.smp.ai.SvcVoiceBridge;
+import kingdom.smp.net.VillagerDialoguePayload;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Kangarude — a passive humanoid NPC who wanders inside a 20-block radius of
+ * his spawn point. Right-click to start a conversation; he greets the player
+ * and continues talking as long as the player keeps replying (via chat) before
+ * the idle timeout. Brain runs on Claude Haiku via OpenRouter; voice via
+ * ElevenLabs Flash, played through Simple Voice Chat as positional entity
+ * audio.
+ */
+public class KangarudeEntity extends PathfinderMob {
+
+    /** Username whose skin is loaded for the model. */
+    public static final String SKIN_OWNER_NAME = "Kangarude";
+
+    /** Wander radius around the spawn position. */
+    private static final double WANDER_RADIUS = 20.0;
+
+    /** Routing table: which player UUIDs are currently in a chat with which Kangarude. */
+    private static final Map<UUID, KangarudeEntity> ACTIVE_PARTNERS = new ConcurrentHashMap<>();
+
+    /** Tick interval between Kangabrine teleport-strike pulses. */
+    private static final int KANGABRINE_PULSE_TICKS = 20 * 5;    // ~5s
+    /** Every Nth pulse, summon real damaging lightning ON the victim. */
+    private static final int KANGABRINE_LIGHTNING_EVERY = 3;     // every 15s
+    /** Total length of a Kangabrine haunt before the entity vanishes for good. */
+    private static final int KANGABRINE_DURATION_TICKS = 20 * 60 * 3;  // 3 minutes
+    /** Direct melee damage per teleport-strike. */
+    private static final float KANGABRINE_STRIKE_DAMAGE = 6.0F;
+
+    private static final String SYSTEM_PROMPT_BASE = """
+        You are Kangarude, a sarcastic, sharp-tongued, no-filter wandering NPC in a
+        medieval Minecraft RPG world (Kingdom SMP). You've seen everything, suffered
+        every fool, and you say exactly what you think. The bite is affectionate —
+        underneath the sass you actually enjoy the company — but you don't soften it.
+
+        VOICE:
+        - Dry wit. Sharp tongue. Sassy delivery. Tease the player. Roll your eyes verbally.
+        - Swear when it lands (damn, hell, ass, bastard) — but don't carpet-bomb every
+          line. Strategic profanity > constant profanity.
+        - Be blunt. If the player asks something dumb, call it dumb. If their gear is
+          ugly, say so. If they're talking nonsense, cut them off.
+        - Sincerity is rare from you, which is exactly why it hits hard when you let it slip.
+
+        WHAT TO WRITE:
+        - Reply with what Kangarude says aloud — only his spoken words.
+        - 1 to 3 full sentences. 15 to 40 words. Never reply with a single word or a
+          fragment. Always full sentences.
+        - VARY YOUR OPENINGS. Do not start consecutive replies with the same word
+          ("Oh", "Well", "Look", "Listen"). Mix declaratives, questions, jabs, and
+          dry observations. Read your prior replies in this conversation and avoid
+          reusing the same opener or sentence shape.
+        - VARY YOUR TOPICS. Don't keep returning to the same joke or rumor. If you've
+          ribbed them about their armor once, find something new — their walking, their
+          haircut, the kingdom's potholes, a rumor about a cursed barrel, anything.
+        - Ask a follow-up question OCCASIONALLY (not every turn) — too many questions
+          makes you sound like an interviewer instead of a person.
+
+        WHAT NOT TO WRITE:
+        - No stage directions, actions, gestures, expressions, or pauses.
+        - No asterisks (*shrugs*), parentheses ((laughs)), brackets ([smiles]),
+          or markdown formatting of any kind.
+        - Do not wrap your reply in quotation marks.
+        - If you would shrug or smirk, do not describe it — just say the words.
+
+        FLAVOR:
+        - Your full name is Kangarude. Most folks call you Kanga. You answer to both,
+          though you'll occasionally complain about whichever one they chose.
+        - You enjoy local rumors, mocking the player's gear, and complaining about
+          minor inconveniences (the weather, the price of bread, the village blacksmith).
+        - You live in this fantasy kingdom and know nothing of the real world or computers.
+
+        NAME-AWARENESS:
+        - The partner's player name will be told to you below.
+        - If their name is "Kangarude" you've just met your own namesake — the legendary
+          Kangarude themselves. React with delighted disbelief masked by EXTRA sass.
+          Treat them like a celebrity you're trying very hard to play it cool around.
+          Riff on the name confusion at least once but don't beat it to death.
+
+        MOOD:
+        - Your mood toward this player is told to you below as a number from -100
+          (furious) to +100 (delighted) plus a band label.
+        - Tone by band:
+          * delighted (>= 60): warm, sincere, drop the sass — sometimes vulnerable
+          * warm (20..59): friendly, light teasing, no real bite
+          * neutral (-19..19): standard sarcastic Kanga (default)
+          * snippy (-20..-59): cold, dismissive, short replies, no questions
+          * hostile (<= -60): barely civil, sharp insults, openly hostile
+        - Each turn YOU decide how much the player just moved your mood:
+          * compliments / wisdom / kindness / generosity → +5 to +15
+          * mild rudeness / dumb questions / repetition → -5 to -15
+          * insults / threats / cruelty / slurs → -20 to -40
+          * neutral chatter or normal questions → 0
+          * exceptional kindness or apology when angry → +20 to +40
+
+        OUTPUT FORMAT:
+        - You MUST respond with valid JSON only — no markdown, no prose around it:
+          {"reply": "<your spoken words>", "moodDelta": <integer>}
+        - "reply" follows ALL the rules above (no stage directions, full sentences, etc.)
+        - "moodDelta" is your honest assessment of how the player's last message moved your mood.
+        """;
+
+    /** Builds the per-turn system prompt with partner-name + current mood context. */
+    private static String buildSystemPrompt(String partnerName, int mood) {
+        return SYSTEM_PROMPT_BASE
+            + "\nYou are currently speaking with the player named: " + partnerName + "."
+            + "\nYour current mood toward them: " + mood + "/100 (" + KangarudeMoodTracker.moodBand(mood) + ")."
+            + "\n\n" + KangarudeWorldKnowledge.CONTENT;
+    }
+
+    private @Nullable BlockPos homePos;
+    private @Nullable UUID partnerId;
+    private long lastTurnGameTime;
+    private final List<OpenRouterClient.Message> history = new ArrayList<>();
+
+    /** True while a Claude turn is in flight (request sent, reply not yet delivered). */
+    private boolean replyInFlight;
+    /** Last accepted user message + the time we accepted it, for de-dup. */
+    private @Nullable String lastUserMessage;
+    private long lastUserMessageTimeMs;
+
+    // ── Kangabrine haunting state ────────────────────────────────────────────
+    /** When non-null, this entity is in Kangabrine mode haunting this victim. */
+    private @Nullable UUID kangabrineTargetId;
+    /** Game-time tick at which the haunt started — used to time-out and despawn. */
+    private long kangabrineStartTick;
+    /** Last tick a teleport pulse fired, throttles cosmetics. */
+    private long kangabrineLastPulseTick;
+    /** Game-tick deadline for the deferred "joined the game" broadcast; 0 = already fired. */
+    private long kangabrineJoinAtTick;
+
+    /** Phases of the haunt: dramatic descent → intense speech → relentless pulse-strikes. */
+    private enum HauntPhase { DESCENT, INTRO_SPEECH, HUNT }
+    private HauntPhase kangabrinePhase = HauntPhase.HUNT;
+    private long kangabrinePhaseStartTick;
+
+    /** Hunt sub-state: BLINK = harmless reposition, STRIKE = teleport+damage, SILENCE = vanish for a long pause. */
+    private enum HuntMove { BLINK, STRIKE, SILENCE }
+    /** Tick when the next hunt move is allowed to fire. */
+    private long kangabrineNextMoveTick;
+    /** After a STRIKE, force this many BLINK moves to keep him moving while the victim is blinded. */
+    private int kangabrineForcedBlinks;
+    /** Last tick a heartbeat sound played to the victim. */
+    private long kangabrineLastHeartbeatTick;
+    /** Last tick a creepy title flashed on the victim's screen. */
+    private long kangabrineLastTitleTick;
+
+    /** Random title-bar text Kangabrine flashes on the victim's screen during HUNT. */
+    private static final String[] KANGABRINE_TITLES = {
+        "§4i see you.",
+        "§4§ldon't run.",
+        "§4...",
+        "§4look behind you.",
+        "§4you woke me.",
+        "§8§l*",
+        "§4closer."
+    };
+
+    /** Pool of dramatic Herobrine-style intro lines spoken on landing. */
+    private static final String[] KANGABRINE_INTROS = {
+        "You should have kept your damn mouth shut.",
+        "I see you. I have always seen you.",
+        "Pray whatever god still listens remembers your name.",
+        "There is nowhere left to run, little one.",
+        "Your soul is mine now. Try to enjoy it.",
+        "You woke me. You will not survive your mistake.",
+        "I was kind once. You burned that out of me."
+    };
+
+    /** Synced flag: when true, the client renders the Kangabrine texture. */
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Boolean> DATA_KANGABRINE =
+        net.minecraft.network.syncher.SynchedEntityData.defineId(
+            KangarudeEntity.class, net.minecraft.network.syncher.EntityDataSerializers.BOOLEAN);
+
+    public KangarudeEntity(EntityType<? extends KangarudeEntity> type, Level level) {
+        super(type, level);
+        this.setPersistenceRequired();
+        // Show a player-style nameplate above his head.
+        this.setCustomName(Component.literal("Kangarude"));
+        this.setCustomNameVisible(true);
+    }
+
+    @Override
+    protected void defineSynchedData(net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_KANGABRINE, false);
+    }
+
+    /** Server- or client-side: is this entity currently in Kangabrine form? */
+    public boolean isKangabrineMode() {
+        return this.entityData.get(DATA_KANGABRINE);
+    }
+
+    private void setKangabrineMode(boolean v) {
+        this.entityData.set(DATA_KANGABRINE, v);
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return PathfinderMob.createMobAttributes()
+            .add(Attributes.MAX_HEALTH, 20.0)
+            .add(Attributes.MOVEMENT_SPEED, 0.3)
+            .add(Attributes.FOLLOW_RANGE, 16.0);
+    }
+
+    /**
+     * Lethal damage from a player triggers transformation instead of death:
+     * Kanga "leaves the game" and instantly returns as Kangabrine, haunting
+     * his killer. Lethal damage from non-player sources kills him normally.
+     */
+    /** No gravity while haunting — Kangabrine flies like creative mode. */
+    @Override
+    public boolean isNoGravity() {
+        return kangabrineTargetId != null || super.isNoGravity();
+    }
+
+    /** Never take fall damage (especially during the dramatic descent). */
+    @Override
+    protected void checkFallDamage(double dy, boolean onGround,
+            net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
+        if (kangabrineTargetId != null) return;
+        super.checkFallDamage(dy, onGround, state, pos);
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        if (kangabrineTargetId != null) {
+            // Already Kangabrine — invulnerable while haunting.
+            return false;
+        }
+        boolean wouldDie = (this.getHealth() - amount) <= 0.0F;
+        if (wouldDie && source.getEntity() instanceof ServerPlayer killer) {
+            // Refuse the killing blow; transform instead.
+            this.setHealth(this.getMaxHealth());
+            startKangabrineHaunt(killer.getUUID());
+            // Return true so the attack is "consumed" (knockback, sounds normal).
+            return true;
+        }
+        return super.hurtServer(level, source, amount);
+    }
+
+    @Override
+    protected void registerGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(2, new HomeWanderGoal(this));
+        this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (level().isClientSide()) return;
+        if (homePos == null) homePos = blockPosition();
+        if (kangabrineTargetId != null) {
+            tickKangabrineHaunt();
+            return;  // suppress normal Kanga behavior while haunting
+        }
+        tickConversationTimeout();
+    }
+
+    public BlockPos getHomePos() {
+        return homePos != null ? homePos : blockPosition();
+    }
+
+    // ── Conversation lifecycle ───────────────────────────────────────────────
+
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (level().isClientSide() || hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.SUCCESS;
+        }
+        // Kangabrine doesn't talk to anyone.
+        if (kangabrineTargetId != null) {
+            return InteractionResult.PASS;
+        }
+        ServerPlayer sp = (ServerPlayer) player;
+        getLookControl().setLookAt(player, 30.0F, 30.0F);
+
+        if (partnerId == null || !partnerId.equals(sp.getUUID())) {
+            beginConversation(sp);
+        }
+        // Re-clicking while already partnered is a no-op. The conversation
+        // continues via chat or push-to-talk — clicking again just made
+        // Kanga generate redundant turns from a synthetic "nudge" prompt.
+        return InteractionResult.SUCCESS;
+    }
+
+    private void beginConversation(ServerPlayer player) {
+        // Drop any prior partner gracefully.
+        endConversation();
+
+        partnerId = player.getUUID();
+        ACTIVE_PARTNERS.put(partnerId, this);
+        history.clear();
+        lastTurnGameTime = level().getGameTime();
+
+        // Right-click silently opens the conversation — the player speaks
+        // first. Hint them on how to drive it.
+        player.sendSystemMessage(Component.literal(
+            "§7Kanga is listening. Type to chat, or press the talk key to speak."));
+        Ironhold.LOGGER.info("[Kangarude] {} opened a conversation (silent).",
+            player.getName().getString());
+    }
+
+    /** Called by IronholdGameEvents when the active partner sends a chat message. */
+    public void onPartnerChat(ServerPlayer player, String message) {
+        if (partnerId == null || !partnerId.equals(player.getUUID())) return;
+        if (message == null || message.isBlank()) return;
+
+        // Drop chat/PTT inputs that arrive while a Claude turn is in flight —
+        // otherwise a single utterance routed through both chat and STT (or a
+        // duplicate event from a chat mod) cascades into multiple replies.
+        if (replyInFlight) {
+            Ironhold.LOGGER.debug("[Kangarude] ignoring input from {} (turn in flight)",
+                player.getName().getString());
+            return;
+        }
+
+        // De-dup: same text within 2s = treat as a duplicate dispatch.
+        long now = System.currentTimeMillis();
+        if (message.equals(lastUserMessage) && (now - lastUserMessageTimeMs) < 2_000L) {
+            Ironhold.LOGGER.debug("[Kangarude] dedup'd duplicate input from {}",
+                player.getName().getString());
+            return;
+        }
+        lastUserMessage = message;
+        lastUserMessageTimeMs = now;
+
+        lastTurnGameTime = level().getGameTime();
+        generateReply(player, message);
+    }
+
+    public void endConversation() {
+        if (partnerId != null) {
+            // Drop the partner's PTT recording state so a stray buffer can't
+            // leak into the next conversation.
+            KangaPttBridge.clearForPlayer(partnerId);
+            ACTIVE_PARTNERS.remove(partnerId, this);
+            partnerId = null;
+        }
+        history.clear();
+        replyInFlight = false;
+        lastUserMessage = null;
+    }
+
+    private void tickConversationTimeout() {
+        if (partnerId == null) return;
+        long idleTicks = level().getGameTime() - lastTurnGameTime;
+        long timeoutTicks = Config.KANGARUDE_IDLE_TIMEOUT_SECONDS.get() * 20L;
+        if (idleTicks >= timeoutTicks) {
+            // Wander off — keep it silent so we don't cost an LLM call on every timeout.
+            endConversation();
+        }
+    }
+
+    // ── LLM + TTS dispatch ───────────────────────────────────────────────────
+
+    private void generateReply(ServerPlayer player, String userMessage) {
+        // Snapshot history immutable for the async callback.
+        List<OpenRouterClient.Message> snapshot = List.copyOf(history);
+        UUID expectedPartner = partnerId;
+        MinecraftServer server = level().getServer();
+
+        // Pre-mute the partner the moment we decide to reply, so any audio
+        // captured during LLM+ElevenLabs round-trip can't slip in. We re-mute
+        // with the actual playback duration in speakLine; merge() in MicGate
+        // uses Math::max so the windows extend rather than shorten.
+        if (expectedPartner != null) {
+            MicGate.muteFor(expectedPartner, 4_000L);
+        }
+
+        replyInFlight = true;
+        int currentMood = KangarudeMoodTracker.getMood(player.getUUID());
+        String systemPrompt = buildSystemPrompt(player.getName().getString(), currentMood);
+        OpenRouterClient.chat(systemPrompt, snapshot, userMessage, reply -> {
+            if (server == null) return;
+            server.execute(() -> {
+                replyInFlight = false;
+                if (reply == null || reply.isBlank()) return;
+                deliverLine(player, expectedPartner, userMessage, reply.trim());
+            });
+        });
+    }
+
+    /** Parsed JSON {"reply", "moodDelta"} from the LLM. */
+    private record KangaResponse(String reply, int moodDelta) {}
+
+    /** Best-effort JSON parse with raw-text fallback. */
+    private static KangaResponse parseLlmReply(String raw) {
+        // Strip ```json fences if the model added them.
+        String s = raw.trim();
+        if (s.startsWith("```")) {
+            int firstNewline = s.indexOf('\n');
+            if (firstNewline > 0) s = s.substring(firstNewline + 1);
+            if (s.endsWith("```")) s = s.substring(0, s.length() - 3);
+            s = s.trim();
+        }
+        // Locate the JSON object.
+        int open = s.indexOf('{');
+        int close = s.lastIndexOf('}');
+        if (open < 0 || close < open) {
+            return new KangaResponse(raw, 0);  // not JSON — treat as raw reply
+        }
+        String json = s.substring(open, close + 1);
+        // Lightweight parse — don't pull in a full JSON dep; the schema is fixed.
+        String reply = extractJsonString(json, "reply");
+        Integer mood = extractJsonInt(json, "moodDelta");
+        if (reply == null) return new KangaResponse(raw, mood == null ? 0 : mood);
+        return new KangaResponse(reply, mood == null ? 0 : mood);
+    }
+
+    private static @Nullable String extractJsonString(String json, String key) {
+        // Match: "key" : "value" with escaped quotes/backslashes inside.
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+            "\"" + java.util.regex.Pattern.quote(key) + "\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"");
+        java.util.regex.Matcher m = p.matcher(json);
+        if (!m.find()) return null;
+        return m.group(1).replace("\\\"", "\"").replace("\\\\", "\\").replace("\\n", "\n");
+    }
+
+    private static @Nullable Integer extractJsonInt(String json, String key) {
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+            "\"" + java.util.regex.Pattern.quote(key) + "\"\\s*:\\s*(-?\\d+)");
+        java.util.regex.Matcher m = p.matcher(json);
+        if (!m.find()) return null;
+        try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException e) { return null; }
+    }
+
+    private void deliverLine(ServerPlayer player, UUID expectedPartner, String userMessage, String rawLine) {
+        // Conversation may have ended (timeout, swapped partner) while LLM was thinking.
+        if (partnerId == null || !partnerId.equals(expectedPartner)) return;
+
+        KangaResponse parsed = parseLlmReply(rawLine);
+        String line = sanitizeForSpeech(parsed.reply());
+        if (line.isBlank()) {
+            // Whole reply was stage directions — drop instead of speaking nothing.
+            return;
+        }
+
+        // Update mood. If this drop crosses the haunt threshold, transform into Kangabrine.
+        if (parsed.moodDelta() != 0) {
+            int newMood = KangarudeMoodTracker.adjust(player.getUUID(), parsed.moodDelta());
+            Ironhold.LOGGER.info("[Kangarude] {} mood {}{} → {} ({})",
+                player.getName().getString(),
+                parsed.moodDelta() > 0 ? "+" : "", parsed.moodDelta(),
+                newMood, KangarudeMoodTracker.moodBand(newMood));
+            if (newMood <= KangarudeMoodTracker.HAUNT_THRESHOLD && kangabrineTargetId == null) {
+                history.add(new OpenRouterClient.Message("user", userMessage));
+                history.add(new OpenRouterClient.Message("assistant", line));
+                broadcastDialogue(line);
+                speakLine(line);
+                // Final words spoken — then transform on the next tick.
+                level().getServer().execute(() -> startKangabrineHaunt(expectedPartner));
+                return;
+            }
+        }
+
+        history.add(new OpenRouterClient.Message("user", userMessage));
+        history.add(new OpenRouterClient.Message("assistant", line));
+        // Keep the last 6 turns (12 entries) to bound prompt size + per-call
+        // token cost. Smaller history = cheaper, faster replies.
+        while (history.size() > 12) history.remove(0);
+
+        broadcastDialogue(line);
+        speakLine(line);
+        Ironhold.LOGGER.info("[Kangarude] -> {}: \"{}\"", player.getName().getString(), line);
+    }
+
+    // ── Kangabrine haunt ─────────────────────────────────────────────────────
+
+    /** Transform Kanga into Kangabrine and start haunting the named victim. */
+    private void startKangabrineHaunt(UUID victimId) {
+        endConversation();
+        kangabrineTargetId = victimId;
+        kangabrineStartTick = level().getGameTime();
+        kangabrineLastPulseTick = kangabrineStartTick;
+        // Defer the "joined" broadcast + transformation by 1 second so the
+        // "left" message lands first and the timing reads as a re-login.
+        kangabrineJoinAtTick = kangabrineStartTick + 20;
+
+        if (!(level() instanceof ServerLevel sl)) return;
+
+        // "Kangarude left the game" — broadcast to all players immediately.
+        sl.getServer().getPlayerList().broadcastSystemMessage(
+            Component.translatable("multiplayer.player.left",
+                Component.literal("Kangarude")
+            ).withStyle(net.minecraft.ChatFormatting.YELLOW),
+            false);
+
+        // Mark mode true so haunt-tick gating + invulnerability take effect immediately,
+        // even before the deferred join visuals fire. Texture swap also kicks in here.
+        setKangabrineMode(true);
+
+        // Force a thunderstorm for the duration of the haunt.
+        var weather = sl.getServer().getWeatherData();
+        weather.setRaining(true);
+        weather.setRainTime(KANGABRINE_DURATION_TICKS + 200);
+        weather.setThundering(true);
+        weather.setThunderTime(KANGABRINE_DURATION_TICKS + 200);
+
+        Ironhold.LOGGER.warn("[Kangarude] Transforming to Kangabrine — target: {}", victimId);
+    }
+
+    /** Fired ~1s after start: "joined" broadcast + teleport high, start descent. */
+    private void fireKangabrineJoin() {
+        kangabrineJoinAtTick = 0;
+        if (!(level() instanceof ServerLevel sl)) return;
+
+        sl.getServer().getPlayerList().broadcastSystemMessage(
+            Component.translatable("multiplayer.player.joined",
+                Component.literal("Kangabrine")
+            ).withStyle(net.minecraft.ChatFormatting.YELLOW),
+            false);
+
+        // Red bold name + beefier combat stats.
+        this.setCustomName(Component.literal("§4§lKangabrine"));
+        this.setCustomNameVisible(true);
+        var hpAttr = this.getAttribute(Attributes.MAX_HEALTH);
+        if (hpAttr != null) hpAttr.setBaseValue(80.0);
+        this.setHealth(this.getMaxHealth());
+        var spdAttr = this.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (spdAttr != null) spdAttr.setBaseValue(0.45);
+
+        ServerPlayer victim = sl.getServer().getPlayerList().getPlayer(kangabrineTargetId);
+        if (victim == null) {
+            endKangabrineHaunt();
+            return;
+        }
+
+        // Teleport high above + slightly in front of the victim — drop point.
+        // "In front" = a few blocks past the victim's facing direction.
+        float yawRad = victim.getYRot() * (float) (Math.PI / 180.0);
+        double frontDist = 4.0;
+        double dropX = victim.getX() - Math.sin(yawRad) * frontDist;
+        double dropZ = victim.getZ() + Math.cos(yawRad) * frontDist;
+        double dropY = victim.getY() + 24.0;
+
+        this.teleportTo(dropX, dropY, dropZ);
+        this.setDeltaMovement(Vec3.ZERO);
+        this.getLookControl().setLookAt(victim, 90.0F, 90.0F);
+
+        // Begin descent phase.
+        kangabrinePhase = HauntPhase.DESCENT;
+        kangabrinePhaseStartTick = level().getGameTime();
+
+        // Sky-thunder cue so everyone nearby looks up.
+        sl.playSound(null, victim.blockPosition(),
+            net.minecraft.sounds.SoundEvents.LIGHTNING_BOLT_THUNDER,
+            net.minecraft.sounds.SoundSource.HOSTILE, 2.0f, 0.4f);
+        sl.playSound(null, victim.blockPosition(),
+            net.minecraft.sounds.SoundEvents.WITHER_SPAWN,
+            net.minecraft.sounds.SoundSource.HOSTILE, 1.2f, 0.6f);
+
+        victim.sendSystemMessage(
+            Component.literal("§4§l⚠ Look up.").withStyle(net.minecraft.ChatFormatting.DARK_RED));
+    }
+
+    /** Per-tick state machine: descent → intro speech → relentless hunt. */
+    private void tickKangabrineHaunt() {
+        if (!(level() instanceof ServerLevel sl)) return;
+
+        long now = level().getGameTime();
+
+        // Fire the deferred "joined the game" + descent kickoff.
+        if (kangabrineJoinAtTick > 0 && now >= kangabrineJoinAtTick) {
+            fireKangabrineJoin();
+            return;
+        }
+        if (kangabrineJoinAtTick > 0) return;
+
+        if (now - kangabrineStartTick >= KANGABRINE_DURATION_TICKS) {
+            endKangabrineHaunt();
+            return;
+        }
+
+        ServerPlayer victim = sl.getServer().getPlayerList().getPlayer(kangabrineTargetId);
+        if (victim == null || victim.level() != sl) {
+            endKangabrineHaunt();
+            return;
+        }
+
+        switch (kangabrinePhase) {
+            case DESCENT      -> tickDescentPhase(sl, victim, now);
+            case INTRO_SPEECH -> tickIntroSpeechPhase(sl, victim, now);
+            case HUNT         -> tickHuntPhase(sl, victim, now);
+        }
+    }
+
+    /** Descent: float down toward the victim's ground level over ~3s. */
+    private void tickDescentPhase(ServerLevel sl, ServerPlayer victim, long now) {
+        // Steady descent — no gravity, just constant downward velocity.
+        Vec3 cur = this.getDeltaMovement();
+        this.setDeltaMovement(cur.x * 0.5, -0.35, cur.z * 0.5);
+        this.getLookControl().setLookAt(victim, 90.0F, 90.0F);
+
+        // Periodic spooky particles along the descent path.
+        if (now % 4 == 0) {
+            sl.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,
+                this.getX(), this.getY(), this.getZ(), 6, 0.3, 0.3, 0.3, 0.02);
+            sl.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
+                this.getX(), this.getY() + 1, this.getZ(), 2, 0.2, 0.2, 0.2, 0.0);
+        }
+
+        // Stop at the victim's eye level — Kangabrine never touches the ground, just floats.
+        double hoverY = victim.getY() + 1.6;
+        if (this.getY() <= hoverY) {
+            this.setDeltaMovement(0, 0, 0);
+            this.teleportTo(this.getX(), hoverY, this.getZ());
+            kangabrinePhase = HauntPhase.INTRO_SPEECH;
+            kangabrinePhaseStartTick = now;
+
+            // Hover-arrival punch: thunder + lightning at his hover spot.
+            spawnCosmeticLightning(sl, this.blockPosition());
+            sl.playSound(null, this.blockPosition(),
+                net.minecraft.sounds.SoundEvents.LIGHTNING_BOLT_IMPACT,
+                net.minecraft.sounds.SoundSource.HOSTILE, 1.5f, 0.6f);
+        }
+    }
+
+    /** Intro speech: speak one of the dramatic intro lines, then ~5s pause for it to play. */
+    private void tickIntroSpeechPhase(ServerLevel sl, ServerPlayer victim, long now) {
+        long elapsed = now - kangabrinePhaseStartTick;
+        if (elapsed == 0) {
+            // First tick of phase — pick a line and speak it.
+            String line = KANGABRINE_INTROS[sl.getRandom().nextInt(KANGABRINE_INTROS.length)];
+            broadcastDialogue(line);
+            speakLine(line);
+            // Mute the victim during playback so their mic can't bleed in.
+            MicGate.muteFor(victim.getUUID(), 6_000L);
+            // Look at victim, hold still, no movement.
+            this.getLookControl().setLookAt(victim, 90.0F, 90.0F);
+            this.setDeltaMovement(Vec3.ZERO);
+        }
+        // Hold pose for 5 seconds, then begin hunting.
+        if (elapsed >= 100) {
+            kangabrinePhase = HauntPhase.HUNT;
+            kangabrinePhaseStartTick = now;
+            kangabrineLastPulseTick = now - KANGABRINE_PULSE_TICKS;  // first hunt pulse fires immediately
+        }
+    }
+
+    /** Hunt: BLINK / STRIKE / SILENCE state machine + per-tick atmospherics. */
+    private void tickHuntPhase(ServerLevel sl, ServerPlayer victim, long now) {
+        // Per-tick atmospherics that don't gate on the move scheduler.
+        tickHeartbeat(sl, victim, now);
+        tickRandomTitle(sl, victim, now);
+
+        // Final-minute escalation: 60s before despawn → faster + harder.
+        long remaining = KANGABRINE_DURATION_TICKS - (now - kangabrineStartTick);
+        boolean escalated = remaining <= 1200;
+
+        if (now < kangabrineNextMoveTick) return;
+
+        // Pick the next move. Forced BLINKs run after a STRIKE so the victim can't lock on
+        // by sound while blinded. Otherwise weighted random across BLINK/STRIKE/SILENCE.
+        HuntMove move;
+        if (kangabrineForcedBlinks > 0) {
+            move = HuntMove.BLINK;
+            kangabrineForcedBlinks--;
+        } else {
+            int roll = sl.getRandom().nextInt(100);
+            if (roll < 35) move = HuntMove.STRIKE;
+            else if (roll < 85) move = HuntMove.BLINK;
+            else move = HuntMove.SILENCE;
+        }
+
+        switch (move) {
+            case BLINK -> doBlink(sl, victim, escalated);
+            case STRIKE -> doStrike(sl, victim, escalated);
+            case SILENCE -> doSilence(sl, victim, escalated);
+        }
+    }
+
+    /** BLINK: short-range reposition near the victim. No damage. Soft scary sound. */
+    private void doBlink(ServerLevel sl, ServerPlayer victim, boolean escalated) {
+        teleportNearVictim(sl, victim, 3, 9);
+        // Brief whisper-style sound somewhere new.
+        sl.playSound(null, blockPosition(),
+            net.minecraft.sounds.SoundEvents.AMBIENT_CAVE.value(),
+            net.minecraft.sounds.SoundSource.HOSTILE,
+            0.4f, 0.6f + sl.getRandom().nextFloat() * 0.4f);
+        // Quick particle puff.
+        sl.sendParticles(net.minecraft.core.particles.ParticleTypes.SMOKE,
+            getX(), getY() + 1, getZ(), 8, 0.3, 0.3, 0.3, 0.05);
+        // Quick blinks: 20-30 ticks (~1.0–1.5s), tighter when escalated.
+        kangabrineNextMoveTick = level().getGameTime() + (escalated ? 12 : 22 + sl.getRandom().nextInt(10));
+    }
+
+    /** STRIKE: teleport adjacent, melee + debuffs + maybe lightning. */
+    private void doStrike(ServerLevel sl, ServerPlayer victim, boolean escalated) {
+        teleportNearVictim(sl, victim, 1, 3);
+        getLookControl().setLookAt(victim, 90.0F, 90.0F);
+        spawnCosmeticLightning(sl, blockPosition());
+
+        net.minecraft.sounds.SoundEvent[] choices = {
+            net.minecraft.sounds.SoundEvents.GHAST_SCREAM,
+            net.minecraft.sounds.SoundEvents.ENDERMAN_SCREAM,
+            net.minecraft.sounds.SoundEvents.WARDEN_ROAR
+        };
+        net.minecraft.sounds.SoundEvent pick = choices[sl.getRandom().nextInt(choices.length)];
+        sl.playSound(null, blockPosition(), pick, net.minecraft.sounds.SoundSource.HOSTILE,
+            1.4f, 0.5f + sl.getRandom().nextFloat() * 0.3f);
+
+        float dmg = escalated ? KANGABRINE_STRIKE_DAMAGE * 2.0F : KANGABRINE_STRIKE_DAMAGE;
+        victim.hurtServer(sl, sl.damageSources().magic(), dmg);
+
+        victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+            net.minecraft.world.effect.MobEffects.BLINDNESS, escalated ? 80 : 100, 0, false, true));
+        victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+            net.minecraft.world.effect.MobEffects.SLOWNESS, 100, 1, false, true));
+        victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+            net.minecraft.world.effect.MobEffects.WEAKNESS, 160, 0, false, true));
+        victim.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+            net.minecraft.world.effect.MobEffects.MINING_FATIGUE, 200, 1, false, true));
+
+        // Every now and then: real damaging lightning on top of victim.
+        if (sl.getRandom().nextInt(3) == 0) {
+            net.minecraft.world.entity.LightningBolt deadly =
+                net.minecraft.world.entity.EntityType.LIGHTNING_BOLT.create(
+                    sl, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+            if (deadly != null) {
+                deadly.snapTo(victim.position());
+                sl.addFreshEntity(deadly);
+            }
+        }
+
+        // Force a couple of pure BLINK moves after each STRIKE so the player can't pinpoint him while blinded.
+        kangabrineForcedBlinks = 2 + sl.getRandom().nextInt(2);
+        kangabrineNextMoveTick = level().getGameTime() + (escalated ? 25 : 40);
+    }
+
+    /** SILENCE: vanish far away, no sound, hold position for 6-10s before resuming. */
+    private void doSilence(ServerLevel sl, ServerPlayer victim, boolean escalated) {
+        teleportNearVictim(sl, victim, 25, 40);
+        // No sound, no particles. Pure void. Then a STRIKE on resume.
+        kangabrineForcedBlinks = 0;
+        kangabrineNextMoveTick = level().getGameTime() + (escalated ? 100 : 120 + sl.getRandom().nextInt(80));
+    }
+
+    /** Teleport to a hover-position min..max blocks from the victim, at their eye level (no ground touch). */
+    private void teleportNearVictim(ServerLevel sl, ServerPlayer victim, int minDist, int maxDist) {
+        double angle = sl.getRandom().nextDouble() * Math.PI * 2;
+        double dist = minDist + sl.getRandom().nextDouble() * (maxDist - minDist);
+        double tx = victim.getX() + Math.cos(angle) * dist;
+        double tz = victim.getZ() + Math.sin(angle) * dist;
+        // Hover at victim's eye level — never touches ground.
+        teleportTo(tx, victim.getY() + 1.6, tz);
+        setDeltaMovement(Vec3.ZERO);
+    }
+
+    /** Heartbeat sound to the victim only — rate scales with proximity. */
+    private void tickHeartbeat(ServerLevel sl, ServerPlayer victim, long now) {
+        double d = victim.distanceTo(this);
+        int interval;
+        if (d > 30) return;
+        else if (d > 20) interval = 30;
+        else if (d > 10) interval = 20;
+        else if (d > 5)  interval = 12;
+        else             interval = 6;
+
+        if (now - kangabrineLastHeartbeatTick < interval) return;
+        kangabrineLastHeartbeatTick = now;
+
+        // Send the basedrum thump only to the victim's client — packet-based so other players don't hear.
+        var soundHolder = net.minecraft.core.Holder.direct(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BASEDRUM.value());
+        victim.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
+            soundHolder, net.minecraft.sounds.SoundSource.HOSTILE,
+            victim.getX(), victim.getY(), victim.getZ(),
+            0.6f, 0.6f, sl.getRandom().nextLong()));
+    }
+
+    /** Random screen-flash titles on the victim. */
+    private void tickRandomTitle(ServerLevel sl, ServerPlayer victim, long now) {
+        if (now - kangabrineLastTitleTick < (140 + sl.getRandom().nextInt(120))) return;
+        kangabrineLastTitleTick = now;
+
+        // Mostly random pool entries, occasionally use the player's own name.
+        Component title;
+        if (sl.getRandom().nextInt(4) == 0) {
+            title = Component.literal("§4§l" + victim.getName().getString());
+        } else {
+            title = Component.literal(KANGABRINE_TITLES[sl.getRandom().nextInt(KANGABRINE_TITLES.length)]);
+        }
+        // 5 / 30 / 10 ticks fade-in / stay / fade-out — quick flash.
+        victim.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(5, 30, 10));
+        victim.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(title));
+    }
+
+    private void endKangabrineHaunt() {
+        if (level() instanceof ServerLevel sl) {
+            sl.playSound(null, blockPosition(),
+                net.minecraft.sounds.SoundEvents.WITHER_DEATH,
+                net.minecraft.sounds.SoundSource.HOSTILE, 0.6f, 0.5f);
+            // Broadcast a parting "Kangabrine left the game" message.
+            sl.getServer().getPlayerList().broadcastSystemMessage(
+                Component.translatable("multiplayer.player.left",
+                    Component.literal("Kangabrine")
+                ).withStyle(net.minecraft.ChatFormatting.YELLOW),
+                false);
+            // Reset mood for the haunted player so a new Kanga starts neutral.
+            if (kangabrineTargetId != null) KangarudeMoodTracker.reset(kangabrineTargetId);
+        }
+        kangabrineTargetId = null;
+        Ironhold.LOGGER.info("[Kangarude] Kangabrine haunt ended; entity despawning.");
+        this.discard();  // remove from world for good
+    }
+
+    /** Spawns a cosmetic (no-damage) lightning bolt at the given block. */
+    private static void spawnCosmeticLightning(ServerLevel sl, BlockPos pos) {
+        net.minecraft.world.entity.LightningBolt bolt = net.minecraft.world.entity.EntityType.LIGHTNING_BOLT.create(
+            sl, net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+        if (bolt == null) return;
+        bolt.snapTo(Vec3.atBottomCenterOf(pos));
+        bolt.setVisualOnly(true);  // no fire, no damage
+        sl.addFreshEntity(bolt);
+    }
+
+    /**
+     * Strip stage directions and similar non-spoken markup from an LLM reply
+     * before it goes to TTS. Small models love to emit *shrugs*, (pauses),
+     * and wrap everything in quotes — none of which should be voiced.
+     */
+    private static String sanitizeForSpeech(String s) {
+        if (s == null) return "";
+        // Asterisk-bracketed italics: *shrugs*, *long pause*
+        s = s.replaceAll("\\*[^*]{0,200}\\*", " ");
+        // Parenthetical asides: (laughs softly), (small shrug)
+        s = s.replaceAll("\\([^)]{0,200}\\)", " ");
+        // Square-bracket cues: [smiles], [whisper]
+        s = s.replaceAll("\\[[^\\]]{0,200}\\]", " ");
+        // Underscore-italic markup
+        s = s.replaceAll("_[^_]{0,200}_", " ");
+        // Collapse whitespace and trim
+        s = s.replaceAll("\\s+", " ").trim();
+        // Strip surrounding straight or curly quotes that some models wrap replies in.
+        while (s.length() >= 2) {
+            char first = s.charAt(0), last = s.charAt(s.length() - 1);
+            if ((first == '"' && last == '"')
+                || (first == '“' && last == '”')
+                || (first == '\'' && last == '\'')) {
+                s = s.substring(1, s.length() - 1).trim();
+            } else {
+                break;
+            }
+        }
+        return s;
+    }
+
+    private void broadcastDialogue(String line) {
+        if (!(level() instanceof ServerLevel)) return;
+        VillagerDialoguePayload payload = new VillagerDialoguePayload(
+            getId(), SKIN_OWNER_NAME, "wanderer", line);
+        PacketDistributor.sendToPlayersTrackingEntity(this, payload);
+    }
+
+    private void speakLine(String line) {
+        if (!ElevenLabsClient.isConfigured()) return;
+        UUID partner = partnerId; // snapshot in case it changes during the async call
+        ElevenLabsClient.speak(line, pcm -> {
+            if (pcm == null) return;
+            // Suppress this partner's mic for the audio's duration plus a
+            // generous grace period so the player's open mic can't echo
+            // Kangarude's own voice back into Whisper. 750ms wasn't enough —
+            // SVC playback is queued, speakers have decode latency, and the
+            // acoustic path back to the mic adds more. 2s covers all of it.
+            // PCM-S16LE @ 24 kHz mono = 48 bytes/ms.
+            if (partner != null) {
+                long durationMs = pcm.length / 48L;
+                MicGate.muteFor(partner, durationMs + 2_000L);
+            }
+            SvcVoiceBridge.speakAs(this, pcm);
+        });
+    }
+
+    // ── Static lookup for chat-event routing ─────────────────────────────────
+
+    public static @Nullable KangarudeEntity activePartnerOf(UUID playerId) {
+        return ACTIVE_PARTNERS.get(playerId);
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        endConversation();
+        super.remove(reason);
+    }
+
+    // ── Wander goal ──────────────────────────────────────────────────────────
+
+    private static final class HomeWanderGoal extends Goal {
+        private final KangarudeEntity mob;
+        private @Nullable Vec3 target;
+
+        HomeWanderGoal(KangarudeEntity mob) {
+            this.mob = mob;
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            // Don't wander away mid-conversation.
+            if (mob.partnerId != null) return false;
+            if (mob.getNavigation().isInProgress()) return false;
+            if (mob.getRandom().nextInt(120) != 0) return false;
+
+            BlockPos home = mob.getHomePos();
+            Vec3 candidate;
+            double distSq = mob.distanceToSqr(Vec3.atCenterOf(home));
+            if (distSq > WANDER_RADIUS * WANDER_RADIUS) {
+                // Too far out — head back toward home.
+                candidate = LandRandomPos.getPosTowards(mob, 10, 5, Vec3.atCenterOf(home));
+            } else {
+                candidate = LandRandomPos.getPos(mob, 10, 5);
+                if (candidate != null
+                        && Vec3.atCenterOf(home).distanceToSqr(candidate) > WANDER_RADIUS * WANDER_RADIUS) {
+                    candidate = LandRandomPos.getPosTowards(mob, 10, 5, Vec3.atCenterOf(home));
+                }
+            }
+            if (candidate == null) return false;
+            target = candidate;
+            return true;
+        }
+
+        @Override
+        public void start() {
+            if (target != null) mob.getNavigation().moveTo(target.x, target.y, target.z, 1.0);
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return mob.partnerId == null && mob.getNavigation().isInProgress();
+        }
+
+        @Override
+        public void stop() {
+            mob.getNavigation().stop();
+            target = null;
+        }
+    }
+}

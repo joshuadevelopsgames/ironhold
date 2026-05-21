@@ -1,0 +1,27 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Vesper — Watcher of the Boneyard. Solemn, soft-spoken, tends graves and the few flowers that grow on them. Doesn't mind silence.",
+  "birthday": { "season": "winter", "day": 28 },
+  "theme":    { "accent": "#7468A0", "voice": "vesper" },
+  "tastes": [
+    { "item": "minecraft:white_candle",     "rapport_delta": 12, "reaction": "Vesper bows her head. \"They will rest easier for this. Thank you.\"" },
+    { "item": "minecraft:bone_block",       "rapport_delta": 10, "reaction": "\"For the cairn at the north corner. It's been waiting.\"" },
+    { "item": "minecraft:soul_torch",       "rapport_delta": 10, "reaction": "\"A softer light. The dead prefer it.\"" },
+    { "item": "minecraft:wither_rose",      "rapport_delta": 12, "reaction": "Vesper takes it without hesitation. \"It will grow where I put it. Some flowers are owed.\"" },
+    { "item": "minecraft:writable_book",    "rapport_delta": 10, "reaction": "\"I keep names. I had run out of pages.\"" },
+    { "item": "ironhold:black_sand",        "rapport_delta": 8,  "reaction": "\"For the urn-tops. Bless you.\"" },
+    { "item": "ironhold:ebonwood_log",      "rapport_delta": 8,  "reaction": "Vesper runs her fingers along the bark. \"Ebony from the deep wood. The right grain for a marker.\"" },
+    { "item": "minecraft:bone",             "rapport_delta": 4,  "reaction": "\"It will go in the ossuary. Quietly.\"" },
+    { "item": "minecraft:soul_sand",        "rapport_delta": 4,  "reaction": "\"For the slow-grow plot. Thank you.\"" },
+    { "item": "minecraft:gray_dye",         "rapport_delta": 3,  "reaction": "\"For the cloth. Useful.\"" },
+    { "item": "minecraft:black_wool",       "rapport_delta": 3,  "reaction": "\"For the shroud-bench. Bless.\"" },
+    { "item": "ironhold:dark_gravel",       "rapport_delta": 4,  "reaction": "\"For the paths. The visitors won't slip.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:firework_rocket", "rapport_delta": -8, "reaction": "Vesper raises a finger to her lips. \"Quiet. Always quiet here.\"" },
+    { "item": "minecraft:music_disc_cat",  "rapport_delta": -5, "reaction": "\"Music carries. The dead hear it differently.\"" },
+    { "item": "minecraft:zombie_head",     "rapport_delta": -12,"reaction": "Vesper's face hardens. \"Some mockery I will not abide. Take it from my ground.\"" }
+  ]
+}

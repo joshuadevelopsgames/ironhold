@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:nether_wart",
+    "minecraft:cocoa",
+    "minecraft:chorus_flower",
+    "minecraft:chorus_plant",
+    "minecraft:red_mushroom",
+    "minecraft:brown_mushroom"
+  ]
+}

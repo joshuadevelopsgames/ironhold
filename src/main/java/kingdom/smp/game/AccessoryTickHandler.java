@@ -9,6 +9,7 @@ import kingdom.smp.ModAttachments;
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryItem;
 import kingdom.smp.item.MimicKeyItem;
+import kingdom.smp.item.PinkSlimeBallItem;
 import kingdom.smp.net.SyncVanityPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,6 +53,7 @@ public final class AccessoryTickHandler {
         AccessoryInventory inv = player.getData(ModAttachments.ACCESSORY_INV.get());
         boolean hermesEquipped = false;
         boolean mimicKeyEquipped = false;
+        boolean pinkSlimeBallEquipped = false;
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             ItemStack stack = inv.getItem(i);
             if (stack.is(Ironhold.HERMES_BOOTS.get())) {
@@ -59,6 +61,9 @@ public final class AccessoryTickHandler {
             }
             if (stack.getItem() instanceof MimicKeyItem) {
                 mimicKeyEquipped = true;
+            }
+            if (stack.getItem() instanceof PinkSlimeBallItem) {
+                pinkSlimeBallEquipped = true;
             }
             if (!stack.isEmpty() && stack.getItem() instanceof AccessoryItem acc) {
                 acc.onAccessoryTick(player, stack);
@@ -68,6 +73,11 @@ public final class AccessoryTickHandler {
         // If the mimic key is NOT equipped, remove any baby mimics the player owns
         if (!mimicKeyEquipped && player.tickCount % 10 == 0) {
             MimicKeyItem.removeAllCompanions(player);
+        }
+
+        // Likewise, despawn the slime pets when the pink slime ball isn't equipped
+        if (!pinkSlimeBallEquipped && player.tickCount % 10 == 0) {
+            PinkSlimeBallItem.removeAllCompanions(player);
         }
 
         // Only mutate the movement attribute when Hermes equipped-state changes.
@@ -146,6 +156,7 @@ public final class AccessoryTickHandler {
             // Remove any leftover baby mimics near the player's respawn point.
             // Use a bounded search instead of world-border bounds to avoid freezing the server.
             MimicKeyItem.removeAllCompanions(sp);
+            PinkSlimeBallItem.removeAllCompanions(sp);
         }
     }
 }

@@ -6,6 +6,7 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
+import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
 import kingdom.smp.ai.OpenRouterClient;
 import kingdom.smp.ai.SvcVoiceBridge;
@@ -243,6 +244,11 @@ public class OldHestaEntity extends PathfinderMob implements NpcChatPartner {
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Hesta"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return "Old Hesta"; }
+    @Override public String displaySubtitle() { return "Seer  •  The Hollow Shrine"; }
+    @Override public void speakAloud(net.minecraft.server.level.ServerPlayer player, String line) { speakLine(line, player); }
+    @Override public void beginConversationWith(net.minecraft.server.level.ServerPlayer player) { beginConversation(player); }
 
     @Override
     public void onPartnerChat(ServerPlayer player, String message) {
@@ -266,7 +272,8 @@ public class OldHestaEntity extends PathfinderMob implements NpcChatPartner {
         replyInFlight = true;
         OpenRouterClient.chatWithCache(
             OPENROUTER_MODEL, MAX_REPLY_TOKENS, SAMPLING_TEMPERATURE,
-            SYSTEM_PROMPT, IronholdLore.runtimeContext(player.getUUID()),
+            SYSTEM_PROMPT,
+            IronholdLore.runtimeContext(player.getUUID()) + NpcRapport.onConversationTurn(player, tag()),
             snapshot, userMessage, "Hesta",
             reply -> {
                 if (server == null) return;

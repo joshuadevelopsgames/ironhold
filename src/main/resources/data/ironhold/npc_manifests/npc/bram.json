@@ -1,0 +1,24 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Bram the Bard — performer at the Wandering Wolf stage. Theatrical, forgiving of late arrivals. \"Three coppers a verse, six for an honest one.\"",
+  "birthday": { "season": "spring", "day": 11 },
+  "theme":    { "accent": "#E8B23E", "voice": "bram" },
+  "tastes": [
+    { "item": "minecraft:music_disc_cat",      "rapport_delta": 10, "reaction": "Bram bows. \"A classic. The room will love it tonight.\"" },
+    { "item": "minecraft:music_disc_otherside","rapport_delta": 12, "reaction": "\"Otherside. Yes. I'll play it slow and they'll cry into their mead.\"" },
+    { "item": "minecraft:music_disc_pigstep",  "rapport_delta": 10, "reaction": "Bram grins. \"For the late hour. Excellent.\"" },
+    { "item": "minecraft:goat_horn",           "rapport_delta": 10, "reaction": "\"A goat horn! For the chorus. Magnificent.\"" },
+    { "item": "minecraft:note_block",          "rapport_delta": 8,  "reaction": "\"For the rig upstairs. Bless you.\"" },
+    { "item": "ironhold:gold_coin",            "rapport_delta": 10, "reaction": "Bram catches it mid-flick. \"The universal tip. I'll dedicate the next verse.\"" },
+    { "item": "minecraft:bread",               "rapport_delta": 3,  "reaction": "\"Voice food. Useful.\"" },
+    { "item": "minecraft:honey_bottle",        "rapport_delta": 6,  "reaction": "\"For the throat. Bards' best friend. Thank you.\"" },
+    { "item": "minecraft:feather",             "rapport_delta": 4,  "reaction": "Bram tucks it into his hat. \"Now it's a HAT.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:bell",         "rapport_delta": -4, "reaction": "\"Bells silence rooms. Mine fills them. Pass.\"" },
+    { "item": "minecraft:cod",          "rapport_delta": -4, "reaction": "Bram's smile thins. \"There is a story I do not tell. The fish is in it. Take it away.\"" },
+    { "item": "minecraft:wither_skull", "rapport_delta": -10,"reaction": "\"That kills a room, friend. Get it out of mine.\"" }
+  ]
+}

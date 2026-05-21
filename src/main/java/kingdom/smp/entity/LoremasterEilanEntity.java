@@ -6,6 +6,7 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
+import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
 import kingdom.smp.ai.OpenRouterClient;
 import kingdom.smp.ai.SvcVoiceBridge;
@@ -252,6 +253,11 @@ public class LoremasterEilanEntity extends PathfinderMob implements NpcChatPartn
 
     @Override public UUID getPartnerId() { return partnerId; }
     @Override public String tag() { return "Eilan"; }
+    @Override public int entityId() { return getId(); }
+    @Override public String displayName() { return "Loremaster Eilan"; }
+    @Override public String displaySubtitle() { return "Loremaster  •  The Library"; }
+    @Override public void speakAloud(net.minecraft.server.level.ServerPlayer player, String line) { speakLine(line, player); }
+    @Override public void beginConversationWith(net.minecraft.server.level.ServerPlayer player) { beginConversation(player); }
 
     @Override
     public void onPartnerChat(ServerPlayer player, String message) {
@@ -275,7 +281,8 @@ public class LoremasterEilanEntity extends PathfinderMob implements NpcChatPartn
         replyInFlight = true;
         OpenRouterClient.chatWithCache(
             OPENROUTER_MODEL, MAX_REPLY_TOKENS, SAMPLING_TEMPERATURE,
-            SYSTEM_PROMPT, IronholdLore.runtimeContext(player.getUUID()),
+            SYSTEM_PROMPT,
+            IronholdLore.runtimeContext(player.getUUID()) + NpcRapport.onConversationTurn(player, tag()),
             snapshot, userMessage, "Eilan",
             reply -> {
                 if (server == null) return;

@@ -9,25 +9,34 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
+import net.neoforged.neoforge.event.brewing.PlayerBrewedPotionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
-import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEnchantItemEvent;
+import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -46,7 +55,6 @@ import java.util.UUID;
  *
  * Deferred (need other systems first):
  * <ul>
- *   <li>Blacksmithing — anvil repair / fatigue accumulation hooks</li>
  *   <li>Alchemy — brewing-stand interception</li>
  *   <li>Enchanting — enchant-table integration</li>
  *   <li>Trading — villager-trade interception</li>
@@ -134,19 +142,12 @@ public final class SkillEventHandlers {
         drops.add(bonus);
     }
 
-    @SubscribeEvent
-    public static void onItemFished(ItemFishedEvent event) {
-        Player player = event.getEntity();
-        int chance = SkillEffects.extraDropChancePercent(player, Profession.FISHING);
-        if (chance <= 0) return;
-        if (player.level().getRandom().nextInt(100) >= chance) return;
-
-        var drops = event.getDrops();
-        if (drops.isEmpty()) return;
-        ItemStack copy = drops.get(0).copy();
-        copy.setCount(1);
-        drops.add(copy);
-    }
+    // Fishing catches are handled entirely by the bite-minigame pipeline:
+    //   • FishingMinigameManager pre-rolls loot + folds in the bonus-drop perk
+    //   • FishingHookRetrieveMixin substitutes those drops into retrieve()
+    //   • FishingMinigameManager.resolve awards use-skill XP on win
+    // (Older ItemFishedEvent handlers were removed — vanilla retrieve() spawns
+    // drops directly without a reliably-mutable event in this version.)
 
     @SubscribeEvent
     public static void onUseItemFinish(LivingEntityUseItemEvent.Finish event) {
@@ -162,6 +163,102 @@ public final class SkillEventHandlers {
         // Saturation can't exceed current food level; clamp.
         float newSaturation = Math.min(food.getFoodLevel(), food.getSaturationLevel() + bonus);
         food.setSaturation(newSaturation);
+    }
+
+    // ── Blacksmithing — cheaper anvil XP cost ────────────────────────────────
+
+    @SubscribeEvent
+    public static void onAnvilUpdate(AnvilUpdateEvent event) {
+        ProfessionRank rank = SkillEffects.rankFor(event.getPlayer(), Profession.BLACKSMITHING);
+        if (rank == null) return;
+        // Per-rank XP-cost multiplier: more skilled smiths pay less.
+        float mult = switch (rank) {
+            case NOVICE -> 0.90f;
+            case APPRENTICE -> 0.80f;
+            case JOURNEYMAN -> 0.60f;
+            case EXPERT -> 0.40f;
+            case MASTER -> 0.20f;
+        };
+        int reduced = Math.max(1, Math.round(event.getXpCost() * mult));
+        event.setXpCost(reduced);
+    }
+
+    // ── Alchemy — longer-duration brewed potions ─────────────────────────────
+
+    @SubscribeEvent
+    public static void onPlayerBrewedPotion(PlayerBrewedPotionEvent event) {
+        ProfessionRank rank = SkillEffects.rankFor(event.getEntity(), Profession.ALCHEMY);
+        if (rank == null) return;
+        ItemStack stack = event.getStack();
+        PotionContents orig = stack.get(DataComponents.POTION_CONTENTS);
+        if (orig == null) return;
+
+        // Per-rank duration multiplier (applies to the base potion's effects and
+        // any custom effects). Materializes base→custom so we can rewrite each
+        // MobEffectInstance with a longer duration.
+        float scale = switch (rank) {
+            case NOVICE -> 1.20f;
+            case APPRENTICE -> 1.40f;
+            case JOURNEYMAN -> 1.70f;
+            case EXPERT -> 2.00f;
+            case MASTER -> 2.50f;
+        };
+
+        List<MobEffectInstance> rebuilt = new ArrayList<>();
+        for (MobEffectInstance src : orig.getAllEffects()) {
+            int newDuration = src.getDuration() < 0
+                ? src.getDuration() // -1 / infinite — leave alone
+                : Math.max(1, Math.round(src.getDuration() * scale));
+            rebuilt.add(new MobEffectInstance(
+                src.getEffect(), newDuration, src.getAmplifier(),
+                src.isAmbient(), src.isVisible(), src.showIcon()));
+        }
+        if (rebuilt.isEmpty()) return;
+
+        // Color is preserved so the bottle still looks right; base potion is
+        // cleared so its (un-extended) effects don't double-apply.
+        PotionContents next = new PotionContents(
+            Optional.empty(),
+            Optional.of(orig.getColor()),
+            rebuilt,
+            orig.customName());
+        stack.set(DataComponents.POTION_CONTENTS, next);
+    }
+
+    // ── Enchanting — XP refund after every enchant ───────────────────────────
+
+    @SubscribeEvent
+    public static void onPlayerEnchantItem(PlayerEnchantItemEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        ProfessionRank rank = SkillEffects.rankFor(player, Profession.ENCHANTING);
+        if (rank == null) return;
+        int refundLevels = switch (rank) {
+            case NOVICE -> 1;
+            case APPRENTICE -> 2;
+            case JOURNEYMAN -> 3;
+            case EXPERT -> 5;
+            case MASTER -> 7;
+        };
+        player.giveExperienceLevels(refundLevels);
+        player.sendSystemMessage(Component.literal("+" + refundLevels + " levels refunded (Enchanting "
+                + rank.displayName() + ")").withStyle(ChatFormatting.LIGHT_PURPLE), true);
+    }
+
+    // ── Trading — chance to double trade output ──────────────────────────────
+
+    @SubscribeEvent
+    public static void onTradeWithVillager(TradeWithVillagerEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        int chance = SkillEffects.extraDropChancePercent(player, Profession.TRADING);
+        if (chance <= 0) return;
+        if (player.getRandom().nextInt(100) >= chance) return;
+        ItemStack bonus = event.getMerchantOffer().getResult().copy();
+        if (bonus.isEmpty()) return;
+        bonus.setCount(1);
+        // Add to inventory or drop at player's feet if full.
+        if (!player.getInventory().add(bonus)) {
+            player.drop(bonus, false);
+        }
     }
 
     private static void veinBreak(ServerLevel level, BlockPos start, Block targetBlock, ServerPlayer player) {

@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:arcatheone",
+  "width": 1,
+  "height": 2,
+  "title": {
+    "translate": "painting.ironhold.arcatheone.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.arcatheone.author",
+    "color": "gray"
+  }
+}

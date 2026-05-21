@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:king_kanga",
+  "width": 2,
+  "height": 2,
+  "title": {
+    "translate": "painting.ironhold.king_kanga.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.king_kanga.author",
+    "color": "gray"
+  }
+}

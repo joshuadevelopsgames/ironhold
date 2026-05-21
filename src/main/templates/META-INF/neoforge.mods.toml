@@ -110,3 +110,43 @@ file="META-INF/accesstransformer.cfg"
 # stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
+
+# ---------------------------------------------------------------------------
+# TRMT — The Roads More Travelled. NeoForge port of milkucha/trmt (CC BY-NC 4.0).
+# Ships inside the Ironhold jar as a second mod id so future upstream syncs
+# remain a simple package-level diff. See docs/third-party/trmt.md.
+# ---------------------------------------------------------------------------
+[[mods]]
+modId="trmt"
+version="0.5-port"
+displayName="The Roads More Travelled"
+authors="milkucha (original Fabric mod); NeoForge port by Ironhold"
+credits="Original Fabric mod by milkucha — https://github.com/milkucha/trmt"
+description='''
+Dynamic terrain erosion — grass, dirt, sand, and vegetation gradually wear
+into beautiful natural-looking paths along the routes you travel most.
+
+NeoForge port of milkucha's "The Roads More Travelled" (CC BY-NC 4.0).
+'''
+
+[[mixins]]
+config="trmt.mixins.json"
+
+# Client-only mixins (DisconnectedScreen update-prompt button + AbstractWidget x/y accessor).
+# Mixin selects via the "client": [...] block inside the JSON; the toml entry just declares it.
+[[mixins]]
+config="trmt.client.mixins.json"
+
+[[dependencies.trmt]]
+    modId="neoforge"
+    type="required"
+    versionRange="[26.1.2,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.trmt]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

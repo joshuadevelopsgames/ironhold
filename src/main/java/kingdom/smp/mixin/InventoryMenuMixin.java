@@ -1,7 +1,5 @@
 package kingdom.smp.mixin;
 
-import kingdom.smp.access.SlotAccessor;
-
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryInventoryAttachmentContainer;
 import kingdom.smp.accessory.AccessoryItem;
@@ -44,72 +42,24 @@ public abstract class InventoryMenuMixin extends AbstractContainerMenu {
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void ironhold$applyIronholdLayout(Inventory inventory, boolean active, Player player, CallbackInfo ci) {
-        ironhold$repositionVanillaSlots();
+        // Vanilla slots 0–45 keep their vanilla positions; we only append the
+        // accessory + vanity slots in the docked side panels.
         ironhold$addAccessoryAndVanitySlots(player);
-    }
-
-    /** Move vanilla slots 0–45 to the Ironhold layout positions. */
-    private void ironhold$repositionVanillaSlots() {
-        // 0: craft result
-        ironhold$move(0, IronholdInventoryLayout.CRAFT_RESULT_X, IronholdInventoryLayout.CRAFT_RESULT_Y);
-
-        // 1–4: 2×2 craft grid (TL, TR, BL, BR)
-        for (int row = 0; row < 2; row++) {
-            for (int col = 0; col < 2; col++) {
-                int idx = 1 + row * 2 + col;
-                ironhold$move(idx,
-                        IronholdInventoryLayout.CRAFT_GRID_X0 + col * IronholdInventoryLayout.CRAFT_GRID_PITCH,
-                        IronholdInventoryLayout.CRAFT_GRID_Y0 + row * IronholdInventoryLayout.CRAFT_GRID_PITCH);
-            }
-        }
-
-        // 5–8: armor HEAD, CHEST, LEGS, FEET (per-slot y; not uniform pitch)
-        for (int i = 0; i < 4; i++) {
-            ironhold$move(5 + i,
-                    IronholdInventoryLayout.ARMOR_X,
-                    IronholdInventoryLayout.ARMOR_Y[i]);
-        }
-
-        // 9–35: 3×9 inventory (per-row y, per-col x — non-uniform drag-tuned pitch)
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                ironhold$move(9 + row * 9 + col,
-                        IronholdInventoryLayout.INV_COL_X[col],
-                        IronholdInventoryLayout.INV_ROW_Y[row]);
-            }
-        }
-
-        // 36–44: hotbar (same column x as the inventory grid)
-        for (int col = 0; col < 9; col++) {
-            ironhold$move(36 + col,
-                    IronholdInventoryLayout.INV_COL_X[col],
-                    IronholdInventoryLayout.HOTBAR_Y);
-        }
-
-        // 45: offhand
-        ironhold$move(45, IronholdInventoryLayout.OFFHAND_X, IronholdInventoryLayout.OFFHAND_Y);
-    }
-
-    private void ironhold$move(int index, int x, int y) {
-        Slot slot = this.slots.get(index);
-        SlotAccessor acc = (SlotAccessor) slot;
-        acc.ironhold$setX(x);
-        acc.ironhold$setY(y);
     }
 
     private void ironhold$addAccessoryAndVanitySlots(Player player) {
         // Delegate to getData(ACCESSORY_INV) so ticks and menus share one attachment instance
         var accContainer = new AccessoryInventoryAttachmentContainer(player);
 
-        // 5 accessory slots — bottom bar (slots 46–50)
+        // 5 accessory slots — "Accessories" row below the inventory (slots 46–50)
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             this.addSlot(new AccessorySlot(
                     accContainer, i,
-                    IronholdInventoryLayout.ACCESSORY_X[i],
-                    IronholdInventoryLayout.ACCESSORY_Y));
+                    IronholdInventoryLayout.ACC_SLOT_X0 + i * IronholdInventoryLayout.COSMETIC_SLOT_PITCH,
+                    IronholdInventoryLayout.ACC_ROW_Y));
         }
 
-        // 4 vanity slots — left vanity panel (slots 51–54)
+        // 4 vanity slots — vertical column docked left of the inventory (slots 51–54)
         EquipmentSlot[] order = {
                 EquipmentSlot.HEAD, EquipmentSlot.CHEST,
                 EquipmentSlot.LEGS, EquipmentSlot.FEET
@@ -117,8 +67,8 @@ public abstract class InventoryMenuMixin extends AbstractContainerMenu {
         for (int i = 0; i < AccessoryInventory.VANITY_SLOTS; i++) {
             this.addSlot(new VanitySlot(
                     accContainer, AccessoryInventory.ACCESSORY_SLOTS + i,
-                    IronholdInventoryLayout.VANITY_SLOT_X,
-                    IronholdInventoryLayout.VANITY_PANEL_OFFSET_Y + IronholdInventoryLayout.VANITY_SLOT_Y_LOCAL[i],
+                    IronholdInventoryLayout.VANITY_DOCK_SLOT_X,
+                    IronholdInventoryLayout.VANITY_DOCK_SLOT_Y[i],
                     order[i]));
         }
     }
@@ -151,11 +101,29 @@ public abstract class InventoryMenuMixin extends AbstractContainerMenu {
 
         Equippable eq = current.get(DataComponents.EQUIPPABLE);
         if (eq != null) {
+            // Favour the real armor slot first; only fall back to the vanity slot
+            // if the matching armor slot is occupied (or the item can't go there).
+            int armor = ironhold$armorSlotIndex(eq.slot());
+            if (armor >= 0 && this.moveItemStackTo(current, armor, armor + 1, false)) {
+                ironhold$finishQuickMove(slot, player, current, original, cir);
+                return;
+            }
             int v = ironhold$vanitySlotIndex(eq.slot());
             if (v >= 0 && this.moveItemStackTo(current, v, v + 1, false)) {
                 ironhold$finishQuickMove(slot, player, current, original, cir);
             }
         }
+    }
+
+    /** Vanilla {@link InventoryMenu} armor slot indices: 5=HEAD, 6=CHEST, 7=LEGS, 8=FEET. */
+    private static int ironhold$armorSlotIndex(EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> 5;
+            case CHEST -> 6;
+            case LEGS -> 7;
+            case FEET -> 8;
+            default -> -1;
+        };
     }
 
     private static int ironhold$vanitySlotIndex(EquipmentSlot slot) {

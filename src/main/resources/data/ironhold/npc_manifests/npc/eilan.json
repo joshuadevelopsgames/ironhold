@@ -1,0 +1,28 @@
+{
+  "tier": "merchant",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.1,
+  "llm_flavor": "Loremaster Eilan — scribe of the Library. Bookish, precise, tics: \"Ah —\", \"Mm, yes —\". \"Mind the third shelf, the binding's gone soft.\"",
+  "birthday": { "season": "autumn", "day": 7 },
+  "theme":    { "accent": "#C9B68C", "voice": "eilan" },
+  "tastes": [
+    { "item": "minecraft:enchanted_book", "rapport_delta": 12, "reaction": "Eilan adjusts his spectacles. \"Ah — yes. A genuinely interesting binding. Thank you.\"" },
+    { "item": "minecraft:written_book",   "rapport_delta": 10, "reaction": "\"Mm, yes — I'll catalogue it. Likely under 'curiosities' until I read it.\"" },
+    { "item": "minecraft:writable_book",  "rapport_delta": 8,  "reaction": "\"For the working desk. Excellent.\"" },
+    { "item": "minecraft:book",           "rapport_delta": 6,  "reaction": "\"A blank book is a polite invitation. Thank you.\"" },
+    { "item": "minecraft:glow_ink_sac",   "rapport_delta": 10, "reaction": "Eilan beams. \"Now THIS is interesting. The marginalia will glow.\"" },
+    { "item": "minecraft:filled_map",     "rapport_delta": 8,  "reaction": "\"Maps are stories with edges. I'll file this proudly.\"" },
+    { "item": "minecraft:paper",          "rapport_delta": 4,  "reaction": "\"Always wanted. Thank you.\"" },
+    { "item": "minecraft:feather",        "rapport_delta": 4,  "reaction": "\"A quill in the making. Bless.\"" },
+    { "item": "minecraft:bookshelf",      "rapport_delta": 8,  "reaction": "\"The east wall has been hungry. Marvellous.\"" },
+    { "item": "minecraft:lectern",        "rapport_delta": 8,  "reaction": "\"For the open-volume nook. Yes — perfect.\"" },
+    { "item": "minecraft:ink_sac",        "rapport_delta": 4,  "reaction": "\"Sustaining ink. Thank you.\"" },
+    { "item": "ironhold:gold_coin",       "rapport_delta": 6,  "reaction": "Eilan slips it into the page. \"A working bookmark. Charming.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:lava_bucket",     "rapport_delta": -12,"reaction": "\"REMOVE IT. From the Library. Now. Mm — please.\"" },
+    { "item": "minecraft:flint_and_steel", "rapport_delta": -8, "reaction": "\"A spark in a library is a tragedy waiting. Put it AWAY.\"" },
+    { "item": "minecraft:fire_charge",     "rapport_delta": -10,"reaction": "\"Absolutely not. Please leave the building with that.\"" },
+    { "item": "minecraft:tnt",             "rapport_delta": -12,"reaction": "Eilan goes pale. \"Out. Out. OUT.\"" }
+  ]
+}

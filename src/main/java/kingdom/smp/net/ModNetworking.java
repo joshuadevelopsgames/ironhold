@@ -186,6 +186,9 @@ public final class ModNetworking {
         registrar.playToClient(SyncSkillStatePayload.TYPE, SyncSkillStatePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> ClientSkillData.receive(payload)));
 
+        registrar.playToClient(SyncUseSkillsPayload.TYPE, SyncUseSkillsPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> kingdom.smp.skill.ClientUseSkillData.receive(payload)));
+
         registrar.playToServer(SpendSkillPointPayload.TYPE, SpendSkillPointPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp) {
@@ -202,6 +205,36 @@ public final class ModNetworking {
 
         registrar.playToClient(SneakDetectionPayload.TYPE, SneakDetectionPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> ClientSneakDetectionState.receive(payload)));
+
+        // ── Fishing bite minigame ─────────────────────────────────────────────
+        registrar.playToClient(FishingBiteStartPayload.TYPE, FishingBiteStartPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> ClientRpgData.openFishingMinigame(payload)));
+
+        registrar.playToServer(FishingMinigameResultPayload.TYPE, FishingMinigameResultPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.fishing.FishingMinigameManager.resolve(sp, payload.won());
+                }
+            }));
+
+        // ── Blacksmithing forge minigame ──────────────────────────────────────
+        registrar.playToServer(ForgeHammerRequestPayload.TYPE, ForgeHammerRequestPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.blacksmithing.BlacksmithingMinigameManager.tryStartFromAnvil(sp);
+                }
+            }));
+
+        registrar.playToClient(ForgeMinigameStartPayload.TYPE, ForgeMinigameStartPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> ClientRpgData.openForgeMinigame(payload)));
+
+        registrar.playToServer(ForgeMinigameResultPayload.TYPE, ForgeMinigameResultPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.blacksmithing.BlacksmithingMinigameManager.resolve(
+                        sp, payload.success(), payload.perfectStrikes(), payload.goodStrikes());
+                }
+            }));
     }
 
     /**
@@ -261,6 +294,12 @@ public final class ModNetworking {
                 state.currentRanks(),
                 state.milestonesCompleted().size());
         PacketDistributor.sendToPlayer(player, payload);
+    }
+
+    /** Push the player's current use-to-level skill XP (Pickpocket/Sneak/Fishing) to their client. */
+    public static void syncUseSkillsToClient(ServerPlayer player) {
+        kingdom.smp.skill.useskill.PlayerUseSkills skills = player.getData(ModAttachments.USE_SKILLS.get());
+        PacketDistributor.sendToPlayer(player, new SyncUseSkillsPayload(skills.xp()));
     }
 
     public static void syncToClient(ServerPlayer player) {

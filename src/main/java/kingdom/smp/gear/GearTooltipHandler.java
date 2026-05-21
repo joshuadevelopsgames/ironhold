@@ -8,7 +8,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 /**
- * Adds Quality / Condition / Fatigue lines to gear tooltips. Only shows on damageable items
+ * Adds Quality / Condition lines to gear tooltips. Only shows on damageable items
  * (armor, tools, weapons) so plain blocks and consumables stay clean.
  *
  * Registered to {@code NeoForge.EVENT_BUS} in {@link kingdom.smp.Ironhold}.
@@ -30,7 +30,7 @@ public final class GearTooltipHandler {
         event.getToolTip().add(Component.literal("Quality: ").withStyle(qualityLabel)
                 .append(Component.literal(quality.displayName()).withStyle(qualityValue)));
 
-        // Condition + fatigue only apply to damageable gear; ores have no condition or fatigue.
+        // Condition only applies to damageable gear; ores have no condition.
         if (!damageable) return;
 
         ItemCondition condition = ItemCondition.fromStack(stack);
@@ -38,15 +38,5 @@ public final class GearTooltipHandler {
         Style condValue = Style.EMPTY.withColor(condition.tooltipColor());
         event.getToolTip().add(Component.literal("Condition: ").withStyle(condLabel)
                 .append(Component.literal(condition.displayName()).withStyle(condValue)));
-
-        RepairFatigue fatigue = GearComponents.getFatigue(stack);
-        if (fatigue.level() > 0) {
-            String fatigueText = "Fatigue: " + fatigue.level() + " / " + RepairFatigue.MAX_LEVEL;
-            ChatFormatting fatigueColor = fatigue.level() >= 4 ? ChatFormatting.RED
-                    : fatigue.level() >= 2 ? ChatFormatting.YELLOW
-                    : ChatFormatting.GRAY;
-            event.getToolTip().add(Component.literal(fatigueText)
-                    .withStyle(Style.EMPTY.withColor(fatigueColor)));
-        }
     }
 }

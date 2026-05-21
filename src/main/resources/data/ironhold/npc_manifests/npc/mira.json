@@ -1,0 +1,25 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Mira — innkeeper of The Wandering Wolf. Warm hostess, keeps the place clean and the ale honest. Knows every traveler's name by their second visit.",
+  "birthday": { "season": "spring", "day": 22 },
+  "theme":    { "accent": "#D9A35C", "voice": "mira" },
+  "tastes": [
+    { "item": "minecraft:cake",                "rapport_delta": 12, "reaction": "\"Oh, you DIDN'T. I'm cutting you the first slice.\"" },
+    { "item": "minecraft:sweet_berries",       "rapport_delta": 10, "reaction": "\"Tart little things. I'll fold them into a glaze.\"" },
+    { "item": "minecraft:honey_bottle",        "rapport_delta": 10, "reaction": "\"Bless you. The bards always ask for it before they sing.\"" },
+    { "item": "minecraft:music_disc_otherside","rapport_delta": 10, "reaction": "Mira clutches it like a memory. \"This one. THIS one stays on the shelf.\"" },
+    { "item": "ironhold:cheese_wedge",         "rapport_delta": 12, "reaction": "\"Properly aged? Properly priced? You're a wonder.\"" },
+    { "item": "ironhold:purified_shell",       "rapport_delta": 10, "reaction": "\"Pretty thing. I'll hang it over the bar.\"" },
+    { "item": "minecraft:bread",               "rapport_delta": 4,  "reaction": "\"Bread keeps the patrons honest. Thank you.\"" },
+    { "item": "minecraft:wheat",               "rapport_delta": 3,  "reaction": "\"For tomorrow's loaves. Bless.\"" },
+    { "item": "minecraft:candle",              "rapport_delta": 4,  "reaction": "\"Soft light is half the welcome. Thank you.\"" },
+    { "item": "minecraft:white_wool",          "rapport_delta": 3,  "reaction": "\"For the linens. The corner room is overdue.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:rotten_flesh",  "rapport_delta": -8, "reaction": "\"Get it OUT. I run a clean house.\"" },
+    { "item": "minecraft:spider_eye",    "rapport_delta": -5, "reaction": "\"…no. Just no.\"" },
+    { "item": "minecraft:dragon_breath", "rapport_delta": -10,"reaction": "\"Dear gods, put it AWAY. Where do you find these things?\"" }
+  ]
+}

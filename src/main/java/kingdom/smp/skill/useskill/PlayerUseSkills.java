@@ -33,7 +33,7 @@ public record PlayerUseSkills(Map<UseSkill, Float> xp) {
     }
 
     public int levelFor(UseSkill skill) {
-        return UseSkillCurve.levelFor(xpFor(skill));
+        return Math.min(skill.maxLevel(), UseSkillCurve.levelFor(xpFor(skill)));
     }
 
     /** Returns a new instance with the given amount of XP added to the skill. */

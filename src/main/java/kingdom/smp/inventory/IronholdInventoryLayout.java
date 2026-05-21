@@ -83,6 +83,44 @@ public final class IronholdInventoryLayout {
     public static final int SKILLS_PANEL_OFFSET_X = 229;
     public static final int SKILLS_PANEL_OFFSET_Y = 178;
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // Vanilla-native docked panels (v2 — vanilla 176×166 inventory restored, with
+    // accessory/vanity slots in beveled gray side panels). Coords are relative to
+    // the vanilla inventory's (leftPos, topPos) origin.
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public static final int COSMETIC_SLOT_PITCH = 18;
+
+    /** The whole vanilla inventory is nudged up by this much to make room for the bottom panels. */
+    public static final int GUI_SHIFT_UP = 18;
+
+    /** Vanity panel docked to the LEFT of the inventory: "Vanity" title above 4 vertical slots. */
+    public static final int VANITY_DOCK_X = -38;      // ~2px gap from the inventory's left edge
+    public static final int VANITY_DOCK_Y = 1;        // top border aligns with the inventory's top
+    public static final int VANITY_DOCK_W = 34;
+    public static final int VANITY_DOCK_H = 92;
+    public static final int VANITY_DOCK_TITLE_Y = 4;
+    /** Horizontal center of the vanity panel (rel), for centering its title. */
+    public static final int VANITY_DOCK_CENTER_X = VANITY_DOCK_X + VANITY_DOCK_W / 2;
+    public static final int VANITY_DOCK_SLOT_X = -30;
+    public static final int[] VANITY_DOCK_SLOT_Y = {17, 35, 53, 71};
+
+    /** Accessory bar docked BELOW the inventory: 5 centered slots with "Accessories" label beneath. */
+    public static final int ACC_PANEL_X = 38;
+    public static final int ACC_PANEL_Y = 168;
+    public static final int ACC_PANEL_W = 100;
+    public static final int ACC_PANEL_H = 38;
+    public static final int ACC_ROW_Y = 172;        // slot top
+    public static final int ACC_SLOT_X0 = 43;        // first slot x; slots at +i*18 (row centered on 88)
+    public static final int ACC_LABEL_Y = 193;       // "Accessories" baseline, below the slots
+    public static final int ACC_CENTER_X = 88;        // horizontal center of the slot row (rel)
+
+    /** Vanilla "Skills" button, on the right just above the weight readout (below the effect icons). */
+    public static final int SKILLS_BTN_X = 182;
+    public static final int SKILLS_BTN_Y = 114;
+    public static final int SKILLS_BTN_W = 56;
+    public static final int SKILLS_BTN_H = 20;
+
     // ── Paperdoll (player render in central cutout) ──────────────────────────
 
     public static final int PAPERDOLL_X0 = 45;

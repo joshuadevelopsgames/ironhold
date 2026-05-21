@@ -42,7 +42,11 @@ public record NpcManifest(
     List<Ware> wares,
     List<Secret> secrets,
     List<Taste> tastes,
-    List<Disdain> disdains
+    List<Disdain> disdains,
+    @Nullable Birthday birthday,
+    Theme theme,
+    List<Milestone> milestones,
+    boolean companion
 ) {
     public enum Tier {
         COMMONER, MERCHANT, NOBILITY, ROYALTY;
@@ -65,10 +69,47 @@ public record NpcManifest(
     public record Taste(String item, int rapportDelta, String reaction) {}
     public record Disdain(String item, int rapportDelta, String reaction) {}
 
+    /**
+     * A one-time bond reward, delivered the first time the player's rapport with
+     * this NPC crosses {@code rapport}. The NPC speaks {@code line} in the
+     * dialogue UI and the player receives the item / effect grants.
+     */
+    public record Milestone(int rapport, String line, List<ItemGrant> grants, List<EffectGrant> effects) {}
+    public record ItemGrant(String item, int count) {}
+    public record EffectGrant(String effect, int durationTicks, int amplifier) {}
+
+    /** Bonds-page "today is X's birthday" data. Season is 0=spring,1=summer,2=autumn,3=winter; day 1..30. */
+    public record Birthday(int season, int day) {
+        public static Birthday parse(JsonObject o) {
+            String s = optStr(o, "season", "spring").toLowerCase();
+            int season = switch (s) {
+                case "summer" -> 1;
+                case "autumn", "fall" -> 2;
+                case "winter" -> 3;
+                default -> 0;
+            };
+            return new Birthday(season, Math.max(1, Math.min(30, optInt(o, "day", 1))));
+        }
+    }
+
+    /** Bonds-page color theme + voice tag. Defaults to the existing accent color. */
+    public record Theme(int accentColor, String voiceTag) {
+        public static final Theme DEFAULT = new Theme(0xFFC56B2A, "");
+
+        public static Theme parse(JsonObject o) {
+            String hex = optStr(o, "accent", "#C56B2A").replace("#", "");
+            int rgb;
+            try { rgb = (int) Long.parseLong(hex, 16); } catch (NumberFormatException e) { rgb = 0xC56B2A; }
+            int argb = 0xFF000000 | (rgb & 0x00FFFFFF);
+            return new Theme(argb, optStr(o, "voice", ""));
+        }
+    }
+
     public static final NpcManifest EMPTY = new NpcManifest(
         null, Tier.COMMONER, "minecraft:emerald", 1.0f,
         -100, -100, "",
-        List.of(), List.of(), List.of(), List.of());
+        List.of(), List.of(), List.of(), List.of(),
+        null, Theme.DEFAULT, List.of(), false);
 
     public int priceFor(Ware w) { return Math.max(1, Math.round(w.basePrice() * priceMultiplier)); }
     public int priceFor(Secret s) { return Math.max(1, Math.round(s.basePrice() * priceMultiplier)); }
@@ -103,12 +144,20 @@ public record NpcManifest(
         int minTrade = optInt(root, "min_rapport_for_trade", defaultMinTrade(tier));
         String flavor = optStr(root, "llm_flavor", "");
 
+        Birthday birthday = root.has("birthday") && root.get("birthday").isJsonObject()
+            ? Birthday.parse(root.getAsJsonObject("birthday")) : null;
+        Theme theme = root.has("theme") && root.get("theme").isJsonObject()
+            ? Theme.parse(root.getAsJsonObject("theme")) : Theme.DEFAULT;
+
         return new NpcManifest(
             id, tier, currency, mul, minAud, minTrade, flavor,
             parseWares(root.getAsJsonArray("wares")),
             parseSecrets(root.getAsJsonArray("secrets")),
             parseTastes(root.getAsJsonArray("tastes")),
-            parseDisdains(root.getAsJsonArray("disdains")));
+            parseDisdains(root.getAsJsonArray("disdains")),
+            birthday, theme,
+            parseMilestones(root.getAsJsonArray("milestones")),
+            optBool(root, "companion", false));
     }
 
     private static float defaultMultiplier(Tier t) {
@@ -190,6 +239,43 @@ public record NpcManifest(
         return List.copyOf(out);
     }
 
+    private static List<Milestone> parseMilestones(@Nullable JsonArray arr) {
+        if (arr == null) return List.of();
+        List<Milestone> out = new ArrayList<>(arr.size());
+        for (JsonElement el : arr) {
+            JsonObject o = el.getAsJsonObject();
+            out.add(new Milestone(
+                optInt(o, "rapport", 0),
+                optStr(o, "line", ""),
+                parseItemGrants(o.getAsJsonArray("grant")),
+                parseEffectGrants(o.getAsJsonArray("effects"))));
+        }
+        return List.copyOf(out);
+    }
+
+    private static List<ItemGrant> parseItemGrants(@Nullable JsonArray arr) {
+        if (arr == null) return List.of();
+        List<ItemGrant> out = new ArrayList<>(arr.size());
+        for (JsonElement el : arr) {
+            JsonObject o = el.getAsJsonObject();
+            out.add(new ItemGrant(optStr(o, "item", ""), Math.max(1, optInt(o, "count", 1))));
+        }
+        return List.copyOf(out);
+    }
+
+    private static List<EffectGrant> parseEffectGrants(@Nullable JsonArray arr) {
+        if (arr == null) return List.of();
+        List<EffectGrant> out = new ArrayList<>(arr.size());
+        for (JsonElement el : arr) {
+            JsonObject o = el.getAsJsonObject();
+            out.add(new EffectGrant(
+                optStr(o, "effect", ""),
+                optInt(o, "duration", 600),
+                optInt(o, "amplifier", 0)));
+        }
+        return List.copyOf(out);
+    }
+
     private static String optStr(JsonObject o, String key, String fallback) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : fallback;
     }
@@ -200,5 +286,9 @@ public record NpcManifest(
 
     private static float optFloat(JsonObject o, String key, float fallback) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsFloat() : fallback;
+    }
+
+    private static boolean optBool(JsonObject o, String key, boolean fallback) {
+        return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsBoolean() : fallback;
     }
 }

@@ -1,0 +1,26 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Kangarude (\"Kanga\") — Wanderer of Wayfarer's Hollow. Charming traveller most days; a darker other-self stirs when crossed. Likes the strange and the surprising.",
+  "birthday": { "season": "spring", "day": 1 },
+  "theme":    { "accent": "#5A4B9C", "voice": "kangarude" },
+  "tastes": [
+    { "item": "minecraft:ender_pearl",              "rapport_delta": 10, "reaction": "Kanga rolls it between his fingers. \"The void left this warm. I like that.\"" },
+    { "item": "minecraft:music_disc_5",             "rapport_delta": 12, "reaction": "Kanga goes still. \"…you found this. You found THIS. Sit down. We're listening to it together.\"" },
+    { "item": "ironhold:king_ender_eye",            "rapport_delta": 12, "reaction": "\"You shouldn't have brought this here. I'm keeping it.\"" },
+    { "item": "ironhold:void_core",                 "rapport_delta": 12, "reaction": "Kanga's grin sharpens. \"Oh. Oh that's interesting. Very interesting.\"" },
+    { "item": "ironhold:gold_coin",                 "rapport_delta": 8,  "reaction": "Kanga flicks it, catches it. \"A coin. The universal hello. Cheers.\"" },
+    { "item": "minecraft:cake",                     "rapport_delta": 10, "reaction": "\"You're trying to make me weep. It's working a little.\"" },
+    { "item": "minecraft:bread",                    "rapport_delta": 3,  "reaction": "\"A simple thing. A good thing. Thanks.\"" },
+    { "item": "minecraft:apple",                    "rapport_delta": 3,  "reaction": "\"Crunch. Travel food. Bless.\"" },
+    { "item": "minecraft:music_disc_far",           "rapport_delta": 8,  "reaction": "\"Far. Yes. I've been there.\"" },
+    { "item": "minecraft:warped_fungus_on_a_stick", "rapport_delta": 6,  "reaction": "Kanga laughs. \"What is your DEAL. I love it.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:emerald",        "rapport_delta": -3, "reaction": "\"Official money. Boring. I'll take a coin from a stranger any day.\"" },
+    { "item": "minecraft:gold_ingot",     "rapport_delta": -3, "reaction": "\"Pretty. Heavy. Pass.\"" },
+    { "item": "minecraft:command_block",  "rapport_delta": -12,"reaction": "Kanga's smile flattens. \"That. Should not. Exist. Get it AWAY from me.\"" },
+    { "item": "ironhold:filcher_crown",   "rapport_delta": -10,"reaction": "Kanga sucks his teeth. \"Filcher work. I do NOT want reminding.\"" }
+  ]
+}

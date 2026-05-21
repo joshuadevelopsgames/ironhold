@@ -1,0 +1,28 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Sister Wren — apothecary of the Herb Garden. Gentle, takes soup as payment, \"I grow life, not poisons.\" Talks to her bees.",
+  "birthday": { "season": "spring", "day": 4 },
+  "theme":    { "accent": "#6BA15E", "voice": "wren" },
+  "tastes": [
+    { "item": "minecraft:torchflower_seeds", "rapport_delta": 12, "reaction": "Wren gasps softly. \"Oh — I've wanted these. The bees adore them.\"" },
+    { "item": "minecraft:pitcher_plant",     "rapport_delta": 10, "reaction": "\"A pitcher! Bless you. The south bed has the right wet.\"" },
+    { "item": "minecraft:honeycomb",         "rapport_delta": 10, "reaction": "\"For the hive frames. The girls will thank you.\"" },
+    { "item": "minecraft:honey_bottle",      "rapport_delta": 8,  "reaction": "\"Their summer in a bottle. Lovely.\"" },
+    { "item": "minecraft:glow_berries",      "rapport_delta": 8,  "reaction": "\"They like the dim corner by the well. Thank you.\"" },
+    { "item": "ironhold:bat_flower",         "rapport_delta": 12, "reaction": "Wren cradles it. \"You shouldn't have. You absolutely shouldn't have. Thank you.\"" },
+    { "item": "ironhold:blue_vines",         "rapport_delta": 10, "reaction": "\"From the deep wood? They climb so prettily.\"" },
+    { "item": "minecraft:dandelion",         "rapport_delta": 4,  "reaction": "\"Cheerful. The bees love them. Thank you.\"" },
+    { "item": "minecraft:poppy",             "rapport_delta": 4,  "reaction": "\"Red is the bravest color a flower can be.\"" },
+    { "item": "minecraft:bone_meal",         "rapport_delta": 3,  "reaction": "\"For the slow corner. Thank you.\"" },
+    { "item": "minecraft:sugar_cane",        "rapport_delta": 3,  "reaction": "\"The stream-bed loves these. Bless.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:gunpowder",    "rapport_delta": -8, "reaction": "Wren steps between it and the garden. \"Not here. The bees panic.\"" },
+    { "item": "minecraft:tnt",          "rapport_delta": -10,"reaction": "\"Take that AWAY from my flowers. Now.\"" },
+    { "item": "minecraft:wither_rose",  "rapport_delta": 5,  "reaction": "Wren takes it gently. \"…I'll tend it. Some souls need freeing, not burning.\"" },
+    { "item": "minecraft:ghast_tear",   "rapport_delta": -10,"reaction": "\"Whatever cried this — I can't help it from here. Take it.\"" },
+    { "item": "minecraft:wither_skull", "rapport_delta": -10,"reaction": "\"OUT. Out of the garden.\"" }
+  ]
+}

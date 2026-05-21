@@ -5,11 +5,7 @@ import kingdom.smp.rpg.PlayerKingdomRpgData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -26,7 +22,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/** Stub carry-weight: tag-based stack weight + class max; applies transient move-speed penalty. */
+/**
+ * Carry-weight: tag-based stack weight + class max.
+ * <p><b>Penalty stubbed for now</b> — {@link #tick} no longer applies any move-speed slowdown or
+ * Slowness; it only clears stale penalty modifiers. Weight is still computed for readouts. Restore
+ * the over-cap penalty in {@link #tick} when encumbrance should bite again.
+ */
 public final class EncumbranceHandler {
     /** Multiplies final move speed: value v => factor (1 + v). */
     private static final Identifier ENCUMBRANCE_MUL =
@@ -90,36 +91,14 @@ public final class EncumbranceHandler {
     }
 
     public static void tick(ServerPlayer player, AttachmentType<PlayerKingdomRpgData> rpgKey) {
-        boolean needsRecalc = dirty.remove(player.getUUID())
-                || player.tickCount % FALLBACK_INTERVAL == 0;
-        if (!needsRecalc) return;
-
-        PlayerKingdomRpgData rpg = player.getData(rpgKey);
-        int max = rpg.playerClass().maxCarryWeight();
-        int weight = computeWeight(player);
+        // Encumbrance penalty stubbed for now: never apply a slowdown. We still strip any
+        // lingering penalty modifier so players who were slowed before the stub get cleared.
+        // (Weight is still computed via weightFor / computeWeight for any readout.)
         var move = player.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (move == null) {
-            return;
+        if (move != null) {
+            move.removeModifier(ENCUMBRANCE_MUL);
+            move.removeModifier(ENCUMBRANCE_ADD);
         }
-        move.removeModifier(ENCUMBRANCE_MUL);
-        move.removeModifier(ENCUMBRANCE_ADD);
-        double ratio = max <= 0 ? 0.0 : (double) weight / (double) max;
-        if (ratio > 1.0) {
-            double over = ratio - 1.0;
-            // Old curve was ~invisible just above cap; keep a floor slowdown so it’s obvious.
-            double multPenalty = Mth.clamp(0.18 + over * 0.75, 0.18, 0.72);
-            move.addTransientModifier(
-                new AttributeModifier(ENCUMBRANCE_MUL, -multPenalty, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
-            double flatPenalty = Mth.clamp(0.018 + over * 0.05, 0.018, 0.09);
-            if (flatPenalty > 0.0) {
-                move.addTransientModifier(
-                    new AttributeModifier(ENCUMBRANCE_ADD, -flatPenalty, AttributeModifier.Operation.ADD_VALUE));
-            }
-            int slowAmp = over >= 1.5 ? 2 : over >= 0.5 ? 1 : 0;
-            player.addEffect(
-                new MobEffectInstance(MobEffects.SLOWNESS, 45, slowAmp, false, false, true));
-        }
-        // Under cap: we stop applying; Slowness from this mod expires within a few seconds.
     }
 
     private static int computeWeight(Player player) {

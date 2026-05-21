@@ -1,0 +1,13 @@
+{
+  "asset_id": "ironhold:the_golden_days",
+  "width": 2,
+  "height": 1,
+  "title": {
+    "translate": "painting.ironhold.the_golden_days.title",
+    "color": "gold"
+  },
+  "author": {
+    "translate": "painting.ironhold.the_golden_days.author",
+    "color": "gray"
+  }
+}

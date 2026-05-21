@@ -77,6 +77,7 @@ public class IronholdClient {
         modEventBus.addListener(IronholdClient::registerEntityRenderers);
         modEventBus.addListener(IronholdClient::registerMenuScreens);
         modEventBus.addListener(IronholdClient::registerKeyMappings);
+        modEventBus.addListener(IronholdClient::registerRangeSelectItemModelProperties);
         // Register IClientItemExtensions per knight helm item so each helmet gets its
         // matching custom HumanoidModel (kettlehat / bascinet / barbute / crusader / armet)
         // via NeoForge's getHumanoidArmorModel hook — same approach as Epic Knights' own
@@ -85,10 +86,18 @@ public class IronholdClient {
         // Built-in dynamic lights (held light-source items, registered wands, glowing mobs).
         // Reload-listener registration is a mod-bus event; tick/logout are on the game bus.
         modEventBus.addListener(kingdom.smp.dynlight.DynamicLightsClientEvents::onAddClientReloadListeners);
+        // Seasons: client-side color resolver swap + sub-season change rebuild. Static-field swap
+        // is installed at FML client setup; per-tick state advance and sync are on the game bus.
+        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
+        // modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLClientSetupEvent e) ->
+        //     e.enqueueWork(kingdom.smp.seasons.client.SeasonColorHandlers::install));
+        // NeoForge.EVENT_BUS.register(kingdom.smp.seasons.client.SeasonColorHandlers.class);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         NeoForge.EVENT_BUS.register(ClientNeoForgeEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ScepterDebugCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.ForgeButtonCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.ForgeButtonDebugHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.SneakEyeDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.SneakHoldInputHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.WizardStickDebugCommand.class);
@@ -121,6 +130,9 @@ public class IronholdClient {
         event.registerLayerDefinition(FilcherModel.LAYER_LOCATION, FilcherModel::createBodyLayer);
         event.registerLayerDefinition(MimicModel.LAYER_LOCATION, MimicModel::createBodyLayer);
         event.registerLayerDefinition(BabyMimicModel.LAYER_LOCATION, BabyMimicModel::createBodyLayer);
+        event.registerLayerDefinition(
+            kingdom.smp.client.entity.SlimePetModel.LAYER_LOCATION,
+            kingdom.smp.client.entity.SlimePetModel::createBodyLayer);
         event.registerLayerDefinition(PinkDeerModel.LAYER_LOCATION, PinkDeerModel::createBodyLayer);
         event.registerLayerDefinition(PinkDeerModel.BABY_LAYER, PinkDeerModel::createBabyLayer);
         event.registerLayerDefinition(MomPinkDeerModel.LAYER_LOCATION, MomPinkDeerModel::createBodyLayer);
@@ -216,6 +228,8 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.WHITE_SHULKER.get(), WhiteShulkerRenderer::new);
         event.registerEntityRenderer(Ironhold.BLACK_SHULKER.get(), BlackShulkerRenderer::new);
         event.registerEntityRenderer(Ironhold.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
+        event.registerEntityRenderer(Ironhold.TALLYKEEPER.get(),
+            ctx -> new kingdom.smp.client.entity.TallykeeperRenderer(ctx));
         event.registerEntityRenderer(Ironhold.CEMETERY_WATCHER.get(),
             ctx -> new kingdom.smp.client.entity.CemeteryWatcherRenderer(ctx));
         event.registerEntityRenderer(Ironhold.MIRA_INNKEEPER.get(),
@@ -249,6 +263,10 @@ public class IronholdClient {
         event.registerEntityRenderer(Ironhold.MOM_PINK_DEER.get(), MomPinkDeerRenderer::new);
         event.registerEntityRenderer(Ironhold.MIMIC.get(), MimicRenderer::new);
         event.registerEntityRenderer(Ironhold.BABY_MIMIC.get(), BabyMimicRenderer::new);
+        event.registerEntityRenderer(Ironhold.SLIME_PET_JE11IE.get(),
+            kingdom.smp.client.entity.SlimePetRenderer::new);
+        event.registerEntityRenderer(Ironhold.SLIME_PET_CHEAKIE.get(),
+            kingdom.smp.client.entity.SlimePetRenderer::new);
         event.registerEntityRenderer(Ironhold.KINGDOM_DRAGON.get(), KingdomDragonRenderer::new);
         event.registerEntityRenderer(Ironhold.GUILLOTINE_SEAT_ENTITY.get(),
             net.minecraft.client.renderer.entity.NoopRenderer::new);
@@ -260,6 +278,13 @@ public class IronholdClient {
         event.register(AccessoryMenuTypes.ACCESSORY_MENU.get(), AccessoryScreen::new);
         event.register(kingdom.smp.quest.QuestBoardMenuTypes.QUEST_BOARD_MENU.get(),
             kingdom.smp.client.screen.QuestBoardScreen::new);
+    }
+
+    private static void registerRangeSelectItemModelProperties(
+            net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent event) {
+        event.register(
+            Identifier.fromNamespaceAndPath(Ironhold.MODID, "player_compass_angle"),
+            kingdom.smp.client.item.PlayerCompassAngle.MAP_CODEC);
     }
 
     private static void registerKeyMappings(RegisterKeyMappingsEvent event) {

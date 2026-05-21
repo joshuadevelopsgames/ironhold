@@ -61,6 +61,7 @@ import kingdom.smp.item.CloudInABottleItem;
 import kingdom.smp.item.HermesBootsItem;
 import kingdom.smp.item.MagicMinecartItem;
 import kingdom.smp.item.MimicKeyItem;
+import kingdom.smp.item.PinkSlimeBallItem;
 import kingdom.smp.item.TempestArrowItem;
 import kingdom.smp.item.TempestBowItem;
 import net.minecraft.core.registries.Registries;
@@ -135,6 +136,9 @@ public class Ironhold {
     // ── Status effects ───────────────────────────────────────────────────────
     public static final DeferredHolder<net.minecraft.world.effect.MobEffect, kingdom.smp.effect.PlagueEffect> PLAGUE_EFFECT =
         MOB_EFFECTS.register("plague", kingdom.smp.effect.PlagueEffect::new);
+
+    public static final DeferredHolder<net.minecraft.world.effect.MobEffect, kingdom.smp.effect.SlimedEffect> SLIMED_EFFECT =
+        MOB_EFFECTS.register("slimed", kingdom.smp.effect.SlimedEffect::new);
 
     // ── Sound events ─────────────────────────────────────────────────────────
     // Ebonwood Hollow ambient loop — sound by CreativeMD / AmbientSounds mod (LGPL-3.0)
@@ -482,6 +486,19 @@ public class Ironhold {
         ITEMS.registerItem(
             "warden_halric_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(WARDEN_HALRIC.get()).stacksTo(64)));
+
+    /** The Tallykeeper — royal records-herald; daily stat-ranking coin reward. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.TallykeeperEntity>> TALLYKEEPER =
+        ENTITY_TYPES.registerEntityType(
+            "tallykeeper",
+            kingdom.smp.entity.TallykeeperEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredItem<Item> TALLYKEEPER_SPAWN_EGG =
+        ITEMS.registerItem(
+            "tallykeeper_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(TALLYKEEPER.get()).stacksTo(64)));
 
     /** Vesper — wither-skeleton cemetery watcher. Peaceful, immobile, voiced. */
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.CemeteryWatcherEntity>> CEMETERY_WATCHER =
@@ -896,6 +913,31 @@ public class Ironhold {
         ITEMS.registerItem(
             "baby_mimic_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(BABY_MIMIC.get()).stacksTo(64)));
+
+    // Slime Pets — tiny floating player-head companions that bite for half a heart and Slime the target.
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.SlimePetEntity>> SLIME_PET_JE11IE =
+        ENTITY_TYPES.registerEntityType(
+            "slime_pet_je11ie",
+            kingdom.smp.entity.SlimePetEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.45F, 0.55F).eyeHeight(0.4F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.SlimePetEntity>> SLIME_PET_CHEAKIE =
+        ENTITY_TYPES.registerEntityType(
+            "slime_pet_cheakie",
+            kingdom.smp.entity.SlimePetEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.45F, 0.55F).eyeHeight(0.4F).clientTrackingRange(8).updateInterval(3));
+
+    public static final DeferredItem<Item> SLIME_PET_JE11IE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "slime_pet_je11ie_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SLIME_PET_JE11IE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> SLIME_PET_CHEAKIE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "slime_pet_cheakie_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(SLIME_PET_CHEAKIE.get()).stacksTo(64)));
 
     // Kingdom Dragon — dimensional dragon family (Ender / Nether / Overworld / Deep Dark)
     public static final DeferredHolder<EntityType<?>, EntityType<KingdomDragonEntity>> KINGDOM_DRAGON =
@@ -1451,6 +1493,16 @@ public class Ironhold {
         ITEMS.registerItem("mimic_key", MimicKeyItem::new,
             props -> props.rarity(net.minecraft.world.item.Rarity.EPIC).stacksTo(1));
 
+    /** Accessory: summons the Je11ie & Cheakie slime-head pets while equipped. */
+    public static final DeferredItem<PinkSlimeBallItem> PINK_SLIME_BALL =
+        ITEMS.registerItem("pink_slime_ball", PinkSlimeBallItem::new,
+            props -> props.rarity(net.minecraft.world.item.Rarity.RARE).stacksTo(1));
+
+    /** Compass that tracks a player you right-click on. Spins when out-of-dimension. */
+    public static final DeferredItem<kingdom.smp.item.PlayerCompassItem> PLAYER_COMPASS =
+        ITEMS.registerItem("player_compass", kingdom.smp.item.PlayerCompassItem::new,
+            props -> props.rarity(net.minecraft.world.item.Rarity.RARE).stacksTo(1));
+
     public static final DeferredItem<Item> FOOLS_GOLD = ITEMS.registerSimpleItem(
         "fools_gold",
         props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON)
@@ -1630,6 +1682,7 @@ public class Ironhold {
             .displayItems((params, output) -> {
                 output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
                 output.accept(WARDEN_HALRIC_SPAWN_EGG.get());
+                output.accept(TALLYKEEPER_SPAWN_EGG.get());
                 output.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
                 output.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
                 output.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
@@ -1654,6 +1707,8 @@ public class Ironhold {
                 output.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
                 output.accept(MIMIC_SPAWN_EGG.get());
                 output.accept(BABY_MIMIC_SPAWN_EGG.get());
+                output.accept(SLIME_PET_JE11IE_SPAWN_EGG.get());
+                output.accept(SLIME_PET_CHEAKIE_SPAWN_EGG.get());
                 output.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
                 output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
                 output.accept(KNIGHT_RECRUIT_SPAWN_EGG.get());
@@ -1687,6 +1742,7 @@ public class Ironhold {
                 output.accept(CLASS_STONE_ITEM.get());
                 output.accept(PITCHFORK.get());
                 output.accept(HERMES_BOOTS.get());
+                output.accept(PLAYER_COMPASS.get());
                 output.accept(BAND_OF_REGENERATION.get());
                 output.accept(CLOUD_IN_A_BOTTLE.get());
                 output.accept(WRAITHS_SIGIL.get());
@@ -1752,6 +1808,7 @@ public class Ironhold {
         kingdom.smp.entity.BabyMimicMenuTypes.register(modEventBus);
         kingdom.smp.quest.QuestBoardMenuTypes.register(modEventBus);
         kingdom.smp.gear.GearComponents.register(modEventBus);
+        kingdom.smp.item.IronholdItemComponents.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
@@ -1767,15 +1824,22 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearTooltipHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearAttributeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.SkillEventHandlers.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.food.CookingInteractionHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.PickpocketHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.npc.NpcGiftHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.MimicChestSpawner.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.SneakDetectionTracker.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.VillagerStealthHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.SneakStealthHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.entity.VillageKnightSpawner.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.mine.MineDropQualityHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.rpg.ability.AbilityEffects.class);
+        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
+        // NeoForge.EVENT_BUS.register(kingdom.smp.seasons.SeasonTickHandler.class);
 
         modEventBus.addListener(ModNetworking::register);
+        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
+        // modEventBus.addListener(kingdom.smp.seasons.network.SeasonsNetworking::register);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
@@ -1824,6 +1888,8 @@ public class Ironhold {
         event.put(SHIPWRECK_MIMIC.get(), ShipwreckMimicEntity.createAttributes().build());
         event.put(MIMIC.get(), MimicEntity.createAttributes().build());
         event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
+        event.put(SLIME_PET_JE11IE.get(), kingdom.smp.entity.SlimePetEntity.createAttributes().build());
+        event.put(SLIME_PET_CHEAKIE.get(), kingdom.smp.entity.SlimePetEntity.createAttributes().build());
         event.put(KINGDOM_DRAGON.get(), KingdomDragonEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
         event.put(KANGARUDE.get(), KangarudeEntity.createAttributes().build());
@@ -1832,6 +1898,7 @@ public class Ironhold {
         event.put(WHITE_SHULKER.get(), WhiteShulkerEntity.createAttributes().build());
         event.put(BLACK_SHULKER.get(), BlackShulkerEntity.createAttributes().build());
         event.put(WARDEN_HALRIC.get(), WardenHalricEntity.createAttributes().build());
+        event.put(TALLYKEEPER.get(), kingdom.smp.entity.TallykeeperEntity.createAttributes().build());
         event.put(CEMETERY_WATCHER.get(), kingdom.smp.entity.CemeteryWatcherEntity.createAttributes().build());
         event.put(MIRA_INNKEEPER.get(), kingdom.smp.entity.MiraInnkeeperEntity.createAttributes().build());
         event.put(BLACKSMITH_TOBIAS.get(), kingdom.smp.entity.BlacksmithTobiasEntity.createAttributes().build());
@@ -1949,6 +2016,7 @@ public class Ironhold {
             event.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
             event.accept(KANGARUDE_SPAWN_EGG.get());
             event.accept(WARDEN_HALRIC_SPAWN_EGG.get());
+            event.accept(TALLYKEEPER_SPAWN_EGG.get());
             event.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
             event.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
             event.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
@@ -1969,6 +2037,8 @@ public class Ironhold {
             event.accept(RAT_SPAWN_EGG.get());
             event.accept(MIMIC_SPAWN_EGG.get());
             event.accept(BABY_MIMIC_SPAWN_EGG.get());
+            event.accept(SLIME_PET_JE11IE_SPAWN_EGG.get());
+            event.accept(SLIME_PET_CHEAKIE_SPAWN_EGG.get());
             event.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
             event.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
             event.accept(SIREN_SPAWN_EGG.get());
@@ -1994,6 +2064,7 @@ public class Ironhold {
             event.accept(CLOUD_IN_A_BOTTLE.get());
             event.accept(SEASHELL.get());
             event.accept(MIMIC_KEY.get());
+            event.accept(PINK_SLIME_BALL.get());
             event.accept(SIRENS_RING.get());
         }
         if (event.getTabKey() == CreativeModeTabs.NATURAL_BLOCKS) {

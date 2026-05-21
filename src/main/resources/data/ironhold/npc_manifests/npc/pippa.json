@@ -1,0 +1,27 @@
+{
+  "tier": "commoner",
+  "currency": "minecraft:emerald",
+  "price_multiplier": 1.0,
+  "llm_flavor": "Pippa — Market Alley urchin. Fast, sharp, biscuit-debt system. Won't go out past dark alone. Reads people in three seconds.",
+  "birthday": { "season": "summer", "day": 30 },
+  "theme":    { "accent": "#9C6FCE", "voice": "pippa" },
+  "tastes": [
+    { "item": "minecraft:cookie",            "rapport_delta": 12, "reaction": "Pippa's eyes go enormous. \"You — okay. Okay. We're friends now.\"" },
+    { "item": "minecraft:cake",              "rapport_delta": 12, "reaction": "\"A WHOLE one? Are you in love with me or something. Thank you.\"" },
+    { "item": "minecraft:sweet_berries",     "rapport_delta": 8,  "reaction": "\"Sour-sweet. My favourite kind. Mwah.\"" },
+    { "item": "minecraft:music_disc_cat",    "rapport_delta": 10, "reaction": "\"OH! I'll trade Mira for stage time. You're the best.\"" },
+    { "item": "minecraft:amethyst_shard",    "rapport_delta": 10, "reaction": "Pippa holds it up to the lantern. \"Shiiiiny. Yes. Yours forever.\"" },
+    { "item": "minecraft:leather",           "rapport_delta": 6,  "reaction": "\"I can finally fix my satchel. Top tier.\"" },
+    { "item": "ironhold:gold_coin",          "rapport_delta": 8,  "reaction": "\"…you're giving me a WHOLE coin? You're rich. Now I owe you.\"" },
+    { "item": "minecraft:bread",             "rapport_delta": 3,  "reaction": "\"Cheers. Mira's are softer, but. Thanks.\"" },
+    { "item": "minecraft:carrot",            "rapport_delta": 3,  "reaction": "\"For dinner. Cool.\"" },
+    { "item": "minecraft:apple",             "rapport_delta": 3,  "reaction": "\"Crunchy. Thanks.\"" },
+    { "item": "minecraft:poppy",             "rapport_delta": 3,  "reaction": "\"Pretty. I'll stick it in my hat.\"" }
+  ],
+  "disdains": [
+    { "item": "minecraft:emerald",     "rapport_delta": -5,  "reaction": "Pippa looks over her shoulder. \"Don't flash that here. People watch.\"" },
+    { "item": "minecraft:tnt",         "rapport_delta": -10, "reaction": "\"NO. No no no. Put it away. I've SEEN one go off.\"" },
+    { "item": "minecraft:rotten_flesh","rapport_delta": -8,  "reaction": "\"EW. Why. WHY.\"" },
+    { "item": "minecraft:spider_eye",  "rapport_delta": -5,  "reaction": "\"Hard pass. Thanks.\"" }
+  ]
+}

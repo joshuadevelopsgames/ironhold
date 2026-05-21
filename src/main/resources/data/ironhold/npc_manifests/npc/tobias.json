@@ -2,7 +2,9 @@
   "tier": "commoner",
   "currency": "minecraft:emerald",
   "price_multiplier": 1.1,
-  "llm_flavor": "Master Tobias of The Iron Hearth — forty years at the anvil. Gruff, fair, doesn't haggle. Knows ore quality by the sound of the strike.",
+  "llm_flavor": "Master Tobias of The Iron Hearth — forty years at the anvil. Gruff, fair, doesn't haggle. Knows ore quality by the sound of the strike. Raising a son alone.",
+  "birthday": { "season": "summer", "day": 7 },
+  "theme":    { "accent": "#C56B2A", "voice": "tobias" },
   "wares": [
     { "item": "minecraft:iron_pickaxe", "base_price": 14, "stock": 1 },
     { "item": "minecraft:iron_sword",   "base_price": 16, "stock": 1 },
@@ -29,12 +31,46 @@
   ],
   "tastes": [
     { "item": "ironhold:high_quality_iron_ore", "rapport_delta": 12, "reaction": "Tobias hefts the ore, listens to it click. \"Now THAT'S iron. Where'd you pull this?\"" },
+    { "item": "minecraft:diamond",              "rapport_delta": 12, "reaction": "Tobias whistles, low. \"That's a man's gift. The boy'll never see it. My thanks.\"" },
+    { "item": "minecraft:netherite_scrap",      "rapport_delta": 12, "reaction": "\"Netherite scrap. The hot work begins. Bless.\"" },
+    { "item": "minecraft:netherite_ingot",      "rapport_delta": 14, "reaction": "Tobias takes off his apron. \"…you mean it. I'll forge you something worth this. Word of a smith.\"" },
+    { "item": "ironhold:steel_ingot",           "rapport_delta": 10, "reaction": "\"Properly tempered. You know your metal, traveler.\"" },
+    { "item": "minecraft:cake",                 "rapport_delta": 10, "reaction": "Tobias's face cracks into something like a smile. \"For the boy? He'll lose his mind. Thank you.\"" },
     { "item": "minecraft:iron_ingot",           "rapport_delta": 3,  "reaction": "Tobias nods once. \"Honest metal. I'll find a use.\"" },
-    { "item": "minecraft:coal",                 "rapport_delta": 2,  "reaction": "\"The forge eats this faster than my boy eats bread. Appreciated.\"" }
+    { "item": "minecraft:coal",                 "rapport_delta": 2,  "reaction": "\"The forge eats this faster than my boy eats bread. Appreciated.\"" },
+    { "item": "minecraft:coal_block",           "rapport_delta": 5,  "reaction": "\"A whole block. The forge will be hot all week.\"" },
+    { "item": "minecraft:anvil",                "rapport_delta": 5,  "reaction": "\"My back-up anvil's been chipped two years. Bless you.\"" },
+    { "item": "minecraft:bread",                "rapport_delta": 3,  "reaction": "\"For the boy. Cheers.\"" },
+    { "item": "ironhold:armor_polish",          "rapport_delta": 5,  "reaction": "\"Polish. Yes. The customers notice. Thank you.\"" }
   ],
   "disdains": [
     { "item": "minecraft:gold_ingot",   "rapport_delta": -3, "reaction": "Tobias barely glances at it. \"Pretty. Soft. Useless. Take it to the wizard.\"" },
     { "item": "minecraft:copper_ingot", "rapport_delta": -2, "reaction": "\"Copper's for roofs and Filcher trinkets. Not blades.\"" },
-    { "item": "minecraft:wooden_sword", "rapport_delta": -4, "reaction": "Tobias's jaw tightens. \"Get that out of my forge before I throw it in the fire.\"" }
+    { "item": "minecraft:wooden_sword", "rapport_delta": -4, "reaction": "Tobias's jaw tightens. \"Get that out of my forge before I throw it in the fire.\"" },
+    { "item": "ironhold:fools_gold",    "rapport_delta": -5, "reaction": "\"Fool's gold. You're not the first to try. Get it gone.\"" },
+    { "item": "minecraft:rotten_flesh", "rapport_delta": -8, "reaction": "\"OUT. The forge is no place for that filth.\"" }
+  ],
+  "milestones": [
+    {
+      "rapport": 200,
+      "line": "You keep coming round. Here — take these off my hands, I've iron to spare. Don't make me regret it.",
+      "grant": [ { "item": "minecraft:iron_ingot", "count": 8 } ]
+    },
+    {
+      "rapport": 400,
+      "line": "Your old pick's near worn through — I've watched you swing it. Take this one. My work. It'll outlast you if you let it.",
+      "grant": [ { "item": "minecraft:iron_pickaxe", "count": 1 }, { "item": "minecraft:shield", "count": 1 } ]
+    },
+    {
+      "rapport": 600,
+      "line": "Steel. Real steel, folded by my own hand — I don't sell this. You've earned a few bars. Build something that matters.",
+      "grant": [ { "item": "ironhold:steel_ingot", "count": 6 } ]
+    },
+    {
+      "rapport": 800,
+      "line": "…you mean it. All of it. Then take this — I made it the night the boy slept through till dawn for the first time. My finest. Carry it well, friend.",
+      "grant": [ { "item": "minecraft:diamond_pickaxe", "count": 1 }, { "item": "ironhold:steel_ingot", "count": 8 } ],
+      "effects": [ { "effect": "minecraft:hero_of_the_village", "duration": 12000, "amplifier": 0 } ]
+    }
   ]
 }
