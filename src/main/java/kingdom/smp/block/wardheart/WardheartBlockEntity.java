@@ -66,7 +66,7 @@ public class WardheartBlockEntity extends BlockEntity {
     private float clientPhase = 0f;
 
     public WardheartBlockEntity(BlockPos pos, BlockState state) {
-        super(Ironhold.WARDHEART_BLOCK_ENTITY.get(), pos, state);
+        super(kingdom.smp.ModBlocks.WARDHEART_BLOCK_ENTITY.get(), pos, state);
     }
 
     public int getFuel() { return fuel; }

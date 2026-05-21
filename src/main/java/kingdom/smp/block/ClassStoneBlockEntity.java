@@ -39,7 +39,7 @@ public class ClassStoneBlockEntity extends BlockEntity {
     public int time = 0;
 
     public ClassStoneBlockEntity(BlockPos pos, BlockState state) {
-        super(Ironhold.CLASS_STONE_BLOCK_ENTITY.get(), pos, state);
+        super(kingdom.smp.ModBlocks.CLASS_STONE_BLOCK_ENTITY.get(), pos, state);
     }
 
     /** Lazily-built carousel — built on first access so item registry is ready. */

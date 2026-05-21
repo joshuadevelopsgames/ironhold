@@ -69,7 +69,7 @@ public class ClassStoneBlock extends Block implements EntityBlock {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (type != Ironhold.CLASS_STONE_BLOCK_ENTITY.get()) return null;
+        if (type != kingdom.smp.ModBlocks.CLASS_STONE_BLOCK_ENTITY.get()) return null;
         // Only the client needs to tick — the carousel rotation/bob is purely visual.
         return level.isClientSide()
             ? (BlockEntityTicker<T>) (BlockEntityTicker<ClassStoneBlockEntity>) ClassStoneBlockEntity::clientTick

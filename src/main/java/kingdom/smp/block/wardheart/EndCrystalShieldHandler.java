@@ -40,7 +40,7 @@ public final class EndCrystalShieldHandler {
         BlockState existing = sl.getBlockState(pos);
         if (!existing.isAir()) return;
 
-        BlockState shieldState = Ironhold.WARDHEART_BLOCK.get().defaultBlockState()
+        BlockState shieldState = kingdom.smp.ModBlocks.WARDHEART_BLOCK.get().defaultBlockState()
             .setValue(WardheartBlock.HIDDEN, true);
         sl.setBlock(pos, shieldState, 3);
 

@@ -14,7 +14,7 @@ public class GuillotineBlockEntity extends BlockEntity implements GeoBlockEntity
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public GuillotineBlockEntity(BlockPos pos, BlockState state) {
-        super(Ironhold.GUILLOTINE_BLOCK_ENTITY.get(), pos, state);
+        super(kingdom.smp.ModBlocks.GUILLOTINE_BLOCK_ENTITY.get(), pos, state);
     }
 
     @Override

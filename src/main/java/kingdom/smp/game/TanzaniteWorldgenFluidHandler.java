@@ -61,7 +61,7 @@ public final class TanzaniteWorldgenFluidHandler {
             return;
         }
 
-        event.setNewState(Ironhold.TANZANITE_ORE.get().defaultBlockState());
+        event.setNewState(kingdom.smp.ModBlocks.TANZANITE_ORE.get().defaultBlockState());
         placeObsidianRing(worldGen, pos);
     }
 

@@ -22,6 +22,6 @@ public class BlueVinesBlock extends TwistingVinesBlock {
 
     @Override
     protected Block getBodyBlock() {
-        return Ironhold.BLUE_VINES_PLANT.get();
+        return kingdom.smp.ModBlocks.BLUE_VINES_PLANT.get();
     }
 }

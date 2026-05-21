@@ -32,8 +32,8 @@ public class BlueVinesFeature extends Feature<NoneFeatureConfiguration> {
         BlockPos origin = ctx.origin();
         RandomSource random = ctx.random();
 
-        BlockState tipState = Ironhold.BLUE_VINES.get().defaultBlockState();
-        BlockState bodyState = Ironhold.BLUE_VINES_PLANT.get().defaultBlockState();
+        BlockState tipState = kingdom.smp.ModBlocks.BLUE_VINES.get().defaultBlockState();
+        BlockState bodyState = kingdom.smp.ModBlocks.BLUE_VINES_PLANT.get().defaultBlockState();
 
         boolean placedAny = false;
 

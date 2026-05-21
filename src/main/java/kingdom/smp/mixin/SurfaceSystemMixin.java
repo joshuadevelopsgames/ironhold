@@ -44,7 +44,7 @@ public class SurfaceSystemMixin {
         CallbackInfo ci
     ) {
         net.minecraft.world.level.ChunkPos chunkPos = chunk.getPos();
-        BlockState ebonwoodGrass = Ironhold.EBONWOOD_GRASS.get().defaultBlockState();
+        BlockState ebonwoodGrass = kingdom.smp.ModBlocks.EBONWOOD_GRASS.get().defaultBlockState();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
 
         for (int localX = 0; localX < 16; localX++) {

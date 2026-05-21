@@ -91,7 +91,7 @@ public class WardheartBlock extends Block implements EntityBlock {
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (type != Ironhold.WARDHEART_BLOCK_ENTITY.get()) return null;
+        if (type != kingdom.smp.ModBlocks.WARDHEART_BLOCK_ENTITY.get()) return null;
         if (level.isClientSide()) {
             return (BlockEntityTicker<T>) (BlockEntityTicker<WardheartBlockEntity>) WardheartBlockEntity::clientTick;
         }

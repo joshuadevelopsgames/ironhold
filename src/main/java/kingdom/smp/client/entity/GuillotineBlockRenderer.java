@@ -60,17 +60,17 @@ public class GuillotineBlockRenderer extends GeoBlockRenderer<GuillotineBlockEnt
     static class GuillotineGeoModel extends DefaultedBlockGeoModel<GuillotineBlockEntity> {
 
         static final Map<Block, Identifier> TEXTURE_MAP = Map.ofEntries(
-            Map.entry(Ironhold.GUILLOTINE_OAK_BLOCK.get(),      tex("guillotine_oak")),
-            Map.entry(Ironhold.GUILLOTINE_SPRUCE_BLOCK.get(),    tex("guillotine_spruce")),
-            Map.entry(Ironhold.GUILLOTINE_BIRCH_BLOCK.get(),     tex("guillotine_birch")),
-            Map.entry(Ironhold.GUILLOTINE_JUNGLE_BLOCK.get(),    tex("guillotine_jungle")),
-            Map.entry(Ironhold.GUILLOTINE_ACACIA_BLOCK.get(),    tex("guillotine_acacia")),
-            Map.entry(Ironhold.GUILLOTINE_DARK_OAK_BLOCK.get(),  tex("guillotine_dark_oak")),
-            Map.entry(Ironhold.GUILLOTINE_MANGROVE_BLOCK.get(),  tex("guillotine_mangrove")),
-            Map.entry(Ironhold.GUILLOTINE_CHERRY_BLOCK.get(),    tex("guillotine_cherry")),
-            Map.entry(Ironhold.GUILLOTINE_CRIMSON_BLOCK.get(),   tex("guillotine_crimson")),
-            Map.entry(Ironhold.GUILLOTINE_WARPED_BLOCK.get(),    tex("guillotine_warped")),
-            Map.entry(Ironhold.GUILLOTINE_EBONY_BLOCK.get(),     tex("guillotine_ebony"))
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_OAK_BLOCK.get(),      tex("guillotine_oak")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_SPRUCE_BLOCK.get(),    tex("guillotine_spruce")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_BIRCH_BLOCK.get(),     tex("guillotine_birch")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_JUNGLE_BLOCK.get(),    tex("guillotine_jungle")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_ACACIA_BLOCK.get(),    tex("guillotine_acacia")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_DARK_OAK_BLOCK.get(),  tex("guillotine_dark_oak")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_MANGROVE_BLOCK.get(),  tex("guillotine_mangrove")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_CHERRY_BLOCK.get(),    tex("guillotine_cherry")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_CRIMSON_BLOCK.get(),   tex("guillotine_crimson")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_WARPED_BLOCK.get(),    tex("guillotine_warped")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_EBONY_BLOCK.get(),     tex("guillotine_ebony"))
         );
 
         static final Identifier DEFAULT_TEXTURE = tex("guillotine_oak");

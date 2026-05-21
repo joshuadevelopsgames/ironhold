@@ -43,7 +43,7 @@ public abstract class BatFlowerMixin {
         if (ironhold$lingerTicks > 0 && ironhold$flowerTarget != null) {
             ironhold$lingerTicks--;
             // Check the flower still exists
-            if (!level.getBlockState(ironhold$flowerTarget).is(Ironhold.BAT_FLOWER.get())) {
+            if (!level.getBlockState(ironhold$flowerTarget).is(kingdom.smp.ModBlocks.BAT_FLOWER.get())) {
                 ironhold$flowerTarget = null;
                 ironhold$lingerTicks = 0;
                 return;
@@ -86,7 +86,7 @@ public abstract class BatFlowerMixin {
             for (int dz = -12; dz <= 12; dz += 2) {
                 for (int dy = -6; dy <= 6; dy++) {
                     mutable.set(batPos.getX() + dx, batPos.getY() + dy, batPos.getZ() + dz);
-                    if (level.getBlockState(mutable).is(Ironhold.BAT_FLOWER.get())) {
+                    if (level.getBlockState(mutable).is(kingdom.smp.ModBlocks.BAT_FLOWER.get())) {
                         double dist = mutable.distSqr(batPos);
                         if (dist < closestDist) {
                             closestDist = dist;

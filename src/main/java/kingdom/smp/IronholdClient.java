@@ -152,13 +152,13 @@ public class IronholdClient {
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         // Block entity renderers
         event.registerBlockEntityRenderer(
-            Ironhold.GUILLOTINE_BLOCK_ENTITY.get(),
+            kingdom.smp.ModBlocks.GUILLOTINE_BLOCK_ENTITY.get(),
             kingdom.smp.client.entity.GuillotineBlockRenderer::new);
         event.registerBlockEntityRenderer(
-            Ironhold.WARDHEART_BLOCK_ENTITY.get(),
+            kingdom.smp.ModBlocks.WARDHEART_BLOCK_ENTITY.get(),
             kingdom.smp.client.entity.WardheartBlockRenderer::new);
         event.registerBlockEntityRenderer(
-            Ironhold.CLASS_STONE_BLOCK_ENTITY.get(),
+            kingdom.smp.ModBlocks.CLASS_STONE_BLOCK_ENTITY.get(),
             kingdom.smp.client.block.ClassStoneRenderer::new);
 
         // Entity renderers
