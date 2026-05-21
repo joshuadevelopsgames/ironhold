@@ -23,7 +23,7 @@ public abstract class BatSpawnMixin {
     private static void ironhold$allowBatsInEbonwood(
             EntityType<Bat> type, LevelAccessor level, EntitySpawnReason spawnType,
             BlockPos pos, RandomSource random, CallbackInfoReturnable<Boolean> cir) {
-        if (level.getBiome(pos).is(Ironhold.EBONWOOD_HOLLOW)) {
+        if (level.getBiome(pos).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
             cir.setReturnValue(true);
         }
     }

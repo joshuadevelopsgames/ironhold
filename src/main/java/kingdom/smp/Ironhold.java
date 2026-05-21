@@ -127,73 +127,9 @@ public class Ironhold {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     public static final DeferredRegister.Entities ENTITY_TYPES = DeferredRegister.createEntities(MODID);
-    public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
-    public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(Registries.SOUND_EVENT, MODID);
-    public static final DeferredRegister<net.minecraft.world.effect.MobEffect> MOB_EFFECTS =
-        DeferredRegister.create(Registries.MOB_EFFECT, MODID);
 
-    // ── Status effects ───────────────────────────────────────────────────────
-    public static final DeferredHolder<net.minecraft.world.effect.MobEffect, kingdom.smp.effect.PlagueEffect> PLAGUE_EFFECT =
-        MOB_EFFECTS.register("plague", kingdom.smp.effect.PlagueEffect::new);
-
-    public static final DeferredHolder<net.minecraft.world.effect.MobEffect, kingdom.smp.effect.SlimedEffect> SLIMED_EFFECT =
-        MOB_EFFECTS.register("slimed", kingdom.smp.effect.SlimedEffect::new);
-
-    // ── Sound events ─────────────────────────────────────────────────────────
-    // Ebonwood Hollow ambient loop — sound by CreativeMD / AmbientSounds mod (LGPL-3.0)
-    // https://github.com/CreativeMD/AmbientSounds — credit required
-    public static final DeferredHolder<SoundEvent, SoundEvent> EBONWOOD_AMBIENT =
-        SOUND_EVENTS.register("ambient.ebonwood_hollow",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "ambient.ebonwood_hollow")));
-
-    public static final DeferredHolder<SoundEvent, SoundEvent> HALRIC_STAFF_CHAIN_CLINK =
-        SOUND_EVENTS.register("item.halric_staff.chain_clink",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "item.halric_staff.chain_clink")));
-
-    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_AMBIENT =
-        SOUND_EVENTS.register("entity.pink_deer.ambient",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.ambient")));
-    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_HURT =
-        SOUND_EVENTS.register("entity.pink_deer.hurt",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.hurt")));
-    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_DEATH =
-        SOUND_EVENTS.register("entity.pink_deer.death",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.death")));
-    public static final DeferredHolder<SoundEvent, SoundEvent> PINK_DEER_MOM_HURT =
-        SOUND_EVENTS.register("entity.pink_deer.mom.hurt",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.pink_deer.mom.hurt")));
-
-    /** Dramatic sonic-boom transition cue for the Kangabrine descent. ~4s long. */
-    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_DRAMATIC_DESCENT =
-        SOUND_EVENTS.register("entity.kangabrine.dramatic_descent",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.dramatic_descent")));
-
-    /** Fast, nerving, eerie 30-second ambient — plays during the Kangabrine STALKING phase. */
-    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_EERIE_AMBIENT =
-        SOUND_EVENTS.register("entity.kangabrine.eerie_ambient",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.eerie_ambient")));
-
-    /** Horrifying banshee scream — used as a strike payoff during ESCALATED. */
-    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_BANSHEE_SCREAM =
-        SOUND_EVENTS.register("entity.kangabrine.banshee_scream",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.banshee_scream")));
-
-    /** Dark haunted-atmosphere evil laugh — used as a random ambient sting. */
-    public static final DeferredHolder<SoundEvent, SoundEvent> KANGABRINE_EVIL_LAUGH =
-        SOUND_EVENTS.register("entity.kangabrine.evil_laugh",
-            () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(MODID, "entity.kangabrine.evil_laugh")));
-
-    // ── Worldgen feature keys ─────────────────────────────────────────────────
-    public static final DeferredHolder<Feature<?>, BlueVinesFeature> BLUE_VINES_FEATURE =
-        FEATURES.register("blue_vines", () -> new BlueVinesFeature(NoneFeatureConfiguration.CODEC));
-
-    // ── Biome resource keys ───────────────────────────────────────────────────
-    /** Resource key for the Ebonwood Hollow biome (data-driven; defined in worldgen/biome/). */
-    public static final ResourceKey<Biome> EBONWOOD_HOLLOW = ResourceKey.create(
-        Registries.BIOME,
-        Identifier.fromNamespaceAndPath(MODID, "ebonwood_hollow")
-    );
+    // Status effects → ModEffects; sound events → ModSounds; worldgen feature + biome keys → ModWorldgen.
 
     public static final DeferredHolder<EntityType<?>, EntityType<MagicMinecartEntity>> MAGIC_MINECART_ENTITY =
         ENTITY_TYPES.registerEntityType(
@@ -1794,14 +1730,14 @@ public class Ironhold {
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         ENTITY_TYPES.register(modEventBus);
-        FEATURES.register(modEventBus);
-        SOUND_EVENTS.register(modEventBus);
+        ModWorldgen.register(modEventBus);
+        ModSounds.register(modEventBus);
         BLOCK_ENTITY_TYPES.register(modEventBus);
         CREATIVE_TABS.register(modEventBus);
-        MOB_EFFECTS.register(modEventBus);
+        ModEffects.register(modEventBus);
 
         // Let PlagueEffect resolve its own Holder lazily after registration.
-        kingdom.smp.effect.PlagueEffect.setHolderSupplier(() -> PLAGUE_EFFECT);
+        kingdom.smp.effect.PlagueEffect.setHolderSupplier(() -> ModEffects.PLAGUE_EFFECT);
 
         ModAttachments.register(modEventBus);
         AccessoryMenuTypes.register(modEventBus);
@@ -1968,7 +1904,7 @@ public class Ironhold {
             Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             (type, level, spawnType, pos, random) -> {
                 // Always allow in Ebonwood Hollow (regardless of light)
-                if (level.getBiome(pos).is(EBONWOOD_HOLLOW)) {
+                if (level.getBiome(pos).is(ModWorldgen.EBONWOOD_HOLLOW)) {
                     return pos.getY() > level.getSeaLevel();
                 }
                 return Monster.checkMonsterSpawnRules(type, level, spawnType, pos, random);

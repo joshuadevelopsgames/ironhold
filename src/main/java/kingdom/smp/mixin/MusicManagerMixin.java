@@ -31,7 +31,7 @@ public abstract class MusicManagerMixin {
         if (minecraft.level == null || minecraft.player == null) return;
 
         boolean inEbonwood = minecraft.level.getBiome(minecraft.player.blockPosition())
-                .is(Ironhold.EBONWOOD_HOLLOW);
+                .is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW);
         if (!inEbonwood) {
             ironhold$fadeTimer = 0;
             return;

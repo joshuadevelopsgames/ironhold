@@ -35,13 +35,13 @@ public class EbonwoodBoundaryGoal extends Goal {
 
         // Only activate if the mob is outside ebonwood
         BlockPos pos = mob.blockPosition();
-        return !mob.level().getBiome(pos).is(Ironhold.EBONWOOD_HOLLOW);
+        return !mob.level().getBiome(pos).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW);
     }
 
     @Override
     public boolean canContinueToUse() {
         // Keep redirecting until we're back in ebonwood or navigation finishes
-        if (mob.level().getBiome(mob.blockPosition()).is(Ironhold.EBONWOOD_HOLLOW)) {
+        if (mob.level().getBiome(mob.blockPosition()).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
             return false;
         }
         return !mob.getNavigation().isDone();
@@ -77,7 +77,7 @@ public class EbonwoodBoundaryGoal extends Goal {
                 for (int dz = -1; dz <= 1; dz++) {
                     if (dx == 0 && dz == 0) continue;
                     BlockPos check = pos.offset(dx * dist, 0, dz * dist);
-                    if (mob.level().getBiome(check).is(Ironhold.EBONWOOD_HOLLOW)) {
+                    if (mob.level().getBiome(check).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
                         double d = check.distSqr(pos);
                         if (d < bestDistSq) {
                             bestDistSq = d;

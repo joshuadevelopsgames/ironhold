@@ -24,7 +24,7 @@ public class VanillaRegistriesMixin {
     @Inject(method = "bootstrap", at = @At("RETURN"))
     private static void ironhold$registerBiomes(BootstrapContext<Biome> context, CallbackInfo ci) {
         // Ebonwood Hollow — dark coniferous forest in the vanilla overworld
-        context.register(Ironhold.EBONWOOD_HOLLOW, new Biome.BiomeBuilder()
+        context.register(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW, new Biome.BiomeBuilder()
             .downfall(0.4f)
             .temperature(0.4f)
             .hasPrecipitation(true)

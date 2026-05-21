@@ -50,8 +50,8 @@ public class PlagueTonicItem extends Item {
 
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
-        if (!level.isClientSide() && Ironhold.PLAGUE_EFFECT != null) {
-            PlagueHandler.runWithBypass(() -> entity.removeEffect(Ironhold.PLAGUE_EFFECT));
+        if (!level.isClientSide() && kingdom.smp.ModEffects.PLAGUE_EFFECT != null) {
+            PlagueHandler.runWithBypass(() -> entity.removeEffect(kingdom.smp.ModEffects.PLAGUE_EFFECT));
             level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 SoundEvents.HONEY_DRINK, SoundSource.PLAYERS, 1.0F, 1.2F);
         }

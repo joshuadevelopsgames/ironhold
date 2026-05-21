@@ -21,7 +21,7 @@ public abstract class CompassEbonwoodMixin {
     private void ironhold$spinInEbonwood(ItemStack stack, ClientLevel level, ItemOwner owner,
                                           int seed, CallbackInfoReturnable<Float> cir) {
         if (level == null || owner == null) return;
-        if (level.getBiome(net.minecraft.core.BlockPos.containing(owner.position())).is(Ironhold.EBONWOOD_HOLLOW)) {
+        if (level.getBiome(net.minecraft.core.BlockPos.containing(owner.position())).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
             // Spin erratically based on game time + seed
             long t = level.getGameTime();
             float spin = (float) ((Math.sin(t * 0.073 + seed * 31) * 0.5

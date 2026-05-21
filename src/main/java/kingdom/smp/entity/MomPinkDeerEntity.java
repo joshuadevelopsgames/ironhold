@@ -130,7 +130,7 @@ public class MomPinkDeerEntity extends PinkDeerEntity {
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        return kingdom.smp.Ironhold.PINK_DEER_MOM_HURT.get();
+        return kingdom.smp.ModSounds.PINK_DEER_MOM_HURT.get();
     }
 
     // ── Inner goal: warning posture when threats approach babies ──────────────

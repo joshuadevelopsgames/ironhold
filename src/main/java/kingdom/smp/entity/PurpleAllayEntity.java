@@ -24,7 +24,7 @@ public class PurpleAllayEntity extends Allay {
 
         // Biome boundary check — nudge back toward ebonwood every 40 ticks
         if (!level().isClientSide() && tickCount % 40 == 0) {
-            if (!level().getBiome(blockPosition()).is(Ironhold.EBONWOOD_HOLLOW)) {
+            if (!level().getBiome(blockPosition()).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
                 // Find nearest ebonwood direction and fly back
                 BlockPos pos = blockPosition();
                 for (int dist = 8; dist <= 16; dist += 8) {
@@ -32,7 +32,7 @@ public class PurpleAllayEntity extends Allay {
                         for (int dz = -1; dz <= 1; dz++) {
                             if (dx == 0 && dz == 0) continue;
                             BlockPos check = pos.offset(dx * dist, 0, dz * dist);
-                            if (level().getBiome(check).is(Ironhold.EBONWOOD_HOLLOW)) {
+                            if (level().getBiome(check).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
                                 Vec3 target = Vec3.atCenterOf(check);
                                 getNavigation().moveTo(target.x, target.y, target.z, 1.0);
                                 return;

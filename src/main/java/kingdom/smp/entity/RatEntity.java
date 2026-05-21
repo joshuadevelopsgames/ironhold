@@ -219,7 +219,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         boolean ok = super.doHurtTarget(level, target);
-        if (ok && target instanceof LivingEntity victim && Ironhold.PLAGUE_EFFECT != null) {
+        if (ok && target instanceof LivingEntity victim && kingdom.smp.ModEffects.PLAGUE_EFFECT != null) {
             boolean isVillager = victim instanceof net.minecraft.world.entity.npc.villager.AbstractVillager;
             // Plague-on-bite tier: Black-Rat-vs-player is the dangerous case. Villager bites are
             // far less infectious to keep village die-offs from runaway-cascading.
@@ -229,8 +229,8 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
             } else {
                 plagueChance = isBlackRat() ? 0.5F : 0.05F;
             }
-            if (level.getRandom().nextFloat() < plagueChance && !victim.hasEffect(Ironhold.PLAGUE_EFFECT)) {
-                victim.addEffect(new MobEffectInstance(Ironhold.PLAGUE_EFFECT,
+            if (level.getRandom().nextFloat() < plagueChance && !victim.hasEffect(kingdom.smp.ModEffects.PLAGUE_EFFECT)) {
+                victim.addEffect(new MobEffectInstance(kingdom.smp.ModEffects.PLAGUE_EFFECT,
                     PlagueEffect.TOTAL_DURATION_TICKS, 0, false, false, true), this);
             }
             squeakAndAlert(target);
@@ -326,9 +326,9 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
         }
 
         // Black-rat-only: a plagued mob (stage 1+) is "food" too.
-        if (isBlackRat() && Ironhold.PLAGUE_EFFECT != null) {
+        if (isBlackRat() && kingdom.smp.ModEffects.PLAGUE_EFFECT != null) {
             for (LivingEntity le : level.getEntitiesOfClass(LivingEntity.class, foodArea)) {
-                MobEffectInstance pl = le.getEffect(Ironhold.PLAGUE_EFFECT);
+                MobEffectInstance pl = le.getEffect(kingdom.smp.ModEffects.PLAGUE_EFFECT);
                 if (pl != null && PlagueEffect.stageOf(pl) >= 1) return true;
             }
         }

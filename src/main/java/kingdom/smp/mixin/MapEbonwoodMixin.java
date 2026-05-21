@@ -21,7 +21,7 @@ public abstract class MapEbonwoodMixin {
     @Inject(method = "update", at = @At("HEAD"), cancellable = true)
     private void ironhold$blankMapInEbonwood(Level level, Entity entity,
                                               MapItemSavedData data, CallbackInfo ci) {
-        if (entity.level().getBiome(entity.blockPosition()).is(Ironhold.EBONWOOD_HOLLOW)) {
+        if (entity.level().getBiome(entity.blockPosition()).is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) {
             ci.cancel();
         }
     }

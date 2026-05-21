@@ -917,7 +917,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         // 10-second descent so the BOOM lands mid-fall for the "evil superman just broke
         // the sound barrier" entrance feel. Loud + wide range so everyone within earshot hears.
         sl.playSound(null, victim.getX(), victim.getY(), victim.getZ(),
-            kingdom.smp.Ironhold.KANGABRINE_DRAMATIC_DESCENT.get(),
+            kingdom.smp.ModSounds.KANGABRINE_DRAMATIC_DESCENT.get(),
             net.minecraft.sounds.SoundSource.HOSTILE, 4.0f, 1.0f);
 
         victim.sendSystemMessage(
@@ -1037,7 +1037,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
     /** Send the 30-second eerie ambient track to the victim's client only. */
     private void playEerieAmbient(ServerLevel sl, ServerPlayer victim) {
         var soundHolder = net.minecraft.core.Holder.direct(
-            kingdom.smp.Ironhold.KANGABRINE_EERIE_AMBIENT.get());
+            kingdom.smp.ModSounds.KANGABRINE_EERIE_AMBIENT.get());
         victim.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
             soundHolder, net.minecraft.sounds.SoundSource.HOSTILE,
             victim.getX(), victim.getY(), victim.getZ(),
@@ -1056,7 +1056,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
     /** Loud packet-direct banshee scream straight to the victim's client. */
     private void playBansheeScream(ServerLevel sl, ServerPlayer victim, float volume) {
         var holder = net.minecraft.core.Holder.direct(
-            kingdom.smp.Ironhold.KANGABRINE_BANSHEE_SCREAM.get());
+            kingdom.smp.ModSounds.KANGABRINE_BANSHEE_SCREAM.get());
         victim.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
             holder, net.minecraft.sounds.SoundSource.HOSTILE,
             victim.getX(), victim.getY(), victim.getZ(),
@@ -1070,7 +1070,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         double lx = victim.getX() + Math.cos(angle) * offsetDist;
         double lz = victim.getZ() + Math.sin(angle) * offsetDist;
         sl.playSound(null, lx, victim.getY() + 1.0, lz,
-            kingdom.smp.Ironhold.KANGABRINE_EVIL_LAUGH.get(),
+            kingdom.smp.ModSounds.KANGABRINE_EVIL_LAUGH.get(),
             net.minecraft.sounds.SoundSource.HOSTILE, volume, 1.0f);
     }
 

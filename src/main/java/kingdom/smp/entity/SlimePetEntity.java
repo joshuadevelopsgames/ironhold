@@ -93,8 +93,8 @@ public class SlimePetEntity extends TamableAnimal {
         // Never bite a fellow slime pet — they're friends.
         if (target instanceof SlimePetEntity) return false;
         boolean ok = super.doHurtTarget(level, target);
-        if (ok && target instanceof LivingEntity victim && Ironhold.SLIMED_EFFECT != null) {
-            victim.addEffect(new MobEffectInstance(Ironhold.SLIMED_EFFECT, SLIMED_TICKS, 0, false, true, true), this);
+        if (ok && target instanceof LivingEntity victim && kingdom.smp.ModEffects.SLIMED_EFFECT != null) {
+            victim.addEffect(new MobEffectInstance(kingdom.smp.ModEffects.SLIMED_EFFECT, SLIMED_TICKS, 0, false, true, true), this);
             level.playSound(null, victim.getX(), victim.getY(), victim.getZ(),
                 SoundEvents.SLIME_SQUISH, this.getSoundSource(), 0.6F, 1.4F);
         }

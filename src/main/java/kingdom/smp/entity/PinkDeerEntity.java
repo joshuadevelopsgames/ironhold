@@ -105,17 +105,17 @@ public class PinkDeerEntity extends Animal {
 
     @Override
     protected SoundEvent getAmbientSound() {
-        return kingdom.smp.Ironhold.PINK_DEER_AMBIENT.get();
+        return kingdom.smp.ModSounds.PINK_DEER_AMBIENT.get();
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        return kingdom.smp.Ironhold.PINK_DEER_HURT.get();
+        return kingdom.smp.ModSounds.PINK_DEER_HURT.get();
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return kingdom.smp.Ironhold.PINK_DEER_DEATH.get();
+        return kingdom.smp.ModSounds.PINK_DEER_DEATH.get();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════

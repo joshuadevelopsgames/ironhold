@@ -44,7 +44,7 @@ public class OverworldBiomeBuilderMixin {
                 Climate.Parameter.span( 0.05f,  0.40f),   // weirdness — mid band (common)
                 0.0f                                        // offset — same priority as vanilla biomes
             ),
-            Ironhold.EBONWOOD_HOLLOW
+            kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW
         ));
     }
 }

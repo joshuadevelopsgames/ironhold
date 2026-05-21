@@ -27,7 +27,7 @@ public abstract class SpiderEbonwoodMixin {
             @Override
             public boolean canUse() {
                 Holder<Biome> biome = self.level().getBiome(self.blockPosition());
-                if (!biome.is(Ironhold.EBONWOOD_HOLLOW)) return false;
+                if (!biome.is(kingdom.smp.ModWorldgen.EBONWOOD_HOLLOW)) return false;
                 return super.canUse();
             }
         });

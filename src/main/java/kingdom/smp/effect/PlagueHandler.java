@@ -44,7 +44,7 @@ public final class PlagueHandler {
 
     @SubscribeEvent
     public static void onEffectRemove(MobEffectEvent.Remove event) {
-        Holder<MobEffect> plague = Ironhold.PLAGUE_EFFECT;
+        Holder<MobEffect> plague = kingdom.smp.ModEffects.PLAGUE_EFFECT;
         if (!event.getEffect().is(plague.getKey())) return;
         if (BYPASS_REMOVE.get()) return;
 
@@ -61,7 +61,7 @@ public final class PlagueHandler {
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide()) return;
 
-        Holder<MobEffect> plague = Ironhold.PLAGUE_EFFECT;
+        Holder<MobEffect> plague = kingdom.smp.ModEffects.PLAGUE_EFFECT;
         MobEffectInstance instance = victim.getEffect(plague);
         if (instance == null) return;
         int stage = PlagueEffect.stageOf(instance);
@@ -79,7 +79,7 @@ public final class PlagueHandler {
         if (player.level().isClientSide()) return;
         if (!event.getOriginalStack().is(Ironhold.PLAGUE_BUBO.get())) return;
 
-        Holder<MobEffect> plague = Ironhold.PLAGUE_EFFECT;
+        Holder<MobEffect> plague = kingdom.smp.ModEffects.PLAGUE_EFFECT;
         if (player.hasEffect(plague)) return;
 
         player.addEffect(new MobEffectInstance(

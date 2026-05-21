@@ -191,10 +191,10 @@ public final class HalricStaffChainPhysics {
                     float pitch = 0.85f + 0.05f * i
                         + Math.min(0.25f, Math.abs(prevOmegaZ[i]) * 0.02f);
                     System.out.println("[HalricStaffChainPhysics] CLINK fired: link=" + i
-                        + " prevOmega=" + prevOmegaZ[i] + " sound=" + Ironhold.HALRIC_STAFF_CHAIN_CLINK.get());
+                        + " prevOmega=" + prevOmegaZ[i] + " sound=" + kingdom.smp.ModSounds.HALRIC_STAFF_CHAIN_CLINK.get());
                     player.level().playLocalSound(
                         player.getX(), player.getY() + 1.0, player.getZ(),
-                        Ironhold.HALRIC_STAFF_CHAIN_CLINK.get(),
+                        kingdom.smp.ModSounds.HALRIC_STAFF_CHAIN_CLINK.get(),
                         SoundSource.PLAYERS,
                         CLINK_VOLUME, pitch, false);
                     lastClinkTick = now;
