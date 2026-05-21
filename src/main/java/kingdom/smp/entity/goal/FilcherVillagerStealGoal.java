@@ -61,8 +61,25 @@ public class FilcherVillagerStealGoal extends Goal {
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
+    // Goal-evaluation throttle: canUse() does an AABB entity scan, too costly to
+    // run every tick. Cap to once per 15 ticks per filcher, staggered by entity id.
+    private static final int CAN_USE_INTERVAL = 15;
+    private boolean cachedCanUse = false;
+    private int lastCanUseTick = -1;
+
     @Override
     public boolean canUse() {
+        int tick = filcher.tickCount;
+        int stagger = filcher.getId() % CAN_USE_INTERVAL;
+        if (tick - lastCanUseTick < CAN_USE_INTERVAL && ((tick + stagger) % CAN_USE_INTERVAL) != 0) {
+            return cachedCanUse;
+        }
+        lastCanUseTick = tick;
+        cachedCanUse = evaluateCanUse();
+        return cachedCanUse;
+    }
+
+    private boolean evaluateCanUse() {
         if (filcher.isKing()) return false;
         if (filcher.getScatterTicks() > 0) return false;
         net.minecraft.core.BlockPos den = filcher.getDenPos();
