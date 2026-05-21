@@ -46,7 +46,7 @@ public class LunarOrbEntity extends AbstractHurtingProjectile {
     }
 
     public LunarOrbEntity(LivingEntity owner, Vec3 direction, Level level, float power) {
-        super(Ironhold.LUNAR_ORB.get(), owner, direction, level);
+        super(kingdom.smp.ModEntities.LUNAR_ORB.get(), owner, direction, level);
         this.accelerationPower = 0.04;
         this.power = power;
     }

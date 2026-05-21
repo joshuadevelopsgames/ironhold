@@ -40,7 +40,7 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
     }
 
     public ArcaneOrbEntity(LivingEntity owner, Entity homingTarget, Vec3 initialDirection, Level level) {
-        super(Ironhold.ARCANE_ORB.get(), owner, initialDirection, level);
+        super(kingdom.smp.ModEntities.ARCANE_ORB.get(), owner, initialDirection, level);
         this.accelerationPower = 0.04;
         if (homingTarget != null) {
             this.targetUuid = homingTarget.getUUID();

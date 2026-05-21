@@ -94,7 +94,7 @@ public class PinkDeerEntity extends Animal {
 
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel level, AgeableMob other) {
-        return kingdom.smp.Ironhold.PINK_DEER.get().create(level,
+        return kingdom.smp.ModEntities.PINK_DEER.get().create(level,
             net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 

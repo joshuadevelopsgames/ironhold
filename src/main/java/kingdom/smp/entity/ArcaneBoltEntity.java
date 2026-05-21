@@ -28,7 +28,7 @@ public class ArcaneBoltEntity extends AbstractHurtingProjectile {
     }
 
     public ArcaneBoltEntity(LivingEntity owner, Vec3 direction, Level level) {
-        super(Ironhold.ARCANE_BOLT.get(), owner, direction, level);
+        super(kingdom.smp.ModEntities.ARCANE_BOLT.get(), owner, direction, level);
         this.accelerationPower = 0.065;
     }
 

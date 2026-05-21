@@ -374,7 +374,7 @@ public class FilcherKingBrainGoal extends Goal {
     /** Spawns the requested number of new filcher reinforcements near the king. */
     private void spawnReinforcements(ServerLevel sl, int count) {
         for (int i = 0; i < count; i++) {
-            FilcherEntity recruit = (FilcherEntity) kingdom.smp.Ironhold.FILCHER.get().create(
+            FilcherEntity recruit = (FilcherEntity) kingdom.smp.ModEntities.FILCHER.get().create(
                 sl, net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
             if (recruit == null) continue;
 

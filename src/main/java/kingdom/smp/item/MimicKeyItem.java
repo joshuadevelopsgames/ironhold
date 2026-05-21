@@ -108,7 +108,7 @@ public class MimicKeyItem extends AccessoryItem {
     }
 
     private void spawnCompanion(ServerPlayer player, ServerLevel level, ItemStack keyStack) {
-        BabyMimicEntity mimic = new BabyMimicEntity(Ironhold.BABY_MIMIC.get(), level);
+        BabyMimicEntity mimic = new BabyMimicEntity(kingdom.smp.ModEntities.BABY_MIMIC.get(), level);
         mimic.setPos(player.getX() + 1, player.getY(), player.getZ() + 1);
         mimic.tame(player);
         mimic.setOrderedToSit(false);

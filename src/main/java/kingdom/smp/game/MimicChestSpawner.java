@@ -102,7 +102,7 @@ public final class MimicChestSpawner {
         // dormant mimic in its place.
         level.removeBlock(pos, false);
 
-        MimicEntity mimic = Ironhold.MIMIC.get().create(level, EntitySpawnReason.STRUCTURE);
+        MimicEntity mimic = kingdom.smp.ModEntities.MIMIC.get().create(level, EntitySpawnReason.STRUCTURE);
         if (mimic == null) return;
         mimic.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
         mimic.setPersistenceRequired();

@@ -49,8 +49,8 @@ public class PinkSlimeBallItem extends AccessoryItem {
         // Top up to the desired count.
         for (int i = pets.size(); i < desired; i++) {
             EntityType<? extends SlimePetEntity> type = level.getRandom().nextBoolean()
-                ? Ironhold.SLIME_PET_JE11IE.get()
-                : Ironhold.SLIME_PET_CHEAKIE.get();
+                ? kingdom.smp.ModEntities.SLIME_PET_JE11IE.get()
+                : kingdom.smp.ModEntities.SLIME_PET_CHEAKIE.get();
             spawnPet(serverPlayer, level, type);
         }
     }

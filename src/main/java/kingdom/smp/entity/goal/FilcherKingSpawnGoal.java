@@ -61,7 +61,7 @@ public class FilcherKingSpawnGoal extends Goal {
 
         // Spawn at den mouth
         BlockPos den = king.getDenPos();
-        FilcherEntity spawn = (FilcherEntity) Ironhold.FILCHER.get()
+        FilcherEntity spawn = (FilcherEntity) kingdom.smp.ModEntities.FILCHER.get()
             .create(serverLevel, EntitySpawnReason.MOB_SUMMONED);
         if (spawn == null) return;
 

@@ -293,7 +293,7 @@ public final class IronholdGameEvents {
                 BoundingBox bb = cityStart.getBoundingBox();
                 AABB cityBox = AABB.of(bb);
                 if (level.getEntitiesOfClass(BlackShulkerEntity.class, cityBox).isEmpty()) {
-                    BlackShulkerEntity black = Ironhold.BLACK_SHULKER.get()
+                    BlackShulkerEntity black = kingdom.smp.ModEntities.BLACK_SHULKER.get()
                         .create(level, EntitySpawnReason.STRUCTURE);
                     if (black != null) {
                         black.snapTo(sx, sy, sz, original.getYRot(), original.getXRot());
@@ -307,7 +307,7 @@ public final class IronholdGameEvents {
         }
 
         if (level.getRandom().nextFloat() < 0.15f) {
-            WhiteShulkerEntity white = Ironhold.WHITE_SHULKER.get()
+            WhiteShulkerEntity white = kingdom.smp.ModEntities.WHITE_SHULKER.get()
                 .create(level, EntitySpawnReason.STRUCTURE);
             if (white != null) {
                 white.snapTo(sx, sy, sz, original.getYRot(), original.getXRot());
@@ -408,7 +408,7 @@ public final class IronholdGameEvents {
         if (level.getRandom().nextFloat() >= MANSION_POSSESSED_ARMOR_CHANCE) return;
 
         kingdom.smp.entity.PossessedArmorEntity armor =
-            Ironhold.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
+            kingdom.smp.ModEntities.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
         if (armor == null) return;
         armor.snapTo(vindicator.getX(), vindicator.getY(), vindicator.getZ(),
             vindicator.getYRot(), vindicator.getXRot());
@@ -439,7 +439,7 @@ public final class IronholdGameEvents {
         if (OUTPOST_PILLAGER_COUNT.incrementAndGet() % OUTPOST_POSSESSED_ARMOR_INTERVAL != 0) return;
 
         kingdom.smp.entity.PossessedArmorEntity armor =
-            Ironhold.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
+            kingdom.smp.ModEntities.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
         if (armor == null) return;
         armor.snapTo(pillager.getX(), pillager.getY(), pillager.getZ(),
             pillager.getYRot(), pillager.getXRot());

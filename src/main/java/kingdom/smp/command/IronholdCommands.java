@@ -445,7 +445,7 @@ public final class IronholdCommands {
             return 0;
         }
         ServerLevel level = (ServerLevel) player.level();
-        KangarudeEntity npc = new KangarudeEntity(Ironhold.KANGARUDE.get(), level);
+        KangarudeEntity npc = new KangarudeEntity(kingdom.smp.ModEntities.KANGARUDE.get(), level);
         npc.setPos(player.getX() + 1.5, player.getY(), player.getZ());
         // Face the player.
         npc.setYRot(player.getYRot() + 180.0F);
@@ -498,7 +498,7 @@ public final class IronholdCommands {
         VillagerProfession prof = VillagerProfession.fromId(professionId.toLowerCase());
         ServerLevel level = (ServerLevel) player.level();
 
-        KingdomVillagerEntity villager = new KingdomVillagerEntity(Ironhold.KINGDOM_VILLAGER.get(), level);
+        KingdomVillagerEntity villager = new KingdomVillagerEntity(kingdom.smp.ModEntities.KINGDOM_VILLAGER.get(), level);
         villager.setProfession(prof);
         villager.setPos(player.getX() + 2, player.getY(), player.getZ());
         level.addFreshEntity(villager);

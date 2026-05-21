@@ -350,7 +350,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
     }
 
     private void spawnRatBaby(ServerLevel level, RatEntity partner) {
-        RatEntity baby = Ironhold.RAT.get().create(level, EntitySpawnReason.BREEDING);
+        RatEntity baby = kingdom.smp.ModEntities.RAT.get().create(level, EntitySpawnReason.BREEDING);
         if (baby == null) return;
         baby.setBaby(true);
         // Black-rat inheritance: only if at least one parent is Black, and roll 15%.

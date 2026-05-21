@@ -40,7 +40,7 @@ public class ThrownPitchforkRenderer extends GeoEntityRenderer<ThrownPitchforkEn
     /** GeoModel that uses the pitchfork item's geo file but points texture to the item texture. */
     private static class Model extends DefaultedEntityGeoModel<ThrownPitchforkEntity> {
         Model() {
-            super(Ironhold.THROWN_PITCHFORK.get());
+            super(kingdom.smp.ModEntities.THROWN_PITCHFORK.get());
         }
 
         @Override

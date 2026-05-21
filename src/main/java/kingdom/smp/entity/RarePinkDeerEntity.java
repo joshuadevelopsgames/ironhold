@@ -20,7 +20,7 @@ public class RarePinkDeerEntity extends PinkDeerEntity {
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel level, AgeableMob other) {
         // Offspring always come out as normal Pink Deer
-        return kingdom.smp.Ironhold.PINK_DEER.get().create(level,
+        return kingdom.smp.ModEntities.PINK_DEER.get().create(level,
             net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 }

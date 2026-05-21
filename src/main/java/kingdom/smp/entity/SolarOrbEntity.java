@@ -45,7 +45,7 @@ public class SolarOrbEntity extends AbstractHurtingProjectile {
     }
 
     public SolarOrbEntity(LivingEntity owner, Vec3 direction, Level level, float power) {
-        super(Ironhold.SOLAR_ORB.get(), owner, direction, level);
+        super(kingdom.smp.ModEntities.SOLAR_ORB.get(), owner, direction, level);
         this.accelerationPower = 0.05;
         this.power = power;
     }

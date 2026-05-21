@@ -44,7 +44,7 @@ public class TempestArrowEntity extends AbstractArrow {
         boolean alwaysLightning,
         boolean tempestBow
     ) {
-        super(Ironhold.TEMPEST_ARROW_ENTITY.get(), shooter, level, ammo, weapon);
+        super(kingdom.smp.ModEntities.TEMPEST_ARROW_ENTITY.get(), shooter, level, ammo, weapon);
         this.alwaysLightning = alwaysLightning;
         this.tempestBow = tempestBow;
     }

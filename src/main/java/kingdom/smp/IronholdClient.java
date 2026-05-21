@@ -163,114 +163,114 @@ public class IronholdClient {
 
         // Entity renderers
         event.registerEntityRenderer(
-            Ironhold.MAGIC_MINECART_ENTITY.get(),
+            kingdom.smp.ModEntities.MAGIC_MINECART_ENTITY.get(),
             ctx -> new MinecartRenderer(ctx, ModelLayers.MINECART));
-        event.registerEntityRenderer(Ironhold.ARCANE_WIZARD.get(), IllusionerRenderer::new);
-        event.registerEntityRenderer(Ironhold.ARCANE_INVOKER.get(), ArcaneInvokerRenderer::new);
-        event.registerEntityRenderer(Ironhold.ARCANE_ORB.get(), ArcaneOrbRenderer::new);
-        event.registerEntityRenderer(Ironhold.ARCANE_BOLT.get(), ArcaneBoltRenderer::new);
-        event.registerEntityRenderer(Ironhold.HEX_BOLT.get(), HexBoltRenderer::new);
-        event.registerEntityRenderer(Ironhold.KING_ENDER_EYE.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_WIZARD.get(), IllusionerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_INVOKER.get(), ArcaneInvokerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_ORB.get(), ArcaneOrbRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_BOLT.get(), ArcaneBoltRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.HEX_BOLT.get(), HexBoltRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KING_ENDER_EYE.get(),
             kingdom.smp.client.entity.KingEnderEyeRenderer::new);
-        event.registerEntityRenderer(Ironhold.SPELL_BEAM.get(), SpellBeamRenderer::new);
-        event.registerEntityRenderer(Ironhold.SOLAR_ORB.get(), SolarOrbRenderer::new);
-        event.registerEntityRenderer(Ironhold.LUNAR_ORB.get(), LunarOrbRenderer::new);
-        event.registerEntityRenderer(Ironhold.POSSESSED_ARMOR.get(), PossessedArmorRenderer::new);
-        event.registerEntityRenderer(Ironhold.KNIGHT_RECRUIT.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SPELL_BEAM.get(), SpellBeamRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SOLAR_ORB.get(), SolarOrbRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.LUNAR_ORB.get(), LunarOrbRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.POSSESSED_ARMOR.get(), PossessedArmorRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_RECRUIT.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_recruit.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createKettlehat()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_MAN_AT_ARMS.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_MAN_AT_ARMS.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_man_at_arms.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createGrandBascinet()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_CROSSBOWMAN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_CROSSBOWMAN.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_crossbowman.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createBarbute()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_ARMORED.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_ARMORED.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_armored.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createMaximilianHelmet()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_CRUSADER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_CRUSADER.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_crusader.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createCrusader()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_GOTHIC.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_GOTHIC.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_gothic.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createArmet()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_GOLD.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_GOLD.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_gold.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createArmet()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_JOUSTER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_JOUSTER.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_jouster.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createStechhelm()));
-        event.registerEntityRenderer(Ironhold.KNIGHT_VETERAN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KNIGHT_VETERAN.get(),
             ctx -> new KnightRenderer(ctx,
                 Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/knight_veteran.png"),
                 kingdom.smp.client.entity.KnightArmorModelDefs.createSallet()));
-        event.registerEntityRenderer(Ironhold.SIREN.get(), SirenRenderer::new);
-        event.registerEntityRenderer(Ironhold.SHIPWRECK_MIMIC.get(), ShipwreckMimicRenderer::new);
-        event.registerEntityRenderer(Ironhold.TEMPEST_ARROW_ENTITY.get(), TempestArrowRenderer::new);
-        event.registerEntityRenderer(Ironhold.THROWN_PITCHFORK.get(), ThrownPitchforkRenderer::new);
-        event.registerEntityRenderer(Ironhold.ARCANE_MAGE.get(), ArcaneMageRenderer::new);
-        event.registerEntityRenderer(Ironhold.FILCHER.get(), FilcherRenderer::new);
-        event.registerEntityRenderer(Ironhold.VOID_INVOKER.get(), VoidInvokerRenderer::new);
-        event.registerEntityRenderer(Ironhold.NULL_STALKER.get(), NullStalkerRenderer::new);
-        event.registerEntityRenderer(Ironhold.KINGDOM_VILLAGER.get(), ctx -> new KingdomVillagerRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.KANGARUDE.get(), KangarudeRenderer::new);
-        event.registerEntityRenderer(Ironhold.ENDER_VILLAGER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SIREN.get(), SirenRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SHIPWRECK_MIMIC.get(), ShipwreckMimicRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.TEMPEST_ARROW_ENTITY.get(), TempestArrowRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.THROWN_PITCHFORK.get(), ThrownPitchforkRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_MAGE.get(), ArcaneMageRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.FILCHER.get(), FilcherRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.VOID_INVOKER.get(), VoidInvokerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.NULL_STALKER.get(), NullStalkerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KINGDOM_VILLAGER.get(), ctx -> new KingdomVillagerRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KANGARUDE.get(), KangarudeRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ENDER_VILLAGER.get(),
             kingdom.smp.client.entity.EnderVillagerRenderer::new);
-        event.registerEntityRenderer(Ironhold.SHULKER_HERDER.get(), ShulkerHerderRenderer::new);
-        event.registerEntityRenderer(Ironhold.WHITE_SHULKER.get(), WhiteShulkerRenderer::new);
-        event.registerEntityRenderer(Ironhold.BLACK_SHULKER.get(), BlackShulkerRenderer::new);
-        event.registerEntityRenderer(Ironhold.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.TALLYKEEPER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SHULKER_HERDER.get(), ShulkerHerderRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.WHITE_SHULKER.get(), WhiteShulkerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.BLACK_SHULKER.get(), BlackShulkerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.WARDEN_HALRIC.get(), ctx -> new WardenHalricRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.TALLYKEEPER.get(),
             ctx -> new kingdom.smp.client.entity.TallykeeperRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.CEMETERY_WATCHER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.CEMETERY_WATCHER.get(),
             ctx -> new kingdom.smp.client.entity.CemeteryWatcherRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.MIRA_INNKEEPER.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.MIRA_INNKEEPER.get(),
             ctx -> new kingdom.smp.client.entity.MiraInnkeeperRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.BLACKSMITH_TOBIAS.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.BLACKSMITH_TOBIAS.get(),
             ctx -> new kingdom.smp.client.entity.BlacksmithTobiasRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.PRIEST_CEDRIC.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.PRIEST_CEDRIC.get(),
             ctx -> new kingdom.smp.client.entity.PriestCedricRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.OLD_HESTA.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.OLD_HESTA.get(),
             ctx -> new kingdom.smp.client.entity.OldHestaRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.OLD_BEREN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.OLD_BEREN.get(),
             ctx -> new kingdom.smp.client.entity.OldBerenRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.CAPTAIN_ROSELIND.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.CAPTAIN_ROSELIND.get(),
             ctx -> new kingdom.smp.client.entity.CaptainRoselindRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.LOREMASTER_EILAN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.LOREMASTER_EILAN.get(),
             ctx -> new kingdom.smp.client.entity.LoremasterEilanRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.SISTER_WREN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SISTER_WREN.get(),
             ctx -> new kingdom.smp.client.entity.SisterWrenRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.BRAM_BARD.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.BRAM_BARD.get(),
             ctx -> new kingdom.smp.client.entity.BramBardRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.PIPPA_URCHIN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.PIPPA_URCHIN.get(),
             ctx -> new kingdom.smp.client.entity.PippaUrchinRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.PIGLIN_VILLAGER.get(), PiglinVillagerRenderer::new);
-        event.registerEntityRenderer(Ironhold.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.HOPLING.get(), HoplingRenderer::new);
-        event.registerEntityRenderer(Ironhold.RAT.get(), RatRenderer::new);
-        event.registerEntityRenderer(Ironhold.WILL_O_WISP.get(), ctx -> new WillOWispRenderer(ctx));
-        event.registerEntityRenderer(Ironhold.WILL_O_WISP_2.get(), ctx -> new WillOWisp2Renderer(ctx));
-        event.registerEntityRenderer(Ironhold.PINK_DEER.get(), PinkDeerRenderer::new);
-        event.registerEntityRenderer(Ironhold.RARE_PINK_DEER.get(), RarePinkDeerRenderer::new);
-        event.registerEntityRenderer(Ironhold.MOM_PINK_DEER.get(), MomPinkDeerRenderer::new);
-        event.registerEntityRenderer(Ironhold.MIMIC.get(), MimicRenderer::new);
-        event.registerEntityRenderer(Ironhold.BABY_MIMIC.get(), BabyMimicRenderer::new);
-        event.registerEntityRenderer(Ironhold.SLIME_PET_JE11IE.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.PIGLIN_VILLAGER.get(), PiglinVillagerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.HOPLING.get(), HoplingRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.RAT.get(), RatRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.WILL_O_WISP.get(), ctx -> new WillOWispRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.WILL_O_WISP_2.get(), ctx -> new WillOWisp2Renderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.PINK_DEER.get(), PinkDeerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.RARE_PINK_DEER.get(), RarePinkDeerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.MOM_PINK_DEER.get(), MomPinkDeerRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.MIMIC.get(), MimicRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.BABY_MIMIC.get(), BabyMimicRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SLIME_PET_JE11IE.get(),
             kingdom.smp.client.entity.SlimePetRenderer::new);
-        event.registerEntityRenderer(Ironhold.SLIME_PET_CHEAKIE.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.SLIME_PET_CHEAKIE.get(),
             kingdom.smp.client.entity.SlimePetRenderer::new);
-        event.registerEntityRenderer(Ironhold.KINGDOM_DRAGON.get(), KingdomDragonRenderer::new);
-        event.registerEntityRenderer(Ironhold.GUILLOTINE_SEAT_ENTITY.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KINGDOM_DRAGON.get(), KingdomDragonRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.GUILLOTINE_SEAT_ENTITY.get(),
             net.minecraft.client.renderer.entity.NoopRenderer::new);
-        event.registerEntityRenderer(Ironhold.KING_ENDERMAN.get(),
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KING_ENDERMAN.get(),
             kingdom.smp.client.entity.KingEndermanRenderer::new);
     }
 

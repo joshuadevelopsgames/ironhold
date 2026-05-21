@@ -94,8 +94,8 @@ public class MomPinkDeerEntity extends PinkDeerEntity {
         // 1/1000 shot at a rare baby, otherwise a normal pink deer baby
         EntityType<? extends PinkDeerEntity> babyType =
             serverLevel.getRandom().nextInt(1000) == 0
-                ? kingdom.smp.Ironhold.RARE_PINK_DEER.get()
-                : kingdom.smp.Ironhold.PINK_DEER.get();
+                ? kingdom.smp.ModEntities.RARE_PINK_DEER.get()
+                : kingdom.smp.ModEntities.PINK_DEER.get();
 
         AgeableMob baby = babyType.create(serverLevel, EntitySpawnReason.NATURAL);
         if (baby == null) return;
@@ -113,7 +113,7 @@ public class MomPinkDeerEntity extends PinkDeerEntity {
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel level, AgeableMob other) {
         // canMate() always returns false so this is only a safety fallback
-        return kingdom.smp.Ironhold.PINK_DEER.get().create(level, EntitySpawnReason.BREEDING);
+        return kingdom.smp.ModEntities.PINK_DEER.get().create(level, EntitySpawnReason.BREEDING);
     }
 
     // ── Sounds — silent except when hurt ─────────────────────────────────────

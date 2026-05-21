@@ -38,7 +38,7 @@ public class ThrownPitchforkEntity extends AbstractArrow implements GeoAnimatabl
 
     /** Called when a player throws the pitchfork. */
     public ThrownPitchforkEntity(LivingEntity thrower, Level level, ItemStack stack) {
-        super(Ironhold.THROWN_PITCHFORK.get(), thrower, level, stack, stack);
+        super(kingdom.smp.ModEntities.THROWN_PITCHFORK.get(), thrower, level, stack, stack);
         this.storedStack = stack.copy();
         this.setBaseDamage(BASE_DAMAGE);
     }

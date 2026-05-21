@@ -40,7 +40,7 @@ public class SpellBeamEntity extends Entity {
             double endX, double endY, double endZ,
             double originX, double originY, double originZ,
             int color, int maxLife) {
-        SpellBeamEntity beam = new SpellBeamEntity(Ironhold.SPELL_BEAM.get(), level);
+        SpellBeamEntity beam = new SpellBeamEntity(kingdom.smp.ModEntities.SPELL_BEAM.get(), level);
         beam.setPos(endX, endY, endZ);
         beam.entityData.set(ORIGIN_X, (float) originX);
         beam.entityData.set(ORIGIN_Y, (float) originY);

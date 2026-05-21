@@ -133,14 +133,14 @@ public final class VillageKnightSpawner {
 
     /** Roster of knight EntityTypes to randomly pick from. */
     private static final List<EntityType<? extends KnightEntity>> KNIGHT_TYPES = List.of(
-        Ironhold.KNIGHT_RECRUIT.get(),
-        Ironhold.KNIGHT_MAN_AT_ARMS.get(),
-        Ironhold.KNIGHT_CROSSBOWMAN.get(),
-        Ironhold.KNIGHT_ARMORED.get(),
-        Ironhold.KNIGHT_CRUSADER.get(),
-        Ironhold.KNIGHT_GOTHIC.get(),
-        Ironhold.KNIGHT_GOLD.get(),
-        Ironhold.KNIGHT_JOUSTER.get(),
-        Ironhold.KNIGHT_VETERAN.get()
+        kingdom.smp.ModEntities.KNIGHT_RECRUIT.get(),
+        kingdom.smp.ModEntities.KNIGHT_MAN_AT_ARMS.get(),
+        kingdom.smp.ModEntities.KNIGHT_CROSSBOWMAN.get(),
+        kingdom.smp.ModEntities.KNIGHT_ARMORED.get(),
+        kingdom.smp.ModEntities.KNIGHT_CRUSADER.get(),
+        kingdom.smp.ModEntities.KNIGHT_GOTHIC.get(),
+        kingdom.smp.ModEntities.KNIGHT_GOLD.get(),
+        kingdom.smp.ModEntities.KNIGHT_JOUSTER.get(),
+        kingdom.smp.ModEntities.KNIGHT_VETERAN.get()
     );
 }

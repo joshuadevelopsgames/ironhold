@@ -646,7 +646,7 @@ public class FilcherEntity extends Zombie {
 
             int additional = 2 + this.random.nextInt(4); // spawn 3–6 total (king + 2-5 members)
             for (int i = 0; i < additional; i++) {
-                FilcherEntity member = (FilcherEntity) kingdom.smp.Ironhold.FILCHER.get().create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
+                FilcherEntity member = (FilcherEntity) kingdom.smp.ModEntities.FILCHER.get().create(serverLevel, net.minecraft.world.entity.EntitySpawnReason.MOB_SUMMONED);
                 if (member != null) {
                     double angle = this.random.nextDouble() * Math.PI * 2;
                     double dist  = 1.5 + this.random.nextDouble() * 3.0;

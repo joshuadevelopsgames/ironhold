@@ -28,7 +28,7 @@ public class HexBoltEntity extends AbstractHurtingProjectile {
     }
 
     public HexBoltEntity(LivingEntity owner, Vec3 direction, Level level) {
-        super(Ironhold.HEX_BOLT.get(), owner, direction, level);
+        super(kingdom.smp.ModEntities.HEX_BOLT.get(), owner, direction, level);
         this.accelerationPower = 0.058;
     }
 

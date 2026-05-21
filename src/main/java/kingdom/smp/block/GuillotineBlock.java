@@ -135,7 +135,7 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
         // Spawn a new seat entity at the head-hole center
         Direction facing = state.getValue(FACING);
         GuillotineSeatEntity seat = new GuillotineSeatEntity(
-            Ironhold.GUILLOTINE_SEAT_ENTITY.get(), level);
+            kingdom.smp.ModEntities.GUILLOTINE_SEAT_ENTITY.get(), level);
 
         // Head hole center: model (X=0, Y=12.875px ≈ 0.805 blocks, Z=0.5px ≈ 0)
         // → world: block center + 0.805 Y

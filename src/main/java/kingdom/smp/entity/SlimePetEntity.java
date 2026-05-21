@@ -54,7 +54,7 @@ public class SlimePetEntity extends TamableAnimal {
 
     public SlimePetEntity(EntityType<? extends SlimePetEntity> type, Level level) {
         super(type, level);
-        this.variant = type == Ironhold.SLIME_PET_CHEAKIE.get() ? 1 : 0;
+        this.variant = type == kingdom.smp.ModEntities.SLIME_PET_CHEAKIE.get() ? 1 : 0;
         this.moveControl = new SlimePetMoveControl(this);
     }
 

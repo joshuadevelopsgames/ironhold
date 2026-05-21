@@ -53,7 +53,7 @@ public class KingEnderEyeEntity extends AbstractHurtingProjectile implements Ite
     }
 
     public KingEnderEyeEntity(LivingEntity owner, Vec3 direction, Level level) {
-        super(Ironhold.KING_ENDER_EYE.get(), owner, direction, level);
+        super(kingdom.smp.ModEntities.KING_ENDER_EYE.get(), owner, direction, level);
         this.accelerationPower = 0.045;
     }
 
