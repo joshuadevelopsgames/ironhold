@@ -69,7 +69,7 @@ public final class PlagueHandler {
 
         if (!(victim instanceof Player) && !(victim instanceof AbstractCow)) return;
 
-        ItemStack bubo = new ItemStack(Ironhold.PLAGUE_BUBO.get());
+        ItemStack bubo = new ItemStack(kingdom.smp.ModItems.PLAGUE_BUBO.get());
         victim.spawnAtLocation((net.minecraft.server.level.ServerLevel) victim.level(), bubo);
     }
 
@@ -77,7 +77,7 @@ public final class PlagueHandler {
     public static void onBuboPickup(ItemEntityPickupEvent.Post event) {
         Player player = event.getPlayer();
         if (player.level().isClientSide()) return;
-        if (!event.getOriginalStack().is(Ironhold.PLAGUE_BUBO.get())) return;
+        if (!event.getOriginalStack().is(kingdom.smp.ModItems.PLAGUE_BUBO.get())) return;
 
         Holder<MobEffect> plague = kingdom.smp.ModEffects.PLAGUE_EFFECT;
         if (player.hasEffect(plague)) return;

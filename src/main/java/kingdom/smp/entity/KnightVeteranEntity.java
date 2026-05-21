@@ -25,10 +25,10 @@ public class KnightVeteranEntity extends KnightEntity {
         super(type, level);
         this.equipMainhand(new ItemStack(Items.IRON_SWORD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_VETERAN_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_VETERAN_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_VETERAN_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_VETERAN_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_VETERAN_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_VETERAN_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_VETERAN_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_VETERAN_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

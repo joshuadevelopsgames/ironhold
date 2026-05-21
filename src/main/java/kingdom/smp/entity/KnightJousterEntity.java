@@ -26,10 +26,10 @@ public class KnightJousterEntity extends KnightEntity {
         super(type, level);
         this.equipMainhand(new ItemStack(Items.DIAMOND_SWORD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_JOUSTER_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_JOUSTER_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_JOUSTER_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_JOUSTER_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_JOUSTER_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_JOUSTER_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_JOUSTER_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_JOUSTER_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

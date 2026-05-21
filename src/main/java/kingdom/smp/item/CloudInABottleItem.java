@@ -24,7 +24,7 @@ public class CloudInABottleItem extends AccessoryItem {
         // Use getData: on clients getExistingDataOrNull can be null before attachment is materialized,
         // and synced accessory contents still live on the player's attachment instance.
         AccessoryInventory inv = player.getData(ModAttachments.ACCESSORY_INV.get());
-        var cloud = Ironhold.CLOUD_IN_A_BOTTLE.get();
+        var cloud = kingdom.smp.ModItems.CLOUD_IN_A_BOTTLE.get();
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             if (inv.getItem(i).is(cloud)) {
                 return true;

@@ -143,7 +143,7 @@ public class KingsConsoleScreen extends Screen {
     private int px() { return (width  - PANEL_W) / 2; }
     private int py() { return (height - PANEL_H) / 2; }
 
-    private static ItemStack coin() { return new ItemStack(Ironhold.GOLD_COIN.get()); }
+    private static ItemStack coin() { return new ItemStack(kingdom.smp.ModItems.GOLD_COIN.get()); }
 
     @Override
     protected void init() {
@@ -254,7 +254,7 @@ public class KingsConsoleScreen extends Screen {
 
         if (USE_ATLAS) {
             switch (iconKind) {
-                case "coin"    -> gfx.item(new ItemStack(Ironhold.GOLD_COIN.get()), x + 2, y + 2);
+                case "coin"    -> gfx.item(new ItemStack(kingdom.smp.ModItems.GOLD_COIN.get()), x + 2, y + 2);
                 case "emerald" -> gfx.item(new ItemStack(Items.EMERALD),            x + 2, y + 2);
                 case "land"    -> gfx.item(new ItemStack(Items.GRASS_BLOCK),        x + 2, y + 2);
                 default        -> blitSlot(gfx, ConsoleAtlas.ICON_COIN, x + 2, y + 2);

@@ -56,7 +56,7 @@ public final class AccessoryTickHandler {
         boolean pinkSlimeBallEquipped = false;
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             ItemStack stack = inv.getItem(i);
-            if (stack.is(Ironhold.HERMES_BOOTS.get())) {
+            if (stack.is(kingdom.smp.ModItems.HERMES_BOOTS.get())) {
                 hermesEquipped = true;
             }
             if (stack.getItem() instanceof MimicKeyItem) {

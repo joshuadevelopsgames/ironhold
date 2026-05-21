@@ -89,7 +89,7 @@ public class PossessedArmorEntity extends Monster {
     protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel level, DamageSource source, boolean killedByPlayer) {
         super.dropCustomDeathLoot(level, source, killedByPlayer);
         if (dropsWraithsSigil) {
-            this.spawnAtLocation(level, new ItemStack(kingdom.smp.Ironhold.WRAITHS_SIGIL.get()));
+            this.spawnAtLocation(level, new ItemStack(kingdom.smp.ModItems.WRAITHS_SIGIL.get()));
         }
     }
 

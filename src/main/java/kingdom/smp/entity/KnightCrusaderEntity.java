@@ -32,10 +32,10 @@ public class KnightCrusaderEntity extends KnightEntity {
         this.equipMainhand(new ItemStack(Items.IRON_AXE));
         this.equipOffhand(new ItemStack(Items.SHIELD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_CRUSADER_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_CRUSADER_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_CRUSADER_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_CRUSADER_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CRUSADER_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CRUSADER_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CRUSADER_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CRUSADER_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

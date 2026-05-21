@@ -29,7 +29,7 @@ public class AnkhShieldItem extends ShieldItem {
             return false;
         }
         ItemStack active = player.getUseItem();
-        return active.is(Ironhold.ANKH_SHIELD.get());
+        return active.is(kingdom.smp.ModItems.ANKH_SHIELD.get());
     }
 
     public static net.minecraft.world.item.Item.Properties applyAnkhProperties(net.minecraft.world.item.Item.Properties props) {

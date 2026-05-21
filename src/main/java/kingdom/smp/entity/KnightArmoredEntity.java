@@ -14,10 +14,10 @@ public class KnightArmoredEntity extends KnightEntity {
         super(type, level);
         this.equipMainhand(new ItemStack(Items.IRON_SWORD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_ARMORED_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_ARMORED_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_ARMORED_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_ARMORED_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_ARMORED_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_ARMORED_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_ARMORED_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_ARMORED_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

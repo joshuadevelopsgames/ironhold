@@ -74,12 +74,12 @@ public class MagicMinecartEntity extends AbstractMinecart {
 
     @Override
     protected Item getDropItem() {
-        return Ironhold.MAGIC_MINECART_ITEM.get();
+        return kingdom.smp.ModItems.MAGIC_MINECART_ITEM.get();
     }
 
     @Override
     public ItemStack getPickResult() {
-        return new ItemStack(Ironhold.MAGIC_MINECART_ITEM.get());
+        return new ItemStack(kingdom.smp.ModItems.MAGIC_MINECART_ITEM.get());
     }
 
     @Override

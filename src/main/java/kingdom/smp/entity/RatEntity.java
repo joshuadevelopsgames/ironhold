@@ -200,7 +200,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
 
     @Override
     public boolean isFood(ItemStack stack) {
-        return stack.is(Ironhold.CHEESE_WEDGE.get());
+        return stack.is(kingdom.smp.ModItems.CHEESE_WEDGE.get());
     }
 
     @Nullable
@@ -399,7 +399,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
 
         if (this.isTame()) {
             if (this.isOwnedBy(player)) {
-                if (held.is(Ironhold.CHEESE_WEDGE.get()) && this.getHealth() < this.getMaxHealth()) {
+                if (held.is(kingdom.smp.ModItems.CHEESE_WEDGE.get()) && this.getHealth() < this.getMaxHealth()) {
                     if (!player.getAbilities().instabuild) held.shrink(1);
                     this.heal(2.0F);
                     return InteractionResult.SUCCESS;
@@ -417,7 +417,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
         }
 
         // Untamed: feed cheese
-        if (held.is(Ironhold.CHEESE_WEDGE.get()) && !isBlackRat()) {
+        if (held.is(kingdom.smp.ModItems.CHEESE_WEDGE.get()) && !isBlackRat()) {
             if (!player.getAbilities().instabuild) held.shrink(1);
             this.feedingCount++;
             if (this.feedingCount >= 3) {

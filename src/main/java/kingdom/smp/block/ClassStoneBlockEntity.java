@@ -54,7 +54,7 @@ public class ClassStoneBlockEntity extends BlockEntity {
                 CACHED_STACKS = new ItemStack[] {
                     new ItemStack(Items.IRON_SWORD),
                     new ItemStack(Items.BOW),
-                    new ItemStack(Ironhold.ARCANE_SCEPTER.get()),
+                    new ItemStack(kingdom.smp.ModItems.ARCANE_SCEPTER.get()),
                     new ItemStack(Items.ENCHANTED_BOOK)
                 };
             }

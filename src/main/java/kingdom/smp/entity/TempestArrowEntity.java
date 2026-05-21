@@ -119,7 +119,7 @@ public class TempestArrowEntity extends AbstractArrow {
     @Override
     protected ItemStack getDefaultPickupItem() {
         return this.alwaysLightning
-            ? new ItemStack(Ironhold.TEMPEST_ARROW.get())
+            ? new ItemStack(kingdom.smp.ModItems.TEMPEST_ARROW.get())
             : new ItemStack(Items.ARROW);
     }
 }

@@ -22,7 +22,7 @@ public abstract class ScepterAnimationMixin {
     private static void ironhold$wizardChargeTilt(float hitFeedback, PoseStack poseStack,
                                                    float chargeProgress, HumanoidArm arm,
                                                    ItemStack stack, CallbackInfo ci) {
-        if (!stack.is(Ironhold.ARCANE_SCEPTER.get()) && !stack.is(Ironhold.SOLUNA_STAFF.get())) return;
+        if (!stack.is(kingdom.smp.ModItems.ARCANE_SCEPTER.get()) && !stack.is(kingdom.smp.ModItems.SOLUNA_STAFF.get())) return;
 
         float ticksCharged = 72000.0F - chargeProgress;
         float charge = Math.min(ticksCharged / 15.0F, 1.0F);

@@ -49,22 +49,22 @@ public final class KnightArmorClientExtensions {
 
     private static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
         register(event, () -> kettlehat(),
-            Ironhold.KNIGHT_RECRUIT_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_RECRUIT_HELM.get());
         register(event, () -> grandBascinet(),
-            Ironhold.KNIGHT_MAN_AT_ARMS_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_MAN_AT_ARMS_HELM.get());
         register(event, () -> maximilianHelmet(),
-            Ironhold.KNIGHT_ARMORED_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_ARMORED_HELM.get());
         register(event, () -> barbute(),
-            Ironhold.KNIGHT_CROSSBOWMAN_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_CROSSBOWMAN_HELM.get());
         register(event, () -> crusader(),
-            Ironhold.KNIGHT_CRUSADER_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_CRUSADER_HELM.get());
         register(event, () -> armet(),
-            Ironhold.KNIGHT_GOTHIC_HELM.get(),
-            Ironhold.KNIGHT_GOLD_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_GOTHIC_HELM.get(),
+            kingdom.smp.ModItems.KNIGHT_GOLD_HELM.get());
         register(event, () -> stechhelm(),
-            Ironhold.KNIGHT_JOUSTER_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_JOUSTER_HELM.get());
         register(event, () -> sallet(),
-            Ironhold.KNIGHT_VETERAN_HELM.get());
+            kingdom.smp.ModItems.KNIGHT_VETERAN_HELM.get());
     }
 
     private static void register(RegisterClientExtensionsEvent event,

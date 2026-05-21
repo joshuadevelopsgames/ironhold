@@ -20,10 +20,10 @@ public class KnightManAtArmsEntity extends KnightEntity {
         this.equipMainhand(new ItemStack(Items.IRON_SWORD));
         this.equipOffhand(new ItemStack(Items.SHIELD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_MAN_AT_ARMS_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_MAN_AT_ARMS_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_MAN_AT_ARMS_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_MAN_AT_ARMS_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_MAN_AT_ARMS_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_MAN_AT_ARMS_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_MAN_AT_ARMS_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_MAN_AT_ARMS_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

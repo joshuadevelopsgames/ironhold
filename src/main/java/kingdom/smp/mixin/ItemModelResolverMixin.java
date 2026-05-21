@@ -52,7 +52,7 @@ public abstract class ItemModelResolverMixin {
         // directly in adjustRenderPose. Overriding layer transforms here too would
         // double-apply the pose. Tuning still works because the renderer reads the
         // same live values; only the application site differs.
-        if (!item.is(Ironhold.WIZARD_STICK.get())) return;
+        if (!item.is(kingdom.smp.ModItems.WIZARD_STICK.get())) return;
 
         String ctxKey = displayContextKey(displayContext);
         if (ctxKey == null) return;

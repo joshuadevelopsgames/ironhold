@@ -131,7 +131,7 @@ public class WardheartBlock extends Block implements EntityBlock {
         }
 
         // Chorus Charge feeds fuel to the wardheart
-        if (stack.is(Ironhold.CHORUS_CHARGE.get())) {
+        if (stack.is(kingdom.smp.ModItems.CHORUS_CHARGE.get())) {
             if (level.isClientSide()) return InteractionResult.SUCCESS;
             if (be.canFeed(player)) {
                 int before = be.getFuel();

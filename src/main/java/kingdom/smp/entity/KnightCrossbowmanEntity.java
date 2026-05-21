@@ -23,10 +23,10 @@ public class KnightCrossbowmanEntity extends KnightEntity implements CrossbowAtt
         this.equipMainhand(new ItemStack(Items.CROSSBOW));
         this.equipOffhand(new ItemStack(Items.ARROW, 64));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_CROSSBOWMAN_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_CROSSBOWMAN_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_CROSSBOWMAN_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_CROSSBOWMAN_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CROSSBOWMAN_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CROSSBOWMAN_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CROSSBOWMAN_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_CROSSBOWMAN_BOOTS.get()));
     }
 
     @Override

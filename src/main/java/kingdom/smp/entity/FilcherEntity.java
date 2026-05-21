@@ -219,13 +219,13 @@ public class FilcherEntity extends Zombie {
 
     /** Returns true if the given stack is Fool's Gold. */
     public static boolean isFoolsGold(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() == kingdom.smp.Ironhold.FOOLS_GOLD.get();
+        return !stack.isEmpty() && stack.getItem() == kingdom.smp.ModItems.FOOLS_GOLD.get();
     }
 
     /** Returns true if this filcher is wearing the crown — i.e. it is the pack king. */
     public boolean isKing() {
         return !getItemBySlot(EquipmentSlot.HEAD).isEmpty()
-            && getItemBySlot(EquipmentSlot.HEAD).is(kingdom.smp.Ironhold.FILCHER_CROWN.get());
+            && getItemBySlot(EquipmentSlot.HEAD).is(kingdom.smp.ModItems.FILCHER_CROWN.get());
     }
 
     /** Returns how many stash slots are currently occupied. */
@@ -671,7 +671,7 @@ public class FilcherEntity extends Zombie {
 
     /** Promotes this filcher to king: equips the crown and announces the event. */
     private void crownSelf() {
-        setItemSlot(EquipmentSlot.HEAD, new ItemStack(kingdom.smp.Ironhold.FILCHER_CROWN.get()));
+        setItemSlot(EquipmentSlot.HEAD, new ItemStack(kingdom.smp.ModItems.FILCHER_CROWN.get()));
         applyKingStats();
         // Fanfare: happy-villager particles + pitched-up contentment chirps
         if (level() instanceof ServerLevel serverLevel) {
@@ -709,7 +709,7 @@ public class FilcherEntity extends Zombie {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {
         // Handle crown drop manually (30% chance) — prevent vanilla's equipment system from double-dropping
         ItemStack crown = getItemBySlot(EquipmentSlot.HEAD);
-        if (!crown.isEmpty() && crown.is(kingdom.smp.Ironhold.FILCHER_CROWN.get())) {
+        if (!crown.isEmpty() && crown.is(kingdom.smp.ModItems.FILCHER_CROWN.get())) {
             setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
             if (random.nextFloat() < 0.30f) {
                 this.spawnAtLocation(level, crown.copy());

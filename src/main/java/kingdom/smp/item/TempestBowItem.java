@@ -31,6 +31,6 @@ public class TempestBowItem extends BowItem {
 
     @Override
     public ItemStack getDefaultCreativeAmmo(@Nullable Player player, ItemStack projectileWeaponItem) {
-        return Ironhold.TEMPEST_ARROW.get().getDefaultInstance();
+        return kingdom.smp.ModItems.TEMPEST_ARROW.get().getDefaultInstance();
     }
 }

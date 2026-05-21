@@ -282,7 +282,7 @@ public class TallykeeperEntity extends PathfinderMob implements NpcChatPartner {
         int remaining = amount;
         while (remaining > 0) {
             int stack = Math.min(remaining, 64);
-            ItemStack coins = new ItemStack(Ironhold.GOLD_COIN.get(), stack);
+            ItemStack coins = new ItemStack(kingdom.smp.ModItems.GOLD_COIN.get(), stack);
             if (!player.getInventory().add(coins)) player.drop(coins, false);
             remaining -= stack;
         }

@@ -262,7 +262,7 @@ public class MimicEntity extends Monster {
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {
         super.dropCustomDeathLoot(level, source, killedByPlayer);
         if (killedByPlayer && this.random.nextFloat() < 0.20F) {
-            this.spawnAtLocation(level, new net.minecraft.world.item.ItemStack(kingdom.smp.Ironhold.MIMIC_KEY.get()));
+            this.spawnAtLocation(level, new net.minecraft.world.item.ItemStack(kingdom.smp.ModItems.MIMIC_KEY.get()));
         }
     }
 

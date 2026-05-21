@@ -14,10 +14,10 @@ public class KnightGoldEntity extends KnightEntity {
         super(type, level);
         this.equipMainhand(new ItemStack(Items.DIAMOND_SWORD));
         this.equipArmor(
-            new ItemStack(Ironhold.KNIGHT_GOLD_HELM.get()),
-            new ItemStack(Ironhold.KNIGHT_GOLD_CHEST.get()),
-            new ItemStack(Ironhold.KNIGHT_GOLD_LEGS.get()),
-            new ItemStack(Ironhold.KNIGHT_GOLD_BOOTS.get()));
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_GOLD_HELM.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_GOLD_CHEST.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_GOLD_LEGS.get()),
+            new ItemStack(kingdom.smp.ModItems.KNIGHT_GOLD_BOOTS.get()));
     }
 
     public static AttributeSupplier.Builder createAttributes() {

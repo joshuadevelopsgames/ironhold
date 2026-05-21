@@ -66,7 +66,7 @@ public final class IronholdGameEvents {
         if (slime.getSize() != 1) return; // size 1 = smallest "baby" slime
         if (slime.getRandom().nextFloat() >= PINK_SLIME_BALL_DROP_CHANCE) return;
 
-        ItemStack drop = new ItemStack(Ironhold.PINK_SLIME_BALL.get());
+        ItemStack drop = new ItemStack(kingdom.smp.ModItems.PINK_SLIME_BALL.get());
         event.getDrops().add(new ItemEntity(slime.level(),
             slime.getX(), slime.getY(), slime.getZ(), drop));
     }
@@ -202,7 +202,7 @@ public final class IronholdGameEvents {
     public static void onItemFished(ItemFishedEvent event) {
         if (event.getEntity().level().isClientSide()) return;
         if (event.getEntity().level().getRandom().nextFloat() < 0.12f) {
-            event.getDrops().add(new ItemStack(Ironhold.FOOLS_GOLD.get()));
+            event.getDrops().add(new ItemStack(kingdom.smp.ModItems.FOOLS_GOLD.get()));
         }
     }
 
@@ -371,11 +371,11 @@ public final class IronholdGameEvents {
 
         if (victim instanceof net.minecraft.world.entity.monster.breeze.Breeze) {
             if (killTally(level).recordAndShouldDrop("breeze", BREEZE_DROP_INTERVAL)) {
-                victim.spawnAtLocation(level, new ItemStack(Ironhold.CLOUD_IN_A_BOTTLE.get()));
+                victim.spawnAtLocation(level, new ItemStack(kingdom.smp.ModItems.CLOUD_IN_A_BOTTLE.get()));
             }
         } else if (victim instanceof net.minecraft.world.entity.monster.zombie.Drowned) {
             if (killTally(level).recordAndShouldDrop("drowned", DROWNED_DROP_INTERVAL)) {
-                victim.spawnAtLocation(level, new ItemStack(Ironhold.SEASHELL.get()));
+                victim.spawnAtLocation(level, new ItemStack(kingdom.smp.ModItems.SEASHELL.get()));
             }
         } else if (victim instanceof kingdom.smp.entity.ArcaneMageEntity) {
             // The naturally-spawning arcane mob yields a Totem of Undying when slain by a player.

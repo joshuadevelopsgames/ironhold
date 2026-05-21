@@ -39,21 +39,21 @@ public final class ClassGear {
                 dyedLeather(Items.LEATHER_CHESTPLATE, 0x3A5A2E),
                 dyedLeather(Items.LEATHER_LEGGINGS, 0x3A5A2E),
                 dyedLeather(Items.LEATHER_BOOTS, 0x3A5A2E),
-                new ItemStack(Ironhold.TEMPEST_BOW.get()),
+                new ItemStack(kingdom.smp.ModItems.TEMPEST_BOW.get()),
                 ItemStack.EMPTY);
             case WIZARD -> new Loadout(
                 ItemStack.EMPTY,
                 dyedLeather(Items.LEATHER_CHESTPLATE, 0x4A2A7A),
                 dyedLeather(Items.LEATHER_LEGGINGS, 0x4A2A7A),
                 dyedLeather(Items.LEATHER_BOOTS, 0x4A2A7A),
-                new ItemStack(Ironhold.WIZARD_STAFF.get()),
+                new ItemStack(kingdom.smp.ModItems.WIZARD_STAFF.get()),
                 ItemStack.EMPTY);
             case CLERIC -> new Loadout(
                 new ItemStack(Items.GOLDEN_HELMET),
                 new ItemStack(Items.GOLDEN_CHESTPLATE),
                 new ItemStack(Items.GOLDEN_LEGGINGS),
                 new ItemStack(Items.GOLDEN_BOOTS),
-                new ItemStack(Ironhold.SOLUNA_STAFF.get()),
+                new ItemStack(kingdom.smp.ModItems.SOLUNA_STAFF.get()),
                 ItemStack.EMPTY);
 
             // Tier 1 — starter / apprentice gear (same family, simpler)

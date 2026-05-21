@@ -59,7 +59,7 @@ public class SeashellItem extends AccessoryItem {
     /** Equipped check that mirrors the existing {@link CloudInABottleItem#isEquipped}. */
     public static boolean isEquipped(Player player) {
         AccessoryInventory inv = player.getData(ModAttachments.ACCESSORY_INV.get());
-        var seashell = Ironhold.SEASHELL.get();
+        var seashell = kingdom.smp.ModItems.SEASHELL.get();
         for (int i = 0; i < AccessoryInventory.ACCESSORY_SLOTS; i++) {
             if (inv.getItem(i).is(seashell)) return true;
         }

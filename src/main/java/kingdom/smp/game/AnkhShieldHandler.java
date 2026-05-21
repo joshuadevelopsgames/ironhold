@@ -47,7 +47,7 @@ public final class AnkhShieldHandler {
             return;
         }
         ItemStack to = event.getTo();
-        if (!to.is(Ironhold.ANKH_SHIELD.get())) {
+        if (!to.is(kingdom.smp.ModItems.ANKH_SHIELD.get())) {
             return;
         }
         ItemStack reject = to.copy();

@@ -264,7 +264,7 @@ public final class PickpocketHandler {
             // Player plants go in as an invisible MasqueradeItem — empty slot, hover-reveals.
             delivered = kingdom.smp.item.MasqueradeItem.wrap(
                 planted, player.getName().getString(), pickpocketLevel,
-                kingdom.smp.Ironhold.MASQUERADE.get());
+                kingdom.smp.ModItems.MASQUERADE.get());
         } else {
             delivered = planted;
             if (target instanceof Villager) {

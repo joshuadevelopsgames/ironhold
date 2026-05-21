@@ -26,7 +26,7 @@ public class ThrownPitchforkEntity extends AbstractArrow implements GeoAnimatabl
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     /** Stored so we can return the exact stack (with durability) on pickup. */
-    private ItemStack storedStack = Ironhold.PITCHFORK.get().getDefaultInstance();
+    private ItemStack storedStack = kingdom.smp.ModItems.PITCHFORK.get().getDefaultInstance();
 
     // ── Constructors ──────────────────────────────────────────────────────────
 

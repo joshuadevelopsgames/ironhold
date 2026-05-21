@@ -609,7 +609,7 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
                 && quest.stateFor(pid) == HalricQuestSavedData.State.COMPLETED) {
                 // Grant the staff item.
                 net.minecraft.world.item.ItemStack staff =
-                    new net.minecraft.world.item.ItemStack(kingdom.smp.Ironhold.HALRIC_STAFF.get());
+                    new net.minecraft.world.item.ItemStack(kingdom.smp.ModItems.HALRIC_STAFF.get());
                 if (!player.getInventory().add(staff)) player.drop(staff, false);
                 quest.setState(pid, HalricQuestSavedData.State.REWARDED);
                 quest.recordRecipient(pid);
