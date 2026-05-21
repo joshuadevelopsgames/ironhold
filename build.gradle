@@ -145,6 +145,15 @@ dependencies {
 
     // Simple Voice Chat — soft dependency for Kangarude TTS playback (run/mods/ ships the runtime jar)
     compileOnly files("libs/voicechat-neoforge-2.6.17+26.1.2.jar")
+
+    // Unit testing — pure-logic tests run on a plain JVM (no Minecraft boot).
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
