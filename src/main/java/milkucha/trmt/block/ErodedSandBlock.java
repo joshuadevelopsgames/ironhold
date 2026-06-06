@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -74,6 +76,25 @@ public class ErodedSandBlock extends Block {
         } else {
             world.setBlock(pos, Blocks.SAND.defaultBlockState(), Block.UPDATE_ALL);
             manager.removeEntry(pos);
+        }
+    }
+
+    /**
+     * Lets players build on top of eroded sand. Eroded stages have a sub-full collision/outline
+     * box, so a block placed above would otherwise float over a gap. When a real (non-air,
+     * non-replaceable) block is placed directly above, snap this block back to full-height
+     * vanilla sand so the new block sits flush, and stop tracking it for erosion.
+     */
+    @Override
+    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block neighborBlock,
+                                   Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, world, pos, neighborBlock, orientation, movedByPiston);
+        if (world.isClientSide()) return;
+
+        BlockState above = world.getBlockState(pos.above());
+        if (!above.isAir() && !above.canBeReplaced()) {
+            world.setBlock(pos, Blocks.SAND.defaultBlockState(), Block.UPDATE_ALL);
+            ErosionMapManager.getInstance().removeEntry(pos);
         }
     }
 
