@@ -25,6 +25,11 @@ public class VanitySlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
+        // Pure cosmetics (no Equippable component) declare their slot directly, so they can be
+        // worn here without ever being placeable in a real armor slot.
+        if (stack.getItem() instanceof kingdom.smp.item.VanityCosmeticItem cosmetic) {
+            return cosmetic.vanitySlot() == requiredSlot;
+        }
         Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
         return equippable != null && equippable.slot() == requiredSlot;
     }

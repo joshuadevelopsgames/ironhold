@@ -10,7 +10,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.dimension.DimensionType;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,6 +33,9 @@ public class LevelRendererMixin {
     private static final ResourceKey<Biome> EBONWOOD_HOLLOW = ResourceKey.create(
         Registries.BIOME, Identifier.fromNamespaceAndPath("ironhold", "ebonwood_hollow"));
 
+    private static final ResourceKey<Level> MOON_DIMENSION = ResourceKey.create(
+        Registries.DIMENSION, Identifier.fromNamespaceAndPath("ironhold", "moon_dimension"));
+
     @Shadow
     @Final
     private LevelRenderState levelRenderState;
@@ -42,6 +47,18 @@ public class LevelRendererMixin {
     private void ironhold$overrideSkyForEbonwood(DeltaTracker deltaTracker, Camera camera, float partialTick, CallbackInfo ci) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return;
+
+        // Moon dimension: pure space — no sky, no sun, no moon, only stars everywhere.
+        if (mc.level.dimension().equals(MOON_DIMENSION)) {
+            SkyRenderState sky = levelRenderState.skyRenderState;
+            sky.skybox = DimensionType.Skybox.OVERWORLD; // overworld path is the one that draws stars
+            sky.rainBrightness = 0.0f;                   // sun & moon alpha -> fully hidden
+            sky.starBrightness = 1.0f;                   // stars at full brightness, regardless of time
+            sky.skyColor = 0xFF000000;                   // black sky disc, no blue gradient
+            sky.sunriseAndSunsetColor = 0;               // no horizon glow
+            sky.shouldRenderDarkDisc = false;            // don't occlude stars below the horizon
+            return;
+        }
 
         boolean inEbonwood = mc.level.getBiome(mc.player.blockPosition()).is(EBONWOOD_HOLLOW);
 

@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "axis=x": { "model": "ironhold:block/moon_portal_ns" },
+    "axis=z": { "model": "ironhold:block/moon_portal_ew" }
+  }
+}

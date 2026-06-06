@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "minecraft:wool"
+    },
+    [
+      {
+        "item": "minecraft:slime_ball"
+      },
+      {
+        "item": "minecraft:cobweb"
+      },
+      {
+        "item": "minecraft:honeycomb"
+      }
+    ]
+  ],
+  "result": {
+    "id": "ironhold:bandage",
+    "count": 1
+  }
+}

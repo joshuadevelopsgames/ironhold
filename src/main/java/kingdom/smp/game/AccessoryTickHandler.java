@@ -107,6 +107,9 @@ public final class AccessoryTickHandler {
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer sp) {
             hermesActive.remove(sp.getUUID());
+            // Flush the baby mimic's contents to its key before the entity unloads,
+            // so nothing changed in the last sync-second is lost on logout.
+            MimicKeyItem.syncCompanionToKey(sp);
         }
     }
 

@@ -1,7 +1,7 @@
 package kingdom.smp.effect;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -76,7 +76,14 @@ public class PlagueEffect extends MobEffect {
         if (instance == null) return true;
 
         int stage = stageOf(instance);
+        int remaining = instance.getDuration();
         long now = level.getGameTime();
+
+        if (remaining == STAGE_1_LENGTH + STAGE_2_LENGTH) {
+            announceStage(entity, "The plague takes hold.", 0.65F);
+        } else if (remaining == STAGE_2_LENGTH) {
+            announceStage(entity, "The plague turns critical.", 0.45F);
+        }
 
         // Symptoms — applied as short re-applications of vanilla effects
         if (stage == 0) {
@@ -88,19 +95,14 @@ public class PlagueEffect extends MobEffect {
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, true, false));
                 entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0, true, false));
             }
-            // Sickly green-black particles
+            // Sickly green-black spores
             if (now % 8 == 0) {
                 double dx = (level.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
                 double dy = level.getRandom().nextDouble() * entity.getBbHeight();
                 double dz = (level.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
-                level.sendParticles(ParticleTypes.SCULK_SOUL,
+                level.sendParticles(kingdom.smp.ModParticles.PLAGUE_SPORE.get(),
                     entity.getX() + dx, entity.getY() + dy, entity.getZ() + dz,
-                    1, 0, 0.02, 0, 0.0);
-                if (level.getRandom().nextInt(3) == 0) {
-                    level.sendParticles(ParticleTypes.ASH,
-                        entity.getX() + dx, entity.getY() + dy, entity.getZ() + dz,
-                        1, 0, 0.01, 0, 0.0);
-                }
+                    1, 0.01, 0.02, 0.01, 0.003);
             }
             // Coughing sound — occasional
             if (now % 200 == level.getRandom().nextInt(200) && entity instanceof Player) {
@@ -112,17 +114,14 @@ public class PlagueEffect extends MobEffect {
                 entity.addEffect(new MobEffectInstance(MobEffects.HUNGER, 60, 1, true, false));
                 entity.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 1, true, false));
             }
-            // Heavier sickly particles
+            // Heavier sickly spores
             if (now % 4 == 0) {
                 double dx = (level.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
                 double dy = level.getRandom().nextDouble() * entity.getBbHeight();
                 double dz = (level.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
-                level.sendParticles(ParticleTypes.SCULK_SOUL,
+                level.sendParticles(kingdom.smp.ModParticles.PLAGUE_SPORE.get(),
                     entity.getX() + dx, entity.getY() + dy, entity.getZ() + dz,
-                    1, 0, 0.02, 0, 0.0);
-                level.sendParticles(ParticleTypes.ASH,
-                    entity.getX() + dx, entity.getY() + dy, entity.getZ() + dz,
-                    1, 0, 0.01, 0, 0.0);
+                    2, 0.02, 0.04, 0.02, 0.004);
             }
             // Damage tick: every 100 ticks (5s)
             if (now % 100 == 0) {
@@ -141,7 +140,7 @@ public class PlagueEffect extends MobEffect {
     private static void spreadToNearby(ServerLevel level, LivingEntity carrier, Holder<MobEffect> me) {
         AABB area = carrier.getBoundingBox().inflate(4.0);
         List<LivingEntity> nearby = level.getEntitiesOfClass(LivingEntity.class, area,
-            e -> e != carrier && e.isAlive() && !e.hasEffect(me) && canBeInfected(e));
+            e -> e != carrier && e.isAlive() && PlagueHandler.canReceivePlague(e) && canBeInfected(e));
         for (LivingEntity victim : nearby) {
             float chance = victim instanceof net.minecraft.world.entity.npc.villager.AbstractVillager
                 ? 0.005F   // villagers — much rarer (≈1%/sec across full standing range)
@@ -159,5 +158,13 @@ public class PlagueEffect extends MobEffect {
         if (e instanceof net.minecraft.world.entity.npc.villager.AbstractVillager) return true;
         if (e instanceof kingdom.smp.entity.RatEntity) return true;
         return false;
+    }
+
+    private static void announceStage(LivingEntity entity, String message, float pitch) {
+        if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
+            player.sendSystemMessage(Component.literal(message), true);
+        }
+        entity.level().playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+            SoundEvents.PLAYER_HURT_DROWN, entity.getSoundSource(), 0.45F, pitch);
     }
 }

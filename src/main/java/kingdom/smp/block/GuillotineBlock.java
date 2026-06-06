@@ -6,6 +6,8 @@ import kingdom.smp.entity.GuillotineSeatEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -16,8 +18,13 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -31,6 +38,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class GuillotineBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
     public static final MapCodec<GuillotineBlock> CODEC = simpleCodec(GuillotineBlock::new);
+
+    /** Whether the block is currently receiving a redstone signal (used for rising-edge release). */
+    public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+    /** True once the blade has dropped; it stays down (held) until someone resets it. */
+    public static final BooleanProperty CHOPPED = BooleanProperty.create("chopped");
 
     // ── Hitbox shapes per facing ──────────────────────────────────────────────
     // Model coords → Block.box: add 8 to X and Z (model origin = block center).
@@ -68,7 +80,10 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
 
     public GuillotineBlock(Properties props) {
         super(props);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any()
+            .setValue(FACING, Direction.NORTH)
+            .setValue(POWERED, Boolean.FALSE)
+            .setValue(CHOPPED, Boolean.FALSE));
     }
 
     @Override
@@ -78,7 +93,7 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, POWERED, CHOPPED);
     }
 
     @Override
@@ -108,6 +123,41 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
         return new GuillotineBlockEntity(pos, state);
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
+                                                                  BlockEntityType<T> type) {
+        if (level.isClientSide() || type != kingdom.smp.ModBlocks.GUILLOTINE_BLOCK_ENTITY.get()) {
+            return null;
+        }
+        return (BlockEntityTicker<T>) (BlockEntityTicker<GuillotineBlockEntity>)
+            (lvl, pos, st, be) -> GuillotineBlockEntity.serverTick((ServerLevel) lvl, pos, st, be);
+    }
+
+    // ── Redstone: a rising power edge drops the blade ─────────────────────────
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+        if (level.isClientSide()) {
+            return;
+        }
+        boolean signal = level.hasNeighborSignal(pos);
+        if (signal == state.getValue(POWERED)) {
+            return;
+        }
+        BlockState next = state.setValue(POWERED, signal);
+        // Rising edge drops the blade — but only if it's armed (not already chopped).
+        if (signal && !state.getValue(CHOPPED)) {
+            level.setBlock(pos, next.setValue(CHOPPED, Boolean.TRUE), Block.UPDATE_CLIENTS);
+            if (level.getBlockEntity(pos) instanceof GuillotineBlockEntity be) {
+                be.release((ServerLevel) level);
+            }
+        } else {
+            level.setBlock(pos, next, Block.UPDATE_CLIENTS);
+        }
+    }
+
     // ── Right-click: seat the player in the guillotine ────────────────────────
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
@@ -116,7 +166,24 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
             return InteractionResult.SUCCESS;
         }
 
-        if (player.isPassenger()) {
+        // Sneak + right-click (empty hand) is the executioner's lever: toggle the blade.
+        if (player.isSecondaryUseActive()) {
+            if (state.getValue(CHOPPED)) {
+                // Blade is down → reset it: teleport back up into position.
+                level.setBlock(pos, state.setValue(CHOPPED, Boolean.FALSE), Block.UPDATE_CLIENTS);
+                level.playSound(null, pos, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.8f, 0.7f);
+            } else {
+                // Armed → drop the blade on whoever is locked in.
+                level.setBlock(pos, state.setValue(CHOPPED, Boolean.TRUE), Block.UPDATE_CLIENTS);
+                if (level.getBlockEntity(pos) instanceof GuillotineBlockEntity be) {
+                    be.release((ServerLevel) level);
+                }
+            }
+            return InteractionResult.SUCCESS;
+        }
+
+        // Plain right-click seats a player — but not while the blade is down.
+        if (state.getValue(CHOPPED) || player.isPassenger()) {
             return InteractionResult.PASS;
         }
 
@@ -125,8 +192,9 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
             new AABB(pos).inflate(1.0));
         for (GuillotineSeatEntity seat : existing) {
             if (!seat.getPassengers().isEmpty()) {
-                return InteractionResult.PASS;
+                return InteractionResult.PASS; // already occupied
             }
+            // Empty seat → sit the player down.
             seat.setYRot(state.getValue(FACING).toYRot() + 90f);
             player.startRiding(seat);
             return InteractionResult.SUCCESS;

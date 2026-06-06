@@ -2,6 +2,7 @@ package kingdom.smp.effect;
 
 import kingdom.smp.Ironhold;
 import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,6 +13,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles two parts of the Plague system that live outside the effect class:
@@ -30,6 +35,9 @@ import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 public final class PlagueHandler {
     private PlagueHandler() {}
 
+    public static final int CURE_IMMUNITY_TICKS = 20 * 60 * 20;
+    private static final Map<UUID, Long> PLAGUE_IMMUNE_UNTIL = new ConcurrentHashMap<>();
+
     /** Set true within {@code PlagueTonicItem} so the Remove event lets the cure proceed. */
     private static final ThreadLocal<Boolean> BYPASS_REMOVE = ThreadLocal.withInitial(() -> false);
 
@@ -40,6 +48,26 @@ public final class PlagueHandler {
         } finally {
             BYPASS_REMOVE.set(false);
         }
+    }
+
+    public static void grantCureImmunity(LivingEntity entity) {
+        if (!(entity.level() instanceof ServerLevel level)) return;
+        PLAGUE_IMMUNE_UNTIL.put(entity.getUUID(), level.getGameTime() + CURE_IMMUNITY_TICKS);
+    }
+
+    public static boolean isCureImmune(LivingEntity entity) {
+        if (!(entity.level() instanceof ServerLevel level)) return false;
+        Long until = PLAGUE_IMMUNE_UNTIL.get(entity.getUUID());
+        if (until == null) return false;
+        if (level.getGameTime() >= until) {
+            PLAGUE_IMMUNE_UNTIL.remove(entity.getUUID());
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean canReceivePlague(LivingEntity entity) {
+        return !isCureImmune(entity) && !entity.hasEffect(kingdom.smp.ModEffects.PLAGUE_EFFECT);
     }
 
     @SubscribeEvent
@@ -80,7 +108,7 @@ public final class PlagueHandler {
         if (!event.getOriginalStack().is(kingdom.smp.ModItems.PLAGUE_BUBO.get())) return;
 
         Holder<MobEffect> plague = kingdom.smp.ModEffects.PLAGUE_EFFECT;
-        if (player.hasEffect(plague)) return;
+        if (player.hasEffect(plague) || isCureImmune(player)) return;
 
         player.addEffect(new MobEffectInstance(
             plague, PlagueEffect.TOTAL_DURATION_TICKS, 0, false, false, true));

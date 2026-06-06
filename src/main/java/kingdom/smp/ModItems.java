@@ -4,12 +4,16 @@ import kingdom.smp.item.ArcaneScepterItem;
 import kingdom.smp.item.AnkhShieldItem;
 import kingdom.smp.item.BandOfRegenerationItem;
 import kingdom.smp.item.CloudInABottleItem;
+import kingdom.smp.item.DisguiseTomeItem;
+import kingdom.smp.item.EnhancedPickaxeItem;
 import kingdom.smp.item.HermesBootsItem;
 import kingdom.smp.item.MagicMinecartItem;
 import kingdom.smp.item.MimicKeyItem;
+import kingdom.smp.item.MirrorItem;
 import kingdom.smp.item.PinkSlimeBallItem;
 import kingdom.smp.item.TempestArrowItem;
 import kingdom.smp.item.TempestBowItem;
+import kingdom.smp.item.VanityCosmeticItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -17,9 +21,14 @@ import net.minecraft.world.level.block.Block;
 import kingdom.smp.game.TanzaniteWorldgenFluidHandler;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
+import java.util.Map;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -95,6 +104,16 @@ public final class ModItems {
         ITEMS.registerItem(
             "rat_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.RAT.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> SHROOMLING_SPAWN_EGG =
+        ITEMS.registerItem(
+            "shroomling_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.SHROOMLING.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> MOONSHROOM_SPAWN_EGG =
+        ITEMS.registerItem(
+            "moonshroom_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.MOONSHROOM.get()).stacksTo(64)));
 
     public static final DeferredItem<Item> PURPLE_ALLAY_SPAWN_EGG =
         ITEMS.registerItem(
@@ -178,6 +197,12 @@ public final class ModItems {
         ITEMS.registerItem(
             "blacksmith_tobias_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.BLACKSMITH_TOBIAS.get()).stacksTo(64)));
+
+
+    public static final DeferredItem<Item> PLAGUE_DOCTOR_SPAWN_EGG =
+        ITEMS.registerItem(
+            "plague_doctor_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.PLAGUE_DOCTOR.get()).stacksTo(64)));
 
 
     public static final DeferredItem<Item> PRIEST_CEDRIC_SPAWN_EGG =
@@ -473,6 +498,47 @@ public final class ModItems {
                     net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
                 .build()));
 
+    // Battle Hammer — netherite war hammer; charge "forge power" then ground-slam to launch foes
+    public static final DeferredItem<Item> BATTLE_HAMMER = ITEMS.registerItem(
+        "battle_hammer",
+        kingdom.smp.item.BattleHammerItem::new,
+        props -> props
+            .durability(900)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .fireResistant()
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "battle_hammer_damage"),
+                        8.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "battle_hammer_speed"),
+                        -3.2, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Diamond Scepter — crystalline variant of the Arcane Scepter; fires a chilling crystal lance
+    public static final DeferredItem<Item> DIAMOND_SCEPTER = ITEMS.registerItem(
+        "diamond_scepter",
+        kingdom.smp.item.DiamondScepterItem::new,
+        props -> props
+            .durability(600)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "diamond_scepter_damage"),
+                        5.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "diamond_scepter_speed"),
+                        -2.8, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
     // Soluna Staff — wizard weapon that shifts between sun/moon texture by time of day
     public static final DeferredItem<Item> SOLUNA_STAFF = ITEMS.registerItem(
         "soluna_staff",
@@ -614,6 +680,30 @@ public final class ModItems {
         props -> props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.EPIC)
     );
 
+    // Wall-hung mirror — places like a painting (auto-fits the largest shape the wall allows) and
+    // renders a live reflection. A single item; the placed shape is chosen on placement.
+    public static final DeferredItem<Item> MIRROR = ITEMS.registerItem(
+        "mirror",
+        MirrorItem::new,
+        props -> props.stacksTo(16)
+    );
+
+    /** Consumable ownership lock for vanilla chests, shelves, and armor stands. */
+    public static final DeferredItem<Item> LOCK = ITEMS.registerSimpleItem(
+        "lock",
+        props -> props.stacksTo(16).rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+    );
+
+    // Invisible Item Frame — places a vanilla frame flagged invisible (only the held item shows).
+    // Crafted from an item frame + a glass pane. Same inventory texture as a normal frame, but
+    // always enchant-glinted (forced via ENCHANTMENT_GLINT_OVERRIDE) so the two are easy to tell
+    // apart. See InvisibleItemFrameItem and ItemFrameInvisibleDropMixin.
+    public static final DeferredItem<Item> INVISIBLE_ITEM_FRAME = ITEMS.registerItem(
+        "invisible_item_frame",
+        kingdom.smp.item.InvisibleItemFrameItem::new,
+        props -> props.stacksTo(64).component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
+    );
+
     // ── Tanzanite ore ─────────────────────────────────────────────────────────
     // Worldgen: rare lava/water obsidian formations (Y -64..12) — see TanzaniteWorldgenFluidHandler.
     // Slightly slower to mine than obsidian; still needs diamond+ pick for drops.
@@ -625,6 +715,19 @@ public final class ModItems {
 
     public static final DeferredItem<BlockItem> FOOLS_GOLD_ORE_ITEM =
         ITEMS.registerSimpleBlockItem("fools_gold_ore", ModBlocks.FOOLS_GOLD_ORE);
+
+    public static final DeferredItem<BlockItem> DEEPSLATE_FOOLS_GOLD_ORE_ITEM =
+        ITEMS.registerSimpleBlockItem("deepslate_fools_gold_ore", ModBlocks.DEEPSLATE_FOOLS_GOLD_ORE);
+
+    // ── Moon Dimension ────────────────────────────────────────────────────────
+    public static final DeferredItem<BlockItem> MOON_STONE_ITEM =
+        ITEMS.registerSimpleBlockItem("moon_stone", ModBlocks.MOON_STONE);
+
+    public static final DeferredItem<BlockItem> MOON_DUST_ITEM =
+        ITEMS.registerSimpleBlockItem("moon_dust", ModBlocks.MOON_DUST);
+
+    public static final DeferredItem<Item> BANDAGE = ITEMS.registerItem("bandage",
+        kingdom.smp.item.BandageItem::new);
 
     public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem(
         "gold_coin",
@@ -686,8 +789,51 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> EBONY_LEAVES_ITEM =
         ITEMS.registerSimpleBlockItem("ebony_leaves", ModBlocks.EBONY_LEAVES);
 
+    // ── Chinese Cedar wood (pink heartwood, tan birch-style bark) ─────────────
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_LOG_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_log", ModBlocks.CHINESE_CEDAR_LOG);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_PLANKS_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_planks", ModBlocks.CHINESE_CEDAR_PLANKS);
+
+    public static final DeferredItem<BlockItem> STRIPPED_CHINESE_CEDAR_LOG_ITEM =
+        ITEMS.registerSimpleBlockItem("stripped_chinese_cedar_log", ModBlocks.STRIPPED_CHINESE_CEDAR_LOG);
+
+    public static final DeferredItem<BlockItem> STRIPPED_CHINESE_CEDAR_WOOD_ITEM =
+        ITEMS.registerSimpleBlockItem("stripped_chinese_cedar_wood", ModBlocks.STRIPPED_CHINESE_CEDAR_WOOD);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_SLAB_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_slab", ModBlocks.CHINESE_CEDAR_SLAB);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_STAIRS_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_stairs", ModBlocks.CHINESE_CEDAR_STAIRS);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_FENCE_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_fence", ModBlocks.CHINESE_CEDAR_FENCE);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_FENCE_GATE_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_fence_gate", ModBlocks.CHINESE_CEDAR_FENCE_GATE);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_DOOR_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_door", ModBlocks.CHINESE_CEDAR_DOOR);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_TRAPDOOR_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_trapdoor", ModBlocks.CHINESE_CEDAR_TRAPDOOR);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_BUTTON_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_button", ModBlocks.CHINESE_CEDAR_BUTTON);
+
+    public static final DeferredItem<BlockItem> CHINESE_CEDAR_PRESSURE_PLATE_ITEM =
+        ITEMS.registerSimpleBlockItem("chinese_cedar_pressure_plate", ModBlocks.CHINESE_CEDAR_PRESSURE_PLATE);
+
     public static final DeferredItem<BlockItem> BAT_FLOWER_ITEM =
         ITEMS.registerSimpleBlockItem("bat_flower", ModBlocks.BAT_FLOWER);
+
+    public static final DeferredItem<BlockItem> ORANGE_GLOWSHROOMS_ITEM =
+        ITEMS.registerSimpleBlockItem("orange_glowshrooms", ModBlocks.ORANGE_GLOWSHROOMS);
+
+    public static final DeferredItem<BlockItem> BLUE_GLOWSHROOMS_ITEM =
+        ITEMS.registerSimpleBlockItem("blue_glowshrooms", ModBlocks.BLUE_GLOWSHROOMS);
 
     public static final DeferredItem<BlockItem> EBONWOOD_GRASS_ITEM =
         ITEMS.registerSimpleBlockItem("ebonwood_grass", ModBlocks.EBONWOOD_GRASS);
@@ -704,6 +850,31 @@ public final class ModItems {
         ITEMS.registerSimpleBlockItem("blue_vines", ModBlocks.BLUE_VINES);
 
     // Note: blue_vines_plant has no item — the tip (blue_vines) is the obtainable form.
+
+    // ── Magma Boots (feet armor, custom 3D worn model) ────────────────────────
+    // Worn model + texture are client-side: MagmaBootsModelDef / MagmaBootsClientExtensions
+    // swap in the obsidian-shaft + lava-sole geometry for the HUMANOID armor layer,
+    // and the equipment asset JSON (assets/ironhold/equipment/magma_boots.json) points
+    // at textures/entity/equipment/humanoid/magma_boots.png.
+    public static final ResourceKey<EquipmentAsset> EQ_MAGMA_BOOTS =
+        ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.fromNamespaceAndPath(Ironhold.MODID, "magma_boots"));
+
+    /** Netherite-tier defensive boots with a fiery theme. assetId drives the worn texture/model. */
+    public static final ArmorMaterial MAGMA_BOOTS_MATERIAL = new ArmorMaterial(
+        37,                                       // base durability units (×ArmorType multiplier)
+        Map.of(ArmorType.BOOTS, 3),               // defense (netherite-boot parity)
+        15,                                       // enchantment value
+        SoundEvents.ARMOR_EQUIP_NETHERITE,        // equip sound
+        3.0f,                                     // toughness
+        0.1f,                                     // knockback resistance
+        ItemTags.REPAIRS_NETHERITE_ARMOR,         // repair ingredient (netherite ingot)
+        EQ_MAGMA_BOOTS);
+
+    public static final DeferredItem<Item> MAGMA_BOOTS =
+        ITEMS.registerItem("magma_boots",
+            p -> new Item(p.humanoidArmor(MAGMA_BOOTS_MATERIAL, ArmorType.BOOTS)
+                .rarity(net.minecraft.world.item.Rarity.RARE)
+                .fireResistant()));
 
     // ── Accessories (Terraria-inspired) ───────────────────────────────────────
 
@@ -748,7 +919,25 @@ public final class ModItems {
         props -> props.rarity(net.minecraft.world.item.Rarity.RARE)
     );
 
-
+    /** Enhanced Pickaxe — automatically smelts ores as they are mined.
+     *  Drops smelted results (e.g., Iron Ingot) instead of raw ore blocks. */
+    public static final DeferredItem<EnhancedPickaxeItem> ENHANCED_PICKAXE = ITEMS.registerItem(
+        "enhanced_pickaxe",
+        EnhancedPickaxeItem::new,
+        props -> props.durability(250)
+            .rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "enhanced_pickaxe_damage"),
+                        6.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "enhanced_pickaxe_speed"),
+                        -2.8, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
 
     // Block items
     public static final DeferredItem<BlockItem> GUILLOTINE_OAK_ITEM      = ITEMS.registerSimpleBlockItem("guillotine_oak",      ModBlocks.GUILLOTINE_OAK_BLOCK);
@@ -762,12 +951,13 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> GUILLOTINE_CRIMSON_ITEM  = ITEMS.registerSimpleBlockItem("guillotine_crimson",  ModBlocks.GUILLOTINE_CRIMSON_BLOCK);
     public static final DeferredItem<BlockItem> GUILLOTINE_WARPED_ITEM   = ITEMS.registerSimpleBlockItem("guillotine_warped",   ModBlocks.GUILLOTINE_WARPED_BLOCK);
     public static final DeferredItem<BlockItem> GUILLOTINE_EBONY_ITEM    = ITEMS.registerSimpleBlockItem("guillotine_ebony",    ModBlocks.GUILLOTINE_EBONY_BLOCK);
+    public static final DeferredItem<BlockItem> GUILLOTINE_CHINESE_CEDAR_ITEM = ITEMS.registerSimpleBlockItem("guillotine_chinese_cedar", ModBlocks.GUILLOTINE_CHINESE_CEDAR_BLOCK);
 
     @SuppressWarnings("unchecked")
     public static final DeferredItem<BlockItem>[] ALL_GUILLOTINES = new DeferredItem[] {
         GUILLOTINE_OAK_ITEM, GUILLOTINE_SPRUCE_ITEM, GUILLOTINE_BIRCH_ITEM, GUILLOTINE_JUNGLE_ITEM, GUILLOTINE_ACACIA_ITEM,
         GUILLOTINE_DARK_OAK_ITEM, GUILLOTINE_MANGROVE_ITEM, GUILLOTINE_CHERRY_ITEM, GUILLOTINE_CRIMSON_ITEM, GUILLOTINE_WARPED_ITEM,
-        GUILLOTINE_EBONY_ITEM
+        GUILLOTINE_EBONY_ITEM, GUILLOTINE_CHINESE_CEDAR_ITEM
     };
 
 
@@ -823,18 +1013,162 @@ public final class ModItems {
         ITEMS.registerSimpleItem("void_core",
             props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
 
+    /** Common Shroomling drop — a faintly glowing blue cave mushroom. */
+    public static final DeferredItem<Item> GLOWSHROOM =
+        ITEMS.registerSimpleItem("glowshroom");
+
+    /** Moonshroom Stew — the moon's take on mushroom stew. Eating it steeps you in the lunar pull:
+     *  3 minutes of {@link kingdom.smp.effect.LunarLevityEffect Lunar Levity} (~1/6 g). Restores the
+     *  same hunger as vanilla stew and, like it, leaves an empty bowl. */
+    public static final DeferredItem<Item> MOONSHROOM_STEW =
+        ITEMS.registerItem("moonshroom_stew",
+            props -> new Item(props.stacksTo(1)
+                // 26.1.2 dropped Item.Properties#usingConvertsTo; the eat-to-bowl behaviour now lives
+                // on the USE_REMAINDER data component (UseRemainder takes an ItemStackTemplate).
+                .component(net.minecraft.core.component.DataComponents.USE_REMAINDER,
+                    new net.minecraft.world.item.component.UseRemainder(
+                        new net.minecraft.world.item.ItemStackTemplate(net.minecraft.world.item.Items.BOWL)))
+                .food(
+                    new net.minecraft.world.food.FoodProperties.Builder()
+                        .nutrition(6).saturationModifier(0.6F).build(),
+                    // 1.21.2+: eat-time effects live on the Consumable component, not FoodProperties.
+                    net.minecraft.world.item.component.Consumable.builder()
+                        .onConsume(new net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect(
+                            new net.minecraft.world.effect.MobEffectInstance(
+                                ModEffects.LUNAR_LEVITY_EFFECT, 20 * 60 * 3, 0), 1.0F))
+                        .build())));
+
+    /** Wearable vanity cap lifted from a (blue) Shroomling — worn atop the head as the 3D cap.
+     *  A {@link VanityCosmeticItem} (no Equippable component): it lives only in the HEAD vanity
+     *  slot and is drawn by {@code ShroomcapLayer}, never by vanilla's armor/head-item layers. */
+    public static final DeferredItem<Item> SHROOMCAP =
+        ITEMS.registerItem("shroomcap",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+
+    /** Wearable vanity cap lifted from the rare glowing-orange Shroomling. */
+    public static final DeferredItem<Item> SHROOMCAP_ORANGE =
+        ITEMS.registerItem("shroomcap_orange",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+
+    /** Wearable vanity cat ears — a pair of 3D ears worn atop the head.
+     *  A {@link VanityCosmeticItem} (no Equippable component): it lives only in the HEAD vanity
+     *  slot and is drawn by {@code CatEarsLayer}, never by vanilla's armor/head-item layers. */
+    public static final DeferredItem<Item> CAT_EARS =
+        ITEMS.registerItem("cat_ears",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+
+    /** Cat-ear colour variants — same geometry as {@link #CAT_EARS}, differ only by texture
+     *  (picked per-item in {@code CatEarsLayer}). */
+    public static final DeferredItem<Item> CAT_EARS_BLACK =
+        ITEMS.registerItem("cat_ears_black",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> CAT_EARS_WHITE =
+        ITEMS.registerItem("cat_ears_white",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> CAT_EARS_CALICO =
+        ITEMS.registerItem("cat_ears_calico",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> CAT_EARS_SIAMESE =
+        ITEMS.registerItem("cat_ears_siamese",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+
+    /** Head-appendage vanity cosmetics — distinct 3D geometry drawn by {@code HeadAppendageLayer}
+     *  (one shared layer; each item selects its baked part + texture). HEAD vanity slot. */
+    public static final DeferredItem<Item> BUNNY_EARS =
+        ITEMS.registerItem("bunny_ears",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> FOX_EARS =
+        ITEMS.registerItem("fox_ears",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> DEVIL_HORNS =
+        ITEMS.registerItem("devil_horns",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+    public static final DeferredItem<Item> UNICORN_HORN =
+        ITEMS.registerItem("unicorn_horn",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+    public static final DeferredItem<Item> RAM_HORNS =
+        ITEMS.registerItem("ram_horns",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> ANTENNAE =
+        ITEMS.registerItem("antennae",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> ELF_EARS =
+        ITEMS.registerItem("elf_ears",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+
+    /** Wearable vanity halo — a small glowing ring floating above the head.
+     *  Additive overlay: shown on top of any worn helmet rather than replacing it. */
+    public static final DeferredItem<Item> HALO =
+        ITEMS.registerItem("halo",
+            props -> new VanityCosmeticItem(EquipmentSlot.HEAD, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+
+    /** Wearable vanity angel wings — feathered wings worn on the back.
+     *  Additive overlay: shown on top of any worn chestplate rather than replacing it. */
+    public static final DeferredItem<Item> ANGEL_WINGS =
+        ITEMS.registerItem("angel_wings",
+            props -> new VanityCosmeticItem(EquipmentSlot.CHEST, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+
+    /** Wearable vanity cape — a cloth drape hanging down the back. Additive CHEST overlay
+     *  (shown on top of any worn chestplate), drawn by {@code BackCosmeticLayer}. */
+    public static final DeferredItem<Item> CAPE =
+        ITEMS.registerItem("cape",
+            props -> new VanityCosmeticItem(EquipmentSlot.CHEST, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+
+    /** Vanity tails — additive LEGS overlays (so a tail and a cape can be worn together),
+     *  drawn by {@code BackCosmeticLayer}. */
+    public static final DeferredItem<Item> CAT_TAIL =
+        ITEMS.registerItem("cat_tail",
+            props -> new VanityCosmeticItem(EquipmentSlot.LEGS, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> FOX_TAIL =
+        ITEMS.registerItem("fox_tail",
+            props -> new VanityCosmeticItem(EquipmentSlot.LEGS, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)));
+    public static final DeferredItem<Item> DRAGON_TAIL =
+        ITEMS.registerItem("dragon_tail",
+            props -> new VanityCosmeticItem(EquipmentSlot.LEGS, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+    public static final DeferredItem<Item> DEVIL_TAIL =
+        ITEMS.registerItem("devil_tail",
+            props -> new VanityCosmeticItem(EquipmentSlot.LEGS, true,
+                props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.RARE)));
+
+    /** Right-click a creature you're looking at to take its form; right-click empty air to revert. */
+    public static final DeferredItem<Item> MASTER_OF_DISGUISE_TOME =
+        ITEMS.registerItem("master_of_disguise_tome",
+            props -> new DisguiseTomeItem(props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.EPIC)));
+
     // ── Creative tab (all mod items in one place) ──────────────────────────────
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> IRONHOLD_TAB =
         CREATIVE_TABS.register("ironhold_tab", () -> CreativeModeTab.builder()
             .title(net.minecraft.network.chat.Component.literal("Kingdom SMP"))
             .icon(() -> new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHERITE_SWORD))
             .displayItems((params, output) -> {
+                output.accept(MASTER_OF_DISGUISE_TOME.get());
                 output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
                 output.accept(WARDEN_HALRIC_SPAWN_EGG.get());
                 output.accept(TALLYKEEPER_SPAWN_EGG.get());
                 output.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
                 output.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
                 output.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
+                output.accept(PLAGUE_DOCTOR_SPAWN_EGG.get());
                 output.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
                 output.accept(OLD_HESTA_SPAWN_EGG.get());
                 output.accept(OLD_BEREN_SPAWN_EGG.get());
@@ -871,25 +1205,57 @@ public final class ModItems {
                 output.accept(KNIGHT_VETERAN_SPAWN_EGG.get());
                 output.accept(MOM_PINK_DEER_SPAWN_EGG.get());
                 output.accept(RAT_SPAWN_EGG.get());
+                output.accept(SHROOMLING_SPAWN_EGG.get());
+                output.accept(MOONSHROOM_SPAWN_EGG.get());
                 output.accept(SHULKER_HERDER_SPAWN_EGG.get());
                 output.accept(WHITE_SHULKER_SPAWN_EGG.get());
                 output.accept(BLACK_SHULKER_SPAWN_EGG.get());
                 output.accept(PURIFIED_SHELL.get());
                 output.accept(VOID_CORE.get());
+                output.accept(GLOWSHROOM.get());
+                output.accept(MOONSHROOM_STEW.get());
+                output.accept(SHROOMCAP.get());
+                output.accept(SHROOMCAP_ORANGE.get());
+                output.accept(CAT_EARS.get());
+                output.accept(CAT_EARS_BLACK.get());
+                output.accept(CAT_EARS_WHITE.get());
+                output.accept(CAT_EARS_CALICO.get());
+                output.accept(CAT_EARS_SIAMESE.get());
+                output.accept(BUNNY_EARS.get());
+                output.accept(FOX_EARS.get());
+                output.accept(DEVIL_HORNS.get());
+                output.accept(UNICORN_HORN.get());
+                output.accept(RAM_HORNS.get());
+                output.accept(ANTENNAE.get());
+                output.accept(ELF_EARS.get());
+                output.accept(HALO.get());
+                output.accept(ANGEL_WINGS.get());
+                output.accept(CAPE.get());
+                output.accept(CAT_TAIL.get());
+                output.accept(FOX_TAIL.get());
+                output.accept(DRAGON_TAIL.get());
+                output.accept(DEVIL_TAIL.get());
                 output.accept(CHEESE_WEDGE.get());
                 output.accept(PLAGUE_BUBO.get());
                 output.accept(PLAGUE_TONIC.get());
+                output.accept(BANDAGE.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
+                output.accept(MIRROR.get());
+                output.accept(LOCK.get());
+                output.accept(INVISIBLE_ITEM_FRAME.get());
                 output.accept(TEMPEST_BOW.get());
                 output.accept(TEMPEST_ARROW.get());
                 output.accept(ANKH_SHIELD.get());
                 output.accept(ARCANE_SCEPTER.get());
+                output.accept(DIAMOND_SCEPTER.get());
+                output.accept(BATTLE_HAMMER.get());
                 output.accept(SOLUNA_STAFF.get());
                 output.accept(WIZARD_STAFF.get());
                 output.accept(WIZARD_STICK.get());
                 output.accept(HALRIC_STAFF.get());
                 output.accept(CLASS_STONE_ITEM.get());
                 output.accept(PITCHFORK.get());
+                output.accept(MAGMA_BOOTS.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(PLAYER_COMPASS.get());
                 output.accept(BAND_OF_REGENERATION.get());
@@ -905,6 +1271,7 @@ public final class ModItems {
                 output.accept(STEEL_INGOT.get());
                 output.accept(FOOLS_GOLD.get());
                 output.accept(FOOLS_GOLD_ORE_ITEM.get());
+                output.accept(DEEPSLATE_FOOLS_GOLD_ORE_ITEM.get());
                 output.accept(FILCHER_CROWN.get());
                 output.accept(TANZANITE_ORE_ITEM.get());
                 output.accept(EBONY_LOG_ITEM.get());
@@ -919,7 +1286,21 @@ public final class ModItems {
                 output.accept(EBONY_BUTTON_ITEM.get());
                 output.accept(EBONY_PRESSURE_PLATE_ITEM.get());
                 output.accept(EBONY_LEAVES_ITEM.get());
+                output.accept(CHINESE_CEDAR_LOG_ITEM.get());
+                output.accept(STRIPPED_CHINESE_CEDAR_LOG_ITEM.get());
+                output.accept(STRIPPED_CHINESE_CEDAR_WOOD_ITEM.get());
+                output.accept(CHINESE_CEDAR_PLANKS_ITEM.get());
+                output.accept(CHINESE_CEDAR_SLAB_ITEM.get());
+                output.accept(CHINESE_CEDAR_STAIRS_ITEM.get());
+                output.accept(CHINESE_CEDAR_FENCE_ITEM.get());
+                output.accept(CHINESE_CEDAR_FENCE_GATE_ITEM.get());
+                output.accept(CHINESE_CEDAR_DOOR_ITEM.get());
+                output.accept(CHINESE_CEDAR_TRAPDOOR_ITEM.get());
+                output.accept(CHINESE_CEDAR_BUTTON_ITEM.get());
+                output.accept(CHINESE_CEDAR_PRESSURE_PLATE_ITEM.get());
                 output.accept(BAT_FLOWER_ITEM.get());
+                output.accept(ORANGE_GLOWSHROOMS_ITEM.get());
+                output.accept(BLUE_GLOWSHROOMS_ITEM.get());
                 output.accept(EBONWOOD_GRASS_ITEM.get());
                 output.accept(BLUE_VINES_ITEM.get());
                 output.accept(BLACK_SAND_ITEM.get());
@@ -941,6 +1322,7 @@ public final class ModItems {
     private static void addCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(MAGIC_MINECART_ITEM.get());
+            event.accept(LOCK.get());
         }
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ARCANE_MAGE_SPAWN_EGG.get());
@@ -963,6 +1345,7 @@ public final class ModItems {
             event.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
             event.accept(MIRA_INNKEEPER_SPAWN_EGG.get());
             event.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
+            event.accept(PLAGUE_DOCTOR_SPAWN_EGG.get());
             event.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
             event.accept(OLD_HESTA_SPAWN_EGG.get());
             event.accept(OLD_BEREN_SPAWN_EGG.get());
@@ -978,6 +1361,8 @@ public final class ModItems {
             event.accept(RARE_PINK_DEER_SPAWN_EGG.get());
             event.accept(MOM_PINK_DEER_SPAWN_EGG.get());
             event.accept(RAT_SPAWN_EGG.get());
+            event.accept(SHROOMLING_SPAWN_EGG.get());
+            event.accept(MOONSHROOM_SPAWN_EGG.get());
             event.accept(MIMIC_SPAWN_EGG.get());
             event.accept(BABY_MIMIC_SPAWN_EGG.get());
             event.accept(SLIME_PET_JE11IE_SPAWN_EGG.get());
@@ -995,12 +1380,15 @@ public final class ModItems {
             event.accept(TEMPEST_ARROW.get());
             event.accept(ANKH_SHIELD.get());
             event.accept(ARCANE_SCEPTER.get());
+            event.accept(DIAMOND_SCEPTER.get());
+            event.accept(BATTLE_HAMMER.get());
             event.accept(SOLUNA_STAFF.get());
             event.accept(WIZARD_STAFF.get());
             event.accept(WIZARD_STICK.get());
             event.accept(HALRIC_STAFF.get());
             event.accept(PITCHFORK.get());
             event.accept(VENGEFUL_HALBERD.get());
+            event.accept(MAGMA_BOOTS.get());
             // Accessories
             event.accept(HERMES_BOOTS.get());
             event.accept(BAND_OF_REGENERATION.get());
@@ -1015,6 +1403,8 @@ public final class ModItems {
             event.accept(EBONY_LOG_ITEM.get());
             event.accept(EBONY_LEAVES_ITEM.get());
             event.accept(BAT_FLOWER_ITEM.get());
+            event.accept(ORANGE_GLOWSHROOMS_ITEM.get());
+            event.accept(BLUE_GLOWSHROOMS_ITEM.get());
             event.accept(EBONWOOD_GRASS_ITEM.get());
             event.accept(BLUE_VINES_ITEM.get());
             event.accept(BLACK_SAND_ITEM.get());
@@ -1037,7 +1427,30 @@ public final class ModItems {
             event.accept(STEEL_INGOT.get());
             event.accept(FOOLS_GOLD.get());
             event.accept(FOOLS_GOLD_ORE_ITEM.get());
+            event.accept(DEEPSLATE_FOOLS_GOLD_ORE_ITEM.get());
             event.accept(FILCHER_CROWN.get());
+            event.accept(GLOWSHROOM.get());
+            event.accept(SHROOMCAP.get());
+            event.accept(SHROOMCAP_ORANGE.get());
+            event.accept(CAT_EARS.get());
+            event.accept(CAT_EARS_BLACK.get());
+            event.accept(CAT_EARS_WHITE.get());
+            event.accept(CAT_EARS_CALICO.get());
+            event.accept(CAT_EARS_SIAMESE.get());
+            event.accept(BUNNY_EARS.get());
+            event.accept(FOX_EARS.get());
+            event.accept(DEVIL_HORNS.get());
+            event.accept(UNICORN_HORN.get());
+            event.accept(RAM_HORNS.get());
+            event.accept(ANTENNAE.get());
+            event.accept(ELF_EARS.get());
+            event.accept(HALO.get());
+            event.accept(ANGEL_WINGS.get());
+            event.accept(CAPE.get());
+            event.accept(CAT_TAIL.get());
+            event.accept(FOX_TAIL.get());
+            event.accept(DRAGON_TAIL.get());
+            event.accept(DEVIL_TAIL.get());
         }
     }
 }

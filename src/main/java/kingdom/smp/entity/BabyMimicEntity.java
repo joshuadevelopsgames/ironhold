@@ -143,21 +143,30 @@ public class BabyMimicEntity extends TamableAnimal {
     }
 
     // ── Persistence ────────────────────────────────────────────────────────
-    // Inventory is NOT saved on the entity — the MimicKey item is the
-    // source of truth (periodic sync in onAccessoryTick). This prevents
-    // duplication from entity NBT + key data both holding copies.
+    // The MimicKey item is the single source of truth for both the custom name
+    // and the stored inventory (see MimicKeyItem). The entity itself is NEVER
+    // written to disk (shouldBeSaved() == false): on logout / chunk unload it
+    // simply vanishes and is re-spawned from the key, restored with its items.
+    // This guarantees a player can never end up with a duplicate mimic from a
+    // stale on-disk copy lingering in an unloaded chunk.
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
 
     /**
-     * Only drop items when the entity is actually killed or discarded — NOT on
-     * chunk unload or dimension change, which would duplicate items since the
-     * entity is also saved to NBT.
+     * Drop the stored items when the mimic is explicitly killed (e.g. /kill) and
+     * clear the key's stored copy so the re-spawned mimic doesn't duplicate them.
+     * Unequip drops are handled by {@link kingdom.smp.item.MimicKeyItem#removeAllCompanions}.
      */
     @Override
     public void remove(RemovalReason reason) {
         if (!this.level().isClientSide() && reason == RemovalReason.KILLED) {
-            // Only drop on explicit kill (/kill command etc.)
-            // Normal unequip drops are handled by MimicKeyItem.removeAllCompanions()
             dropAllItems();
+            if (this.getOwner() instanceof ServerPlayer owner) {
+                kingdom.smp.item.MimicKeyItem.clearStoredInventory(owner);
+            }
         }
         super.remove(reason);
     }

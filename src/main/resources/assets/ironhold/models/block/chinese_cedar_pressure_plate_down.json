@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/pressure_plate_down",
+  "textures": {
+    "texture": "ironhold:block/chinese_cedar_planks"
+  }
+}

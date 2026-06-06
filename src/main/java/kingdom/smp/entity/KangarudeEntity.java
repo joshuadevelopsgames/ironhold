@@ -305,6 +305,8 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
     /** Last accepted user message + the time we accepted it, for de-dup. */
     private @Nullable String lastUserMessage;
     private long lastUserMessageTimeMs;
+    /** Where this conversation's replies are delivered (screen vs. chat whisper). */
+    private ReplyChannel replyChannel = ReplyChannel.SCREEN;
 
     // ── Kangabrine haunting state ────────────────────────────────────────────
     /** When non-null, this entity is in Kangabrine mode haunting this victim. */
@@ -576,14 +578,29 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         NpcChatRegistry.setActive(partnerId, this);
         history.clear();
         lastTurnGameTime = level().getGameTime();
+        replyChannel = ReplyChannel.SCREEN;
         Ironhold.LOGGER.info("[Kangarude] {} opened a conversation.",
             player.getName().getString());
+    }
+
+    @Override
+    public void onMentionTurn(ServerPlayer player, String message) {
+        if (message == null || message.isBlank()) return;
+        if (!player.getUUID().equals(partnerId)) beginConversation(player);
+        // Set CHAT after beginConversation (which resets to SCREEN) and route
+        // straight to generateReply so onPartnerChat's SCREEN reset can't clobber it.
+        replyChannel = ReplyChannel.CHAT;
+        if (replyInFlight) return;
+        lastTurnGameTime = level().getGameTime();
+        generateReply(player, message.trim());
     }
 
     /** Called by IronholdGameEvents when the active partner sends a chat message. */
     public void onPartnerChat(ServerPlayer player, String message) {
         if (partnerId == null || !partnerId.equals(player.getUUID())) return;
         if (message == null || message.isBlank()) return;
+        // Screen/voice/proximity turns always arrive here; mentions bypass this.
+        replyChannel = ReplyChannel.SCREEN;
 
         // Drop chat/PTT inputs that arrive while a Claude turn is in flight —
         // otherwise a single utterance routed through both chat and STT (or a
@@ -635,6 +652,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
     // ── NpcChatPartner ───────────────────────────────────────────────────────
 
     @Override public UUID getPartnerId() { return partnerId; }
+    @Override public boolean supportsWhisper() { return true; }
     @Override public String tag() { return "Kangarude"; }
     @Override public int entityId() { return getId(); }
     @Override public String displayName() { return SKIN_OWNER_NAME; }
@@ -680,10 +698,13 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         }
 
         // Echo what the player said into their dialogue screen so they get
-        // immediate visual feedback while Kanga's brain thinks.
-        PacketDistributor.sendToPlayer(player,
-            new UpdateWardenScreenPayload(getId(),
-                UpdateWardenScreenPayload.STATUS_HEARD, userMessage));
+        // immediate visual feedback while Kanga's brain thinks. Chat-mention
+        // turns already echo "You whisper to Kangarude" via MentionRouter.
+        if (replyChannel == ReplyChannel.SCREEN) {
+            PacketDistributor.sendToPlayer(player,
+                new UpdateWardenScreenPayload(getId(),
+                    UpdateWardenScreenPayload.STATUS_HEARD, userMessage));
+        }
 
         replyInFlight = true;
         int currentMood = KangarudeMoodTracker.getMood(player.getUUID());
@@ -775,7 +796,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
             if (newMood <= KangarudeMoodTracker.HAUNT_THRESHOLD && kangabrineTargetId == null) {
                 history.add(new OpenRouterClient.Message("user", userMessage));
                 history.add(new OpenRouterClient.Message("assistant", line));
-                broadcastDialogue(line);
+                emitReply(player, line);
                 speakLine(line);
                 // Final words spoken — then transform on the next tick.
                 level().getServer().execute(() -> startKangabrineHaunt(expectedPartner));
@@ -789,12 +810,9 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         // token cost. Smaller history = cheaper, faster replies.
         while (history.size() > 12) history.remove(0);
 
-        // Push the reply to the partner's dialogue screen (typewriter reveal)
-        // AND to the floating-bubble layer for any bystanders.
-        PacketDistributor.sendToPlayer(player,
-            new UpdateWardenScreenPayload(getId(),
-                UpdateWardenScreenPayload.STATUS_REPLY, line));
-        broadcastDialogue(line);
+        // Push the reply over the active channel — dialogue screen + floating
+        // bubble for a right-click session, or a private whisper for @mention.
+        emitReply(player, line);
         speakLine(line);
         Ironhold.LOGGER.info("[Kangarude] -> {}: \"{}\"", player.getName().getString(), line);
     }
@@ -1620,6 +1638,22 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         PacketDistributor.sendToPlayersTrackingEntity(this, payload);
     }
 
+    /**
+     * Deliver a reply to the partner over the active channel: the dialogue
+     * screen + floating bubble for a right-click session, or a private chat
+     * whisper for an {@code @mention} session.
+     */
+    private void emitReply(ServerPlayer player, String line) {
+        if (replyChannel == ReplyChannel.CHAT) {
+            kingdom.smp.chat.MentionRouter.sendNpcWhisper(player, SKIN_OWNER_NAME, line);
+        } else {
+            PacketDistributor.sendToPlayer(player,
+                new UpdateWardenScreenPayload(getId(),
+                    UpdateWardenScreenPayload.STATUS_REPLY, line));
+            broadcastDialogue(line);
+        }
+    }
+
     private void speakLine(String line) {
         if (!ElevenLabsClient.isConfigured()) return;
         UUID partner = partnerId; // snapshot in case it changes during the async call
@@ -1658,6 +1692,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
     @Override
     public void remove(RemovalReason reason) {
         endConversation();
+        kingdom.smp.chat.NpcMentionRegistry.unregister(this);
         // Drop our tab-list entry so the player list reflects the despawn.
         // Skip when the entity is just being unloaded (chunk unload, dimension
         // change) — we'll re-announce on the next aiStep when it ticks again.

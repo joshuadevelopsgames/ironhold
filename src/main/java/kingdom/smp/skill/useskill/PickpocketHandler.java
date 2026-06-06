@@ -2,6 +2,7 @@ package kingdom.smp.skill.useskill;
 
 import kingdom.smp.ModAttachments;
 import kingdom.smp.entity.KnightEntity;
+import kingdom.smp.entity.ShroomlingEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
@@ -87,6 +88,9 @@ public final class PickpocketHandler {
     private static final float XP_PER_FAIL = 1f;
     private static final float XP_PER_PLANT = 3f;
 
+    /** Minimum Pickpocket level required to lift a Shroomling's cap off its head. */
+    private static final int SHROOMCAP_MIN_LEVEL = 25;
+
     /** Planting is easier than lifting — no resistance from grasping the item. */
     private static final float PLANT_DIFFICULTY_BONUS = 0.10f;
 
@@ -135,6 +139,8 @@ public final class PickpocketHandler {
             target = villager;
         } else if (event.getTarget() instanceof KnightEntity knight) {
             target = knight;
+        } else if (event.getTarget() instanceof ShroomlingEntity shroomling) {
+            target = shroomling;
         } else if (event.getTarget() instanceof ServerPlayer victim && victim != player) {
             if (victim.isCreative() || victim.isSpectator()) return;
             target = victim;
@@ -159,7 +165,15 @@ public final class PickpocketHandler {
         java.util.Optional<net.minecraft.core.BlockPos> sleepPos =
             wasSleeping ? target.getSleepingPos() : java.util.Optional.empty();
 
-        if (player.getMainHandItem().isEmpty()) {
+        if (target instanceof ShroomlingEntity shroomling) {
+            // Shroomlings have exactly one liftable thing — their cap — and nothing
+            // can be planted on a mushroom. Route both hands to the cap-lift path.
+            if (player.getMainHandItem().isEmpty()) {
+                doLiftShroomcap(player, shroomling);
+            } else {
+                actionBar(player, "§7You can't slip anything onto a Shroomling.");
+            }
+        } else if (player.getMainHandItem().isEmpty()) {
             doLift(player, target);
         } else {
             doPlant(player, target);
@@ -233,6 +247,56 @@ public final class PickpocketHandler {
             aggroGuards(player, target);
             broadcastCaught(player, target);
         }
+    }
+
+    // ── Lift: Shroomling cap ──────────────────────────────────────────────────
+
+    /**
+     * Lifts a {@link ShroomlingEntity}'s cap off its head. Unlike ordinary lifts
+     * this is gated behind {@link #SHROOMCAP_MIN_LEVEL} — a Shroomling's cap is
+     * fused on tight, so only a deft thief can peel it free. Success yields the
+     * variant-matched shroomcap (blue or orange) and leaves the Shroomling
+     * permanently capless. Being hidden still improves the odds (via the sneak
+     * bonus in {@link #computeChance}), but a wild mushroom raises no guards, so
+     * a fumble just costs the attempt — no village aggro or distrust.
+     */
+    private static void doLiftShroomcap(ServerPlayer player, ShroomlingEntity shroomling) {
+        if (shroomling.isCapless()) {
+            actionBar(player, "§7Its cap is already gone.");
+            return;
+        }
+
+        PlayerUseSkills skills = player.getData(ModAttachments.USE_SKILLS.get());
+        int pickpocketLevel = skills.levelFor(UseSkill.PICKPOCKET);
+        if (pickpocketLevel < SHROOMCAP_MIN_LEVEL) {
+            actionBar(player, "§7Its cap is fused on tight — you're not deft enough. "
+                + "§8(Pickpocket " + pickpocketLevel + "/" + SHROOMCAP_MIN_LEVEL + ")");
+            return;
+        }
+
+        byte sneakState = SneakDetectionTracker.getCachedState(player.getUUID());
+        ItemStack cap = new ItemStack(shroomling.isOrange()
+            ? kingdom.smp.ModItems.SHROOMCAP_ORANGE.get()
+            : kingdom.smp.ModItems.SHROOMCAP.get());
+
+        // The cap's own rarity (uncommon blue / rare orange) feeds the difficulty,
+        // so the prized orange cap is meaningfully harder to lift cleanly.
+        float chance = computeChance(pickpocketLevel, sneakState, rarityPenalty(cap), 0f, 0f);
+        if (shroomling.getRandom().nextFloat() >= chance) {
+            actionBar(player, "§cYou fumbled — its cap held fast.");
+            awardXp(player, skills, UseSkill.PICKPOCKET, XP_PER_FAIL, pickpocketLevel);
+            spawnFailureParticles(shroomling);
+            return;
+        }
+
+        shroomling.setCapless(true);
+        if (!player.getInventory().add(cap)) {
+            player.drop(cap, false);
+        }
+        playLiftSound(shroomling);
+        spawnSuccessParticles(shroomling);
+        actionBar(player, "§aLifted: §f" + cap.getHoverName().getString());
+        awardXp(player, skills, UseSkill.PICKPOCKET, XP_PER_SUCCESS, pickpocketLevel);
     }
 
     // ── Plant (reverse-pickpocket) ──────────────────────────────────────────
@@ -566,9 +630,20 @@ public final class PickpocketHandler {
     }
 
     private static LiftCandidate pickLiftCandidatePlayer(ServerPlayer victim) {
-        List<LiftCandidate> candidates = new ArrayList<>();
+        // Fool's gold is the always-targeted item for pickpocketing players.
+        // Scan the inventory first and return it if found.
         var inv = victim.getInventory();
         int limit = Math.min(PLAYER_MAIN_INV_SIZE, inv.getContainerSize());
+        for (int i = 0; i < limit; i++) {
+            ItemStack item = inv.getItem(i);
+            if (item.getItem() == kingdom.smp.ModItems.FOOLS_GOLD.get()) {
+                final int slot = i;
+                return new LiftCandidate(item.copyWithCount(1), () -> drainPlayerSlot(victim, slot));
+            }
+        }
+
+        // No fool's gold — fall back to random items from the main inventory.
+        List<LiftCandidate> candidates = new ArrayList<>();
         for (int i = 0; i < limit; i++) {
             ItemStack item = inv.getItem(i);
             if (item.isEmpty()) continue;

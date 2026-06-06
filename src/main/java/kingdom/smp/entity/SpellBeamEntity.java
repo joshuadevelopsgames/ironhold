@@ -11,6 +11,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Pure visual entity representing a magic beam from origin to its spawn position.
@@ -62,6 +64,18 @@ public class SpellBeamEntity extends Entity {
     @Override
     public void tick() {
         super.tick();
+
+        // Expand the actual hitbox to span the whole beam line (impact -> origin).
+        // Both vanilla AND Sodium cull entities by their bounding box, so a tiny box
+        // at the impact point lets the beam vanish when that point leaves view. This
+        // entity is noPhysics/invulnerable, so a large box has no gameplay effect.
+        // (Origin syncs a tick after spawn; until then it's (0,0,0) -> harmlessly big.)
+        Vec3 p = this.position();
+        double ox = getOriginX(), oy = getOriginY(), oz = getOriginZ();
+        this.setBoundingBox(new AABB(
+            Math.min(p.x, ox), Math.min(p.y, oy), Math.min(p.z, oz),
+            Math.max(p.x, ox), Math.max(p.y, oy), Math.max(p.z, oz)).inflate(0.5));
+
         if (!this.level().isClientSide() && this.tickCount >= this.entityData.get(MAX_LIFE)) {
             this.discard();
         }

@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "package": "kingdom.smp.mirrors.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [],
+  "client": [
+    "CameraInvoker",
+    "GameRendererMirrorHandMixin",
+    "MinecraftMainTargetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

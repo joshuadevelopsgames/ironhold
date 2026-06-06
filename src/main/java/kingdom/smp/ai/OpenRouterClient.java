@@ -205,13 +205,13 @@ public final class OpenRouterClient {
                 try {
                     if (response.statusCode() / 100 != 2) {
                         Ironhold.LOGGER.warn("[{}] OpenRouter HTTP {}: {}",
-                            tag, response.statusCode(), response.body());
+                            tag, response.statusCode(), AiLog.snippet(response.body()));
                         onResult.accept(null);
                         return;
                     }
                     JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
                     if (!root.has("choices") || root.getAsJsonArray("choices").isEmpty()) {
-                        Ironhold.LOGGER.warn("[{}] Unexpected OpenRouter response: {}", tag, response.body());
+                        Ironhold.LOGGER.warn("[{}] Unexpected OpenRouter response: {}", tag, AiLog.snippet(response.body()));
                         onResult.accept(null);
                         return;
                     }

@@ -104,14 +104,14 @@ public record PlayerSkillState(
     }
 
     /**
-     * Lossy respec of a single profession — refunds {@code (rank.cumulativeCost − 1)} points
-     * and clears progress in the given profession. Used by debug commands; the player UI uses
+     * Respec of a single profession — refunds the full {@code rank.cumulativeCost} and clears
+     * progress in the given profession. Used by debug commands; the player UI uses
      * {@link #respecAll()} instead.
      */
     public PlayerSkillState respec(Profession profession) {
         ProfessionRank current = currentRanks.get(profession);
         if (current == null) return this;
-        int refund = Math.max(0, current.cumulativeCost() - 1);
+        int refund = current.cumulativeCost();
         Map<Profession, ProfessionRank> newRanks = new EnumMap<>(currentRanks);
         newRanks.remove(profession);
         return new PlayerSkillState(
@@ -121,16 +121,14 @@ public record PlayerSkillState(
     }
 
     /**
-     * Global respec — clears every profession's rank and refunds {@code (totalSpent − 1)}
-     * points. The −1 is a single global penalty (not per-profession), so respeccing two
-     * professions costs the same as respeccing one. If nothing is spent, returns {@code this}.
+     * Global respec — clears every profession's rank and refunds the full {@code totalSpent}
+     * points (no penalty). If nothing is spent, returns {@code this}.
      */
     public PlayerSkillState respecAll() {
         int totalSpent = totalPointsSpent();
         if (totalSpent <= 0) return this;
-        int refund = Math.max(0, totalSpent - 1);
         return new PlayerSkillState(
-                unspentProfessionPoints + refund,
+                unspentProfessionPoints + totalSpent,
                 new EnumMap<>(Profession.class),
                 milestonesCompleted);
     }

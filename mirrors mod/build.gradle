@@ -1,0 +1,97 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.141'
+    id 'com.modrinth.minotaur' version '2.+'
+    id 'idea'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+// Mojang ships Java 25 to end users in 26.1+, so mods should target Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+
+neoForge {
+    version = project.neo_version
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        configureEach {
+            jvmArgument '-Xms1G'
+            jvmArgument '-Xmx4G'
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+// macOS: LWJGL requires the main thread to own the display on Apple Silicon.
+if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+    tasks.named('runClient', JavaExec) {
+        jvmArgs '-XstartOnFirstThread'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// neoforge.mods.toml reads the mod version from the jar manifest via ${file.jarVersion}.
+tasks.named('jar', Jar) {
+    manifest {
+        attributes([
+            'Implementation-Version': project.version
+        ])
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
+
+// ── Modrinth publishing ─────────────────────────────────────────────────────
+// 1. Create the project on Modrinth and set `modrinth_project_id` in gradle.properties.
+// 2. Export a write-scoped token:  export MODRINTH_TOKEN=...
+// 3. Publish:  ./gradlew modrinth
+modrinth {
+    token = providers.environmentVariable("MODRINTH_TOKEN")
+    projectId = project.modrinth_project_id
+    versionNumber = mod_version
+    versionName = "${mod_name} ${mod_version}"
+    versionType = "release"
+    uploadFile = tasks.named("jar")
+    gameVersions = project.modrinth_game_versions.split(",").collect { it.trim() }
+    loaders = ["neoforge"]
+    syncBodyFrom = providers.fileContents(layout.projectDirectory.file("README.md")).asText
+}

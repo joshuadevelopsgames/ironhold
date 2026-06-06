@@ -1,0 +1,10 @@
+{
+  "type": "ironhold:moon_dimension",
+  "generator": {
+    "type": "ironhold:moon_chunk_generator",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "minecraft:the_void"
+    }
+  }
+}

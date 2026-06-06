@@ -6,6 +6,8 @@
     "minecraft:pumpkin_stem",
     "minecraft:sugar_cane",
     "minecraft:bamboo",
-    "minecraft:cactus"
+    "minecraft:cactus",
+    "minecraft:torchflower_crop",
+    "minecraft:pitcher_crop"
   ]
 }

@@ -4,7 +4,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import kingdom.smp.ModAttachments;
+import kingdom.smp.accessory.AccessoryInventory;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -36,6 +39,24 @@ public final class VanityCache {
     public static ItemStack getVanity(UUID uuid, EquipmentSlot slot) {
         VanityData data = CACHE.get(uuid);
         return data != null ? data.forSlot(slot) : ItemStack.EMPTY;
+    }
+
+    /**
+     * Resolve the vanity item worn in {@code slot} for a player on the client. Prefers
+     * the {@link AccessoryInventory} attachment (updated immediately on this client by
+     * container sync) and falls back to the {@link #getVanity synced cache} for other
+     * players. Returns {@link ItemStack#EMPTY} when nothing is worn.
+     */
+    public static ItemStack resolve(LivingEntity entity, EquipmentSlot slot) {
+        ItemStack vanity = ItemStack.EMPTY;
+        AccessoryInventory inv = entity.getExistingDataOrNull(ModAttachments.ACCESSORY_INV.get());
+        if (inv != null) {
+            vanity = inv.getVanityForSlot(slot);
+        }
+        if (vanity.isEmpty()) {
+            vanity = getVanity(entity.getUUID(), slot);
+        }
+        return vanity;
     }
 
     public static void remove(UUID uuid) {

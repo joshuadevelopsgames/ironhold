@@ -65,9 +65,6 @@ public final class RpgProgressionActions {
 
     // ── Pending-promotion enforcement ────────────────────────────────────────
 
-    /** Ticks between reopen-screen nags while a promotion is pending. */
-    private static final int PROMOTION_REOPEN_INTERVAL = 100;
-
     /**
      * True when the player is at-or-past their tier's promotion threshold AND
      * has at least one unlockable next-tier class. Creative-mode players are
@@ -95,31 +92,45 @@ public final class RpgProgressionActions {
     }
 
     /**
-     * Called every player tick — if a promotion is pending and the player isn't
-     * already in some menu, re-open the class-selection screen every
-     * {@value #PROMOTION_REOPEN_INTERVAL} ticks (≈5s) so they can't dismiss it
-     * indefinitely. Also shows a persistent action-bar nag.
+     * Called every player tick — if a promotion is pending, keep a persistent
+     * action-bar reminder of the Class Stone's coordinates on screen. Also
+     * lazily summons a stone for any pending promotion that doesn't have one
+     * yet (covers promotions that predate this system).
      */
-    public static void reopenPromotionScreenIfNeeded(ServerPlayer player) {
+    public static void remindPendingPromotionIfNeeded(ServerPlayer player) {
         if (!hasPendingPromotion(player)) return;
-        // Action-bar nag every second so even players with a container open know.
-        if (player.tickCount % 20 == 0) {
-            player.sendSystemMessage(
-                Component.literal("§6§lPromotion required — choose your next class!"),
-                true);
+        // Lazily summon a stone for any pending promotion that lacks one. Throttled
+        // to every 5s so a (very unlikely) failing summon can't trigger per-tick
+        // chunk generation.
+        if (!PromotionStoneSummoner.hasActiveStone(player) && player.tickCount % 100 == 0) {
+            summonAndAnnounce(player);
         }
-        // Only re-open if the player isn't currently in another menu. Players in
-        // their own inventory have containerMenu == inventoryMenu; we treat that
-        // as "no menu open" and re-show the class-selection screen.
-        if (player.containerMenu != player.inventoryMenu) return;
-        if (player.tickCount % PROMOTION_REOPEN_INTERVAL != 0) return;
-        PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+        // Action-bar reminder every second so even players with a container open know.
+        if (player.tickCount % 20 == 0) {
+            ActivePromotionStone s = player.getData(ModAttachments.ACTIVE_PROMOTION_STONE.get());
+            if (s.present()) {
+                player.sendSystemMessage(Component.literal(
+                    "§6§lClass Stone: §e" + s.x() + ", " + s.y() + ", " + s.z()), true);
+            } else {
+                player.sendSystemMessage(Component.literal(
+                    "§6§lPromotion required — find your Class Stone!"), true);
+            }
+        }
     }
 
     private static void nagPendingPromotion(ServerPlayer player) {
-        player.sendSystemMessage(Component.literal(
-            "§cYou must choose a promotion before gaining more class XP."));
-        PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+        if (!PromotionStoneSummoner.hasActiveStone(player)) {
+            summonAndAnnounce(player);
+        }
+        ActivePromotionStone s = player.getData(ModAttachments.ACTIVE_PROMOTION_STONE.get());
+        if (s.present()) {
+            player.sendSystemMessage(Component.literal(
+                "§cClass XP is frozen until you promote. Seek the Class Stone at §e"
+                + s.x() + ", " + s.y() + ", " + s.z() + "§c."));
+        } else {
+            player.sendSystemMessage(Component.literal(
+                "§cYou must promote at a Class Stone before gaining more class XP."));
+        }
     }
 
     // ── Skill-point gates ────────────────────────────────────────────────────
@@ -283,7 +294,7 @@ public final class RpgProgressionActions {
         int color = classColorRgb(pc);
         Component title = Component.literal("\u2694 Class Mastered! \u2694")
             .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x55FFFF)).withBold(true));
-        Component subtitle = Component.literal("Choose your next path...")
+        Component subtitle = Component.literal("Seek the Class Stone...")
             .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCCCCCC)));
 
         player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 60, 20));
@@ -295,8 +306,37 @@ public final class RpgProgressionActions {
         level.playSound(null, player.blockPosition(), SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
             SoundSource.PLAYERS, 1.2f, 0.8f);
 
-        // Open the class selection screen
-        PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+        // Summon the class stone the player must travel to in order to promote.
+        summonAndAnnounce(player);
+    }
+
+    // \u2500\u2500 Promotion-stone summon / location announce \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+
+    /** Summons the player's promotion stone (if they don't already have one) and tells them where. */
+    private static void summonAndAnnounce(ServerPlayer player) {
+        if (PromotionStoneSummoner.hasActiveStone(player)) {
+            announceStoneLocation(player);
+            return;
+        }
+        net.minecraft.core.BlockPos pos = PromotionStoneSummoner.summonFor(player);
+        if (pos == null) {
+            // No valid surface found \u2014 fall back to the screen so the player isn't soft-locked.
+            PacketDistributor.sendToPlayer(player, new OpenClassSelectionPayload());
+            return;
+        }
+        announceStoneLocation(player);
+    }
+
+    private static void announceStoneLocation(ServerPlayer player) {
+        ActivePromotionStone s = player.getData(ModAttachments.ACTIVE_PROMOTION_STONE.get());
+        if (!s.present()) return;
+        player.sendSystemMessage(Component.empty()
+            .append(Component.literal("\u2727 A Class Stone has risen at ")
+                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x55FFFF))))
+            .append(Component.literal(s.x() + ", " + s.y() + ", " + s.z())
+                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFD700)).withBold(true)))
+            .append(Component.literal(" \u2014 travel there to choose your next class.")
+                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xCCCCCC)))));
     }
 
     private static int classColorRgb(PlayerClass pc) {

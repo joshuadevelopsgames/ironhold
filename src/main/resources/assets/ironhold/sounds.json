@@ -1,89 +1,23 @@
 {
-  "item.halric_staff.chain_clink": {
+  "entity.shroomling.ambient": {
+    "subtitle": "subtitles.ironhold.entity.shroomling.ambient",
     "sounds": [
-      "ironhold:item/halric_staff/chain_clink"
-    ],
-    "subtitle": "subtitles.ironhold.item.halric_staff.chain_clink"
+      "ironhold:entity/shroomling/puff",
+      "ironhold:entity/shroomling/coo1",
+      "ironhold:entity/shroomling/coo2"
+    ]
   },
-  "music.minecraft_remix": {
+  "entity.shroomling.hurt": {
+    "subtitle": "subtitles.ironhold.entity.shroomling.hurt",
     "sounds": [
-      {
-        "name": "ironhold:music/minecraft_remix",
-        "stream": true
-      }
-    ],
-    "subtitle": "subtitles.ironhold.music.minecraft_remix"
+      "ironhold:entity/shroomling/hurt"
+    ]
   },
-  "ambient.ebonwood_hollow": {
+  "entity.shroomling.death": {
+    "subtitle": "subtitles.ironhold.entity.shroomling.death",
     "sounds": [
-      {
-        "name": "ironhold:ambient/ebonwood_hollow",
-        "stream": true
-      }
-    ],
-    "subtitle": "subtitles.ironhold.ambient.ebonwood_hollow"
-  },
-  "entity.pink_deer.ambient": {
-    "sounds": [
-      "ironhold:entity/pink_deer/ambient1"
-    ],
-    "subtitle": "subtitles.ironhold.entity.pink_deer.ambient"
-  },
-  "entity.pink_deer.hurt": {
-    "sounds": [
-      {
-        "name": "ironhold:entity/pink_deer/hurt_1",
-        "pitch": 1.3
-      }
-    ],
-    "subtitle": "subtitles.ironhold.entity.pink_deer.hurt"
-  },
-  "entity.pink_deer.death": {
-    "sounds": [
-      {
-        "name": "ironhold:entity/pink_deer/death1",
-        "pitch": 0.8
-      }
-    ],
-    "subtitle": "subtitles.ironhold.entity.pink_deer.death"
-  },
-  "entity.pink_deer.mom.hurt": {
-    "sounds": [
-      {
-        "name": "ironhold:entity/pink_deer/hurt_mom_1",
-        "pitch": 0.55
-      }
-    ],
-    "subtitle": "subtitles.ironhold.entity.pink_deer.mom.hurt"
-  },
-  "entity.kangabrine.dramatic_descent": {
-    "sounds": [
-      {
-        "name": "ironhold:kangabrine/dramatic_descent",
-        "stream": false
-      }
-    ],
-    "subtitle": "subtitles.ironhold.entity.kangabrine.dramatic_descent"
-  },
-  "entity.kangabrine.eerie_ambient": {
-    "sounds": [
-      {
-        "name": "ironhold:kangabrine/eerie_ambient",
-        "stream": true
-      }
-    ],
-    "subtitle": "subtitles.ironhold.entity.kangabrine.eerie_ambient"
-  },
-  "entity.kangabrine.banshee_scream": {
-    "sounds": [
-      { "name": "ironhold:kangabrine/banshee_scream", "stream": false }
-    ],
-    "subtitle": "subtitles.ironhold.entity.kangabrine.banshee_scream"
-  },
-  "entity.kangabrine.evil_laugh": {
-    "sounds": [
-      { "name": "ironhold:kangabrine/evil_laugh", "stream": false }
-    ],
-    "subtitle": "subtitles.ironhold.entity.kangabrine.evil_laugh"
+      "ironhold:entity/shroomling/death1",
+      "ironhold:entity/shroomling/death2"
+    ]
   }
 }

@@ -7,6 +7,7 @@ import com.geckolib.constant.DataTickets;
 import com.geckolib.model.DefaultedItemGeoModel;
 import com.geckolib.renderer.GeoItemRenderer;
 import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.layer.builtin.AutoGlowingGeoLayer;
 import com.geckolib.renderer.base.RenderPassInfo;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -17,6 +18,9 @@ public class ArcaneScepterRenderer extends GeoItemRenderer<ArcaneScepterItem> {
         super(new DefaultedItemGeoModel<ArcaneScepterItem>(
             Identifier.fromNamespaceAndPath(Ironhold.MODID, "arcane_scepter"))
             .withAltTexture(Identifier.fromNamespaceAndPath(Ironhold.MODID, "arcane_scepter_geo")));
+        // Emissive glow: arcane_scepter_geo_glowmask.png makes the bright purple gem
+        // pixels render full-bright. Glowmask derives from the geo (alt) texture name.
+        withRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

@@ -7,6 +7,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+import java.util.UUID;
 
 /**
  * Block-entity state for {@link ClassStoneBlock}'s hovering item carousel.
@@ -38,8 +42,38 @@ public class ClassStoneBlockEntity extends BlockEntity {
     /** Client-only tick counter. Wraps every CYCLE_TICKS. */
     public int time = 0;
 
+    /**
+     * Owner of a summoned promotion stone, or {@code null} for a legacy
+     * manually-placed pedestal (the spawn Tier-1 starter stone). Only the owner
+     * may use a summoned stone; it is removed once they promote.
+     */
+    private UUID owner;
+
     public ClassStoneBlockEntity(BlockPos pos, BlockState state) {
         super(kingdom.smp.ModBlocks.CLASS_STONE_BLOCK_ENTITY.get(), pos, state);
+    }
+
+    public UUID getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UUID owner) {
+        this.owner = owner;
+        setChanged();
+    }
+
+    @Override
+    protected void saveAdditional(ValueOutput out) {
+        super.saveAdditional(out);
+        if (owner != null) {
+            out.store("Owner", net.minecraft.core.UUIDUtil.CODEC, owner);
+        }
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput in) {
+        super.loadAdditional(in);
+        owner = in.read("Owner", net.minecraft.core.UUIDUtil.CODEC).orElse(null);
     }
 
     /** Lazily-built carousel — built on first access so item registry is ready. */

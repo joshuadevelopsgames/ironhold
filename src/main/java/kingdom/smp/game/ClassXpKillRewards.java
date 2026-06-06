@@ -1,8 +1,10 @@
 package kingdom.smp.game;
 
 import kingdom.smp.ModAttachments;
+import kingdom.smp.effect.KillBurstEffect;
 import kingdom.smp.rpg.PlayerClass;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -42,6 +44,7 @@ public final class ClassXpKillRewards {
         }
         xp = ClassFavoredKillXp.apply(xp, killer, victim);
         RpgProgressionActions.grantClassXp(killer, xp);
+        KillBurstEffect.spawn((ServerLevel) victim.level(), victim, xp);
     }
 
     private static ServerPlayer resolveKillerPlayer(DamageSource source) {

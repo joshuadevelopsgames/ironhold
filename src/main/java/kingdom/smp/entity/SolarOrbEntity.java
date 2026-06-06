@@ -46,8 +46,10 @@ public class SolarOrbEntity extends AbstractHurtingProjectile {
 
     public SolarOrbEntity(LivingEntity owner, Vec3 direction, Level level, float power) {
         super(kingdom.smp.ModEntities.SOLAR_ORB.get(), owner, direction, level);
-        this.accelerationPower = 0.05;
         this.power = power;
+        double speed = 1.0 + power * 3.5;
+        this.accelerationPower = speed * 0.04; // 0.04 = 1 - inertia (0.96)
+        this.setDeltaMovement(direction.normalize().scale(speed));
     }
 
     @Override
@@ -81,19 +83,19 @@ public class SolarOrbEntity extends AbstractHurtingProjectile {
             sl.sendParticles(GOLD_DUST, pos.x, pos.y, pos.z, coreCount, coreSpread, coreSpread, coreSpread, 0);
             sl.sendParticles(ORANGE_DUST, pos.x, pos.y, pos.z, 1 + (int) (this.power * 2), coreSpread * 0.8, coreSpread * 0.8, coreSpread * 0.8, 0);
 
-            // Spiraling flame trail
+            // Spiraling dust trail
             double a = this.lifeTicks * 0.8;
             double r = (0.3 + Math.sin(this.lifeTicks * 0.3) * 0.1) * s;
-            sl.sendParticles(ParticleTypes.FLAME,
+            sl.sendParticles(GOLD_DUST,
                 pos.x + Math.cos(a) * r,
                 pos.y + Math.sin(a * 0.6) * 0.12 * s,
                 pos.z + Math.sin(a) * r,
                 1, 0, 0, 0, 0);
-            // Warm glow
-            if (this.lifeTicks % 3 == 0) {
-                sl.sendParticles(ParticleTypes.LAVA,
-                    pos.x, pos.y, pos.z, 0, 0, 0, 0, 0);
-            }
+            sl.sendParticles(ORANGE_DUST,
+                pos.x + Math.cos(a + Math.PI) * r * 0.8,
+                pos.y + Math.sin((a + Math.PI) * 0.6) * 0.12 * s,
+                pos.z + Math.sin(a + Math.PI) * r * 0.8,
+                1, 0, 0, 0, 0);
         }
 
         if (this.lifeTicks > 100) {
@@ -186,6 +188,12 @@ public class SolarOrbEntity extends AbstractHurtingProjectile {
                 e.igniteForSeconds(4 + (int) (this.power * 2));
             }
         }
+
+        StaffZoneEntity zone = new StaffZoneEntity(kingdom.smp.ModEntities.STAFF_ZONE.get(), sl);
+        zone.setPos(pos);
+        zone.setZoneType(0);
+        zone.setRadius(blastRadius);
+        sl.addFreshEntity(zone);
     }
 
     /** Returns true if the owner is a player currently in a Mage-role class. */

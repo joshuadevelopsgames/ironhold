@@ -1,87 +1,214 @@
 {
   "textures": {
-    "0": "ironhold:item/shield_ankh"
+    "0": "ironhold:item/shield_ankh",
+    "particle": "ironhold:item/shield_ankh"
   },
   "elements": [
     {
-      "name": "plate",
-      "from": [-6.0, -11.0, 1.0],
-      "to": [6.0, 11.0, 2.0],
+      "name": "upper_cap",
+      "from": [-4.0, 8.0, 1.0],
+      "to": [4.0, 11.0, 2.0],
       "faces": {
-        "north": {"texture": "#0", "uv": [7, 0.5, 13, 11.5]},
-        "east": {"texture": "#0", "uv": [6.5, 1, 7, 11.5]},
-        "south": {"texture": "#0", "uv": [0.5, 0.5, 6.5, 11.5]},
-        "west": {"texture": "#0", "uv": [0, 1, 0.5, 11.5]},
-        "up": {"texture": "#0", "uv": [1, 0, 6, 0.5]},
-        "down": {"texture": "#0", "uv": [1, 11.5, 6, 12]}
+        "north": {"texture": "#0", "uv": [8.0, 0.5, 12.0, 2.0]},
+        "east": {"texture": "#0", "uv": [6.5, 1.0, 7.0, 2.5]},
+        "south": {"texture": "#0", "uv": [1.5, 0.5, 5.5, 2.0]},
+        "west": {"texture": "#0", "uv": [0.0, 1.0, 0.5, 2.5]},
+        "up": {"texture": "#0", "uv": [1.5, 0.0, 5.5, 0.5]},
+        "down": {"texture": "#0", "uv": [1.5, 2.0, 5.5, 2.5]}
       }
     },
     {
-      "name": "handleclose",
-      "from": [-1.0, -3.0, 0.0],
-      "to": [1.0, 3, 1.0],
+      "name": "body",
+      "from": [-6.0, -9.0, 1.0],
+      "to": [6.0, 8.0, 2.0],
       "faces": {
-        "north": {"texture": "#0", "uv": [9.5, 13.5, 11.5, 14]},
-        "east": {"texture": "#0", "uv": [0, 13, 0.5, 16]},
-        "west": {"texture": "#0", "uv": [6.5, 13, 7, 16]},
-        "up": {"texture": "#0", "uv": [3, 15.5, 4, 16]},
-        "down": {"texture": "#0", "uv": [7, 13, 8, 13.5]}
+        "north": {"texture": "#0", "uv": [7.0, 2.0, 13.0, 10.5]},
+        "east": {"texture": "#0", "uv": [6.5, 2.0, 7.0, 10.5]},
+        "south": {"texture": "#0", "uv": [0.5, 2.0, 6.5, 10.5]},
+        "west": {"texture": "#0", "uv": [0.0, 2.0, 0.5, 10.5]},
+        "up": {"texture": "#0", "uv": [0.5, 1.5, 6.5, 2.0]},
+        "down": {"texture": "#0", "uv": [0.5, 10.5, 6.5, 11.0]}
       }
     },
     {
-      "name": "handlefar",
-      "from": [-1.0, -3.0, -5.0],
-      "to": [1.0, 3, -4.0],
+      "name": "lower_point",
+      "from": [-4.0, -12.0, 1.0],
+      "to": [4.0, -9.0, 2.0],
       "faces": {
-        "north": {"texture": "#0", "uv": [8, 13, 9, 16]},
-        "east": {"texture": "#0", "uv": [2.5, 13, 3, 16]},
-        "west": {"texture": "#0", "uv": [4, 13, 4.5, 16]},
-        "up": {"texture": "#0", "uv": [3, 13, 4, 13.5]},
-        "down": {"texture": "#0", "uv": [7, 15.5, 8, 16]}
+        "north": {"texture": "#0", "uv": [8.0, 10.5, 12.0, 12.0]},
+        "east": {"texture": "#0", "uv": [6.5, 10.5, 7.0, 12.0]},
+        "south": {"texture": "#0", "uv": [1.5, 10.5, 5.5, 12.0]},
+        "west": {"texture": "#0", "uv": [0.0, 10.5, 0.5, 12.0]},
+        "up": {"texture": "#0", "uv": [1.5, 10.0, 5.5, 10.5]},
+        "down": {"texture": "#0", "uv": [1.5, 11.5, 5.5, 12.0]}
       }
     },
     {
-      "name": "handleup",
-      "from": [-1.0, 2, -4.0],
-      "to": [1.0, 3, 0.0],
+      "name": "gold_rim_top",
+      "from": [-4.5, 10.5, 0.6],
+      "to": [4.5, 11.5, 2.4],
       "faces": {
-        "east": {"texture": "#0", "uv": [0.5, 13, 2.5, 13.5]},
-        "west": {"texture": "#0", "uv": [4.5, 13, 6.5, 13.5]},
-        "up": {"texture": "#0", "uv": [3, 13.5, 4, 15.5]},
-        "down": {"texture": "#0", "uv": [11.5, 14, 12, 16]}
+        "north": {"texture": "#0", "uv": [1.0, 0.0, 5.5, 0.5]},
+        "south": {"texture": "#0", "uv": [7.5, 0.0, 12.0, 0.5]},
+        "up": {"texture": "#0", "uv": [1.0, 0.0, 5.5, 0.5]},
+        "down": {"texture": "#0", "uv": [1.0, 0.0, 5.5, 0.5]}
       }
     },
     {
-      "name": "handledown",
-      "from": [-1.0, -3.0, -4.0],
-      "to": [1.0, -2.0, 0.0],
+      "name": "gold_rim_left",
+      "from": [-6.5, -8.5, 0.6],
+      "to": [-5.5, 8.5, 2.4],
       "faces": {
-        "east": {"texture": "#0", "uv": [0.5, 15.5, 2.5, 16]},
-        "west": {"texture": "#0", "uv": [4.5, 15.5, 6.5, 16]},
-        "up": {"texture": "#0", "uv": [9, 14, 9.5, 16]},
-        "down": {"texture": "#0", "uv": [7, 13.5, 8, 15.5]}
+        "north": {"texture": "#0", "uv": [0.5, 2.0, 1.0, 10.5]},
+        "south": {"texture": "#0", "uv": [12.5, 2.0, 13.0, 10.5]},
+        "east": {"texture": "#0", "uv": [0.5, 2.0, 1.0, 10.5]},
+        "west": {"texture": "#0", "uv": [0.5, 2.0, 1.0, 10.5]}
+      }
+    },
+    {
+      "name": "gold_rim_right",
+      "from": [5.5, -8.5, 0.6],
+      "to": [6.5, 8.5, 2.4],
+      "faces": {
+        "north": {"texture": "#0", "uv": [6.0, 2.0, 6.5, 10.5]},
+        "south": {"texture": "#0", "uv": [7.0, 2.0, 7.5, 10.5]},
+        "east": {"texture": "#0", "uv": [6.0, 2.0, 6.5, 10.5]},
+        "west": {"texture": "#0", "uv": [6.0, 2.0, 6.5, 10.5]}
+      }
+    },
+    {
+      "name": "gold_rim_bottom",
+      "from": [-4.5, -12.5, 0.6],
+      "to": [4.5, -11.5, 2.4],
+      "faces": {
+        "north": {"texture": "#0", "uv": [1.0, 11.5, 5.5, 12.0]},
+        "south": {"texture": "#0", "uv": [7.5, 11.5, 12.0, 12.0]},
+        "up": {"texture": "#0", "uv": [1.0, 11.5, 5.5, 12.0]},
+        "down": {"texture": "#0", "uv": [1.0, 11.5, 5.5, 12.0]}
+      }
+    },
+    {
+      "name": "ankh_ring",
+      "from": [-2.0, 4.0, 2.0],
+      "to": [2.0, 8.0, 3.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [2.5, 1.0, 4.5, 3.0]},
+        "east": {"texture": "#0", "uv": [2.5, 1.0, 3.0, 3.0]},
+        "south": {"texture": "#0", "uv": [2.5, 1.0, 4.5, 3.0]},
+        "west": {"texture": "#0", "uv": [4.0, 1.0, 4.5, 3.0]},
+        "up": {"texture": "#0", "uv": [2.5, 1.0, 4.5, 1.5]},
+        "down": {"texture": "#0", "uv": [2.5, 2.5, 4.5, 3.0]}
+      }
+    },
+    {
+      "name": "ankh_crossbar",
+      "from": [-4.0, 1.0, 2.0],
+      "to": [4.0, 3.0, 3.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [1.5, 4.0, 5.5, 5.0]},
+        "east": {"texture": "#0", "uv": [5.0, 4.0, 5.5, 5.0]},
+        "south": {"texture": "#0", "uv": [1.5, 4.0, 5.5, 5.0]},
+        "west": {"texture": "#0", "uv": [1.5, 4.0, 2.0, 5.0]},
+        "up": {"texture": "#0", "uv": [1.5, 4.0, 5.5, 4.5]},
+        "down": {"texture": "#0", "uv": [1.5, 4.5, 5.5, 5.0]}
+      }
+    },
+    {
+      "name": "ankh_stem",
+      "from": [-1.0, -7.0, 2.0],
+      "to": [1.0, 4.5, 3.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [3.0, 3.0, 4.0, 8.75]},
+        "east": {"texture": "#0", "uv": [3.5, 3.0, 4.0, 8.75]},
+        "south": {"texture": "#0", "uv": [3.0, 3.0, 4.0, 8.75]},
+        "west": {"texture": "#0", "uv": [3.0, 3.0, 3.5, 8.75]},
+        "up": {"texture": "#0", "uv": [3.0, 3.0, 4.0, 3.5]},
+        "down": {"texture": "#0", "uv": [3.0, 8.25, 4.0, 8.75]}
+      }
+    },
+    {
+      "name": "ankh_foot",
+      "from": [-2.0, -8.0, 2.0],
+      "to": [2.0, -6.0, 3.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [2.5, 8.25, 4.5, 9.25]},
+        "east": {"texture": "#0", "uv": [4.0, 8.25, 4.5, 9.25]},
+        "south": {"texture": "#0", "uv": [2.5, 8.25, 4.5, 9.25]},
+        "west": {"texture": "#0", "uv": [2.5, 8.25, 3.0, 9.25]},
+        "up": {"texture": "#0", "uv": [2.5, 8.25, 4.5, 8.75]},
+        "down": {"texture": "#0", "uv": [2.5, 8.75, 4.5, 9.25]}
+      }
+    },
+    {
+      "name": "handle_close",
+      "from": [-1.25, -3.0, 0.0],
+      "to": [1.25, 3.0, 1.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [9.5, 13.5, 11.5, 14.0]},
+        "east": {"texture": "#0", "uv": [0.0, 13.0, 0.5, 16.0]},
+        "south": {"texture": "#0", "uv": [9.5, 13.5, 11.5, 14.0]},
+        "west": {"texture": "#0", "uv": [6.5, 13.0, 7.0, 16.0]},
+        "up": {"texture": "#0", "uv": [3.0, 15.5, 4.0, 16.0]},
+        "down": {"texture": "#0", "uv": [7.0, 13.0, 8.0, 13.5]}
+      }
+    },
+    {
+      "name": "handle_far",
+      "from": [-1.25, -3.0, -5.0],
+      "to": [1.25, 3.0, -4.0],
+      "faces": {
+        "north": {"texture": "#0", "uv": [8.0, 13.0, 9.0, 16.0]},
+        "east": {"texture": "#0", "uv": [2.5, 13.0, 3.0, 16.0]},
+        "south": {"texture": "#0", "uv": [8.0, 13.0, 9.0, 16.0]},
+        "west": {"texture": "#0", "uv": [4.0, 13.0, 4.5, 16.0]},
+        "up": {"texture": "#0", "uv": [3.0, 13.0, 4.0, 13.5]},
+        "down": {"texture": "#0", "uv": [7.0, 15.5, 8.0, 16.0]}
+      }
+    },
+    {
+      "name": "handle_upper",
+      "from": [-1.25, 2.0, -4.0],
+      "to": [1.25, 3.0, 0.0],
+      "faces": {
+        "east": {"texture": "#0", "uv": [0.5, 13.0, 2.5, 13.5]},
+        "south": {"texture": "#0", "uv": [3.0, 13.5, 4.0, 15.5]},
+        "west": {"texture": "#0", "uv": [4.5, 13.0, 6.5, 13.5]},
+        "up": {"texture": "#0", "uv": [3.0, 13.5, 4.0, 15.5]},
+        "down": {"texture": "#0", "uv": [11.5, 14.0, 12.0, 16.0]}
+      }
+    },
+    {
+      "name": "handle_lower",
+      "from": [-1.25, -3.0, -4.0],
+      "to": [1.25, -2.0, 0.0],
+      "faces": {
+        "east": {"texture": "#0", "uv": [0.5, 15.5, 2.5, 16.0]},
+        "south": {"texture": "#0", "uv": [7.0, 13.5, 8.0, 15.5]},
+        "west": {"texture": "#0", "uv": [4.5, 15.5, 6.5, 16.0]},
+        "up": {"texture": "#0", "uv": [9.0, 14.0, 9.5, 16.0]},
+        "down": {"texture": "#0", "uv": [7.0, 13.5, 8.0, 15.5]}
       }
     }
   ],
   "display": {
     "thirdperson_righthand": {
       "rotation": [0, 90, 0],
-      "translation": [10, 6, -4],
+      "translation": [9, 5.5, -3.5],
       "scale": [1, 1, 1]
     },
     "thirdperson_lefthand": {
       "rotation": [0, 90, 0],
-      "translation": [10, 6, 12],
+      "translation": [9, 5.5, 11.5],
       "scale": [1, 1, 1]
     },
     "firstperson_righthand": {
       "rotation": [0, 180, -5],
-      "translation": [-9, -1, -6],
+      "translation": [-9, -1, -7],
       "scale": [1, 1, 1]
     },
     "firstperson_lefthand": {
       "rotation": [0, 180, -5],
-      "translation": [7, 0.5, -6],
+      "translation": [7, 0.5, -7],
       "scale": [1, 1, 1]
     },
     "gui": {
@@ -99,11 +226,5 @@
       "translation": [4, 4, 2],
       "scale": [0.25, 0.25, 0.25]
     }
-  },
-  "overrides": [
-    {
-      "predicate": {"blocking": 1},
-      "model": "ironhold:item/shield_ankh_blocking"
-    }
-  ]
+  }
 }

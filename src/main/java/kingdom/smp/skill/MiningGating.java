@@ -1,11 +1,15 @@
 package kingdom.smp.skill;
 
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,6 +62,34 @@ public final class MiningGating {
     private static void register(ProfessionRank required, Block... blocks) {
         for (Block b : blocks) GATES.put(b, required);
     }
+
+    /**
+     * One rung of the mining "gate ladder" shown in the Skills screen. {@code rank == null}
+     * marks the free baseline (always mineable); the Master rung is the Veinbreaker perk
+     * rather than a new ore. {@code icons} are the iconic representatives to display — not the
+     * full gated block set (raw-material blocks are gated for enforcement but clutter the UI).
+     */
+    public record GateTier(@Nullable ProfessionRank rank, String label, List<ItemLike> icons) {
+        public boolean isFree()  { return rank == null; }
+        public boolean isPerk()  { return rank == ProfessionRank.MASTER; }
+    }
+
+    /** Ordered rungs from free baseline up to the Veinbreaker capstone, for UI display. */
+    private static final List<GateTier> TIERS = List.of(
+            new GateTier(null, "Mine freely",
+                    List.of(Blocks.COAL_ORE, Blocks.COPPER_ORE, Blocks.STONE)),
+            new GateTier(ProfessionRank.NOVICE, "Iron",
+                    List.of(Blocks.IRON_ORE)),
+            new GateTier(ProfessionRank.APPRENTICE, "Gold · Lapis · Redstone",
+                    List.of(Blocks.GOLD_ORE, Blocks.LAPIS_ORE, Blocks.REDSTONE_ORE)),
+            new GateTier(ProfessionRank.JOURNEYMAN, "Diamond · Emerald",
+                    List.of(Blocks.DIAMOND_ORE, Blocks.EMERALD_ORE)),
+            new GateTier(ProfessionRank.EXPERT, "Netherite",
+                    List.of(Blocks.ANCIENT_DEBRIS)),
+            new GateTier(ProfessionRank.MASTER, "Veinbreaker — chain-mine veins",
+                    List.of(Items.NETHERITE_PICKAXE)));
+
+    public static List<GateTier> tiers() { return TIERS; }
 
     /** The minimum Mining rank required to break this block, or {@code null} if not gated. */
     public static ProfessionRank requiredRank(BlockState state) {

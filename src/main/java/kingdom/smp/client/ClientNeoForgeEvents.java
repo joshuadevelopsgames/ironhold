@@ -52,6 +52,7 @@ public final class ClientNeoForgeEvents {
         CarryWeightHud.render(event.getGuiGraphics(), event.getPartialTick());
         AbilityHud.render(event.getGuiGraphics(), event.getPartialTick());
         SneakEyeHud.render(event.getGuiGraphics(), event.getPartialTick());
+        StoneGolemHammerHud.render(event.getGuiGraphics());
     }
 
     @SubscribeEvent
@@ -224,6 +225,17 @@ public final class ClientNeoForgeEvents {
             }
         }
 
+        // Dev: stone golem hammer-grip tuner — cycle the active field, nudge it ±.
+        while (IronholdKeys.GOLEM_HAMMER_CYCLE.consumeClick()) {
+            StoneGolemHammerTuning.cycle(1);
+        }
+        while (IronholdKeys.GOLEM_HAMMER_INC.consumeClick()) {
+            StoneGolemHammerTuning.nudge(1f);
+        }
+        while (IronholdKeys.GOLEM_HAMMER_DEC.consumeClick()) {
+            StoneGolemHammerTuning.nudge(-1f);
+        }
+
         // Active ability slots Z/X/C/V → server-side AbilityDispatch.
         for (int i = 0; i < IronholdKeys.ABILITIES.length; i++) {
             while (IronholdKeys.ABILITIES[i].consumeClick()) {
@@ -246,6 +258,16 @@ public final class ClientNeoForgeEvents {
         while (IronholdKeys.SEASHELL_DASH.consumeClick()) {
             if (mc.player != null) {
                 ClientPayloads.sendToServer(new kingdom.smp.net.SeashellDashPayload());
+            }
+        }
+
+        // Point emote — start the pose locally at once for responsiveness, then
+        // tell the server so it rebroadcasts to players who can see us.
+        while (IronholdKeys.EMOTE_POINT.consumeClick()) {
+            if (mc.player != null && mc.level != null) {
+                kingdom.smp.client.emote.PointEmoteState.start(
+                    mc.player.getUUID(), mc.level.getGameTime());
+                ClientPayloads.sendToServer(new kingdom.smp.net.PointEmotePayload(mc.player.getUUID()));
             }
         }
 

@@ -1,11 +1,18 @@
 package kingdom.smp.ai.svc;
 
+import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.audiochannel.AudioPlayer;
 import de.maxhenkel.voicechat.api.audiochannel.EntityAudioChannel;
+import de.maxhenkel.voicechat.api.events.EntitySoundPacketEvent;
 import de.maxhenkel.voicechat.api.opus.OpusEncoder;
+import de.maxhenkel.voicechat.api.packets.EntitySoundPacket;
 import kingdom.smp.Ironhold;
+import kingdom.smp.ai.NpcChatPartner;
+import kingdom.smp.ai.NpcMuteRegistry;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -47,6 +54,14 @@ public final class SvcVoiceBridgeImpl {
 
     private static final Map<UUID, EntityState> STATES = new ConcurrentHashMap<>();
 
+    /**
+     * Speaking-entity UUID → NPC mute tag (e.g. {@code "Halric"}). Populated when an NPC speaks,
+     * and read by {@link #onEntitySoundPacket} so a per-receiver mute can be enforced: every NPC
+     * shares {@link #ALL_NPCS_UUID}, so the entity UUID on the packet is what tells us which NPC
+     * is talking.
+     */
+    private static final Map<UUID, String> ENTITY_TAGS = new ConcurrentHashMap<>();
+
     private SvcVoiceBridgeImpl() {}
 
     /** Per-NPC playback state. Synchronized via the {@code lock} object. */
@@ -74,6 +89,11 @@ public final class SvcVoiceBridgeImpl {
 
         short[] samples48k = upsample2x(bytesToShortsLE(pcmS16le24kHz));
         if (samples48k.length == 0) return false;
+
+        // Remember which NPC this entity is, so per-receiver mute can be applied on delivery.
+        if (mcEntity instanceof NpcChatPartner partner) {
+            ENTITY_TAGS.put(mcEntity.getUUID(), partner.tag());
+        }
 
         EntityState state = STATES.computeIfAbsent(mcEntity.getUUID(), id -> new EntityState());
 
@@ -103,6 +123,32 @@ public final class SvcVoiceBridgeImpl {
             }
         }
         return true;
+    }
+
+    /**
+     * Per-receiver mute enforcement. SVC fires this for every player about to receive an NPC's
+     * entity audio; we cancel delivery to any listener who has muted that specific NPC. Because
+     * the cancel is per-receiver, other nearby players still hear the line normally — unlike the
+     * old server-side approach that dropped the whole line based only on the speaking partner.
+     */
+    public static void onEntitySoundPacket(EntitySoundPacketEvent event) {
+        if (!event.isCancellable()) return;
+        EntitySoundPacket packet = event.getPacket();
+        // Only our voiced-NPC audio carries this category; ignore real player voice.
+        if (!IronholdVoicechatPlugin.NPC_VOICE_CATEGORY_ID.equals(packet.getCategory())) return;
+
+        String tag = ENTITY_TAGS.get(packet.getEntityUuid());
+        if (tag == null) return;
+
+        VoicechatConnection receiver = event.getReceiverConnection();
+        if (receiver == null || receiver.getPlayer() == null) return;
+        UUID listenerId = receiver.getPlayer().getUuid();
+
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+        if (NpcMuteRegistry.get(server.overworld()).isMuted(listenerId, tag)) {
+            event.cancel();
+        }
     }
 
     /** Caller must hold {@code state.lock}. */
@@ -162,6 +208,7 @@ public final class SvcVoiceBridgeImpl {
             }
         }
         STATES.clear();
+        ENTITY_TAGS.clear();
         if (stopped > 0) {
             Ironhold.LOGGER.info("[Ironhold] Stopped {} active NPC AudioPlayer(s) on shutdown", stopped);
         }

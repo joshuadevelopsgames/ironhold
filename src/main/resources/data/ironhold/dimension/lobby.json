@@ -1,0 +1,18 @@
+{
+  "type": "ironhold:lobby",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:the_void",
+      "features": false,
+      "lakes": false,
+      "layers": [
+        {
+          "block": "minecraft:smooth_stone",
+          "height": 1
+        }
+      ],
+      "structure_overrides": []
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_bottom_left_open",
+  "textures": {
+    "top": "ironhold:block/chinese_cedar_door_top",
+    "bottom": "ironhold:block/chinese_cedar_door_bottom"
+  }
+}

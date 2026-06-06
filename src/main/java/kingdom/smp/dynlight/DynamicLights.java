@@ -16,12 +16,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndLightGetter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -128,13 +125,18 @@ public final class DynamicLights {
                     DynamicLightSource[] arr = map.get(sectKey);
                     if (arr == null) continue;
                     for (DynamicLightSource s : arr) {
+                        // A source's contribution peaks at its full luminance (dist→0) and only
+                        // falls from there, so if it can't beat the current best even at zero
+                        // distance, skip it before paying for the sqrt. Exact — no visual change.
+                        double lum = s.displayLuminance();
+                        if (lum <= best) continue;
                         double rx = s.renderX() - cx;
                         double ry = s.renderY() - cy;
                         double rz = s.renderZ() - cz;
                         double distSq = rx * rx + ry * ry + rz * rz;
                         if (distSq >= radiusSq) continue;
                         double dist = Math.sqrt(distSq);
-                        double contribution = (1.0 - dist / RADIUS) * s.displayLuminance();
+                        double contribution = (1.0 - dist / RADIUS) * lum;
                         if (contribution > best) best = contribution;
                     }
                 }
@@ -171,9 +173,14 @@ public final class DynamicLights {
 
     // ---------- per-tick bookkeeping ----------
 
+    /** Reused across ticks (client tick thread only) to avoid a per-tick HashSet allocation. */
+    private static final it.unimi.dsi.fastutil.ints.IntOpenHashSet SEEN =
+        new it.unimi.dsi.fastutil.ints.IntOpenHashSet();
+
     public static void tick(ClientLevel level) {
         if (level == null) return;
-        Set<Integer> seen = new HashSet<>();
+        it.unimi.dsi.fastutil.ints.IntOpenHashSet seen = SEEN;
+        seen.clear();
         boolean structureChanged = false;
 
         // Phase 1: visit live entities, refresh targets and tick positions.
@@ -256,7 +263,8 @@ public final class DynamicLights {
     }
 
     private static void rebuildBucket() {
-        Map<Long, List<DynamicLightSource>> tmp = new HashMap<>();
+        // Build the primitive-keyed map directly (no Long boxing / intermediate HashMap).
+        Long2ObjectOpenHashMap<List<DynamicLightSource>> tmp = new Long2ObjectOpenHashMap<>();
         int total = 0;
         for (DynamicLightSource s : SOURCES.values()) {
             if (s.displayLuminance() < 0.5) continue;
@@ -265,8 +273,8 @@ public final class DynamicLights {
             total++;
         }
         Long2ObjectOpenHashMap<DynamicLightSource[]> map = new Long2ObjectOpenHashMap<>(tmp.size());
-        for (Map.Entry<Long, List<DynamicLightSource>> e : tmp.entrySet()) {
-            map.put(e.getKey().longValue(), e.getValue().toArray(new DynamicLightSource[0]));
+        for (Long2ObjectMap.Entry<List<DynamicLightSource>> e : tmp.long2ObjectEntrySet()) {
+            map.put(e.getLongKey(), e.getValue().toArray(new DynamicLightSource[0]));
         }
         bucket = new Bucket(map, total);
         bucketSeq++;
@@ -309,8 +317,12 @@ public final class DynamicLights {
      */
     private static final class PatchCache {
         static final int MISS = Integer.MIN_VALUE;
-        private static final int SIZE = 4096;
+        // 16K slots (a section is 4096 blocks; meshing also touches neighbours, so 4096
+        // direct-mapped thrashed to ~0% hit rate). Bumped + linear probing below.
+        private static final int SIZE = 1 << 14;
         private static final int MASK = SIZE - 1;
+        /** Max linear probes before we give up and overwrite — bounds worst-case lookup cost. */
+        private static final int MAX_PROBE = 8;
 
         private long bucketSeqSeen = -1L;
         private final long[] keys = new long[SIZE];
@@ -324,14 +336,20 @@ public final class DynamicLights {
                 bucketSeqSeen = seq;
             }
             int slot = (int) (key & MASK);
-            if (occupied[slot] && keys[slot] == key && origs[slot] == original) {
-                return results[slot];
+            for (int i = 0; i < MAX_PROBE; i++) {
+                if (!occupied[slot]) return MISS;
+                if (keys[slot] == key && origs[slot] == original) return results[slot];
+                slot = (slot + 1) & MASK;
             }
             return MISS;
         }
 
         void store(long key, int original, int result) {
             int slot = (int) (key & MASK);
+            for (int i = 0; i < MAX_PROBE; i++) {
+                if (!occupied[slot] || (keys[slot] == key && origs[slot] == original)) break;
+                slot = (slot + 1) & MASK;
+            }
             keys[slot] = key;
             origs[slot] = original;
             results[slot] = result;

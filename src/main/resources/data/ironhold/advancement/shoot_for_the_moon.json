@@ -1,0 +1,24 @@
+{
+  "display": {
+    "icon": {
+      "id": "ironhold:moon_stone"
+    },
+    "title": {
+      "translate": "advancements.ironhold.shoot_for_the_moon.title",
+      "fallback": "Shoot for the Moon!"
+    },
+    "description": {
+      "translate": "advancements.ironhold.shoot_for_the_moon.description",
+      "fallback": "Open a portal to the Moon using the Soluna Staff."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlock": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

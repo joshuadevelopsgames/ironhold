@@ -43,6 +43,16 @@ public final class SneakHoldInputHandler {
         LocalPlayer player = mc.player;
         if (player == null) return;
 
+        ClientInput ci = event.getInput();
+        Input cur = ci.keyPresses;
+        if (player.hasEffect(kingdom.smp.ModEffects.SLIMED_EFFECT) && cur.jump()) {
+            ci.keyPresses = new Input(
+                cur.forward(), cur.backward(), cur.left(), cur.right(),
+                false, cur.shift(), cur.sprint()
+            );
+            cur = ci.keyPresses;
+        }
+
         boolean screenOpen = mc.screen != null;
         boolean justOpened = screenOpen && !prevScreenOpen;
         prevScreenOpen = screenOpen;
@@ -65,8 +75,6 @@ public final class SneakHoldInputHandler {
         }
 
         // Override the input's shift flag to true.
-        ClientInput ci = event.getInput();
-        Input cur = ci.keyPresses;
         if (cur.shift()) return;
         ci.keyPresses = new Input(
             cur.forward(), cur.backward(), cur.left(), cur.right(),

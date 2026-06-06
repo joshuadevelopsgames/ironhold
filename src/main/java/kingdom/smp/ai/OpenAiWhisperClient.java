@@ -92,7 +92,7 @@ public final class OpenAiWhisperClient {
             .thenAccept(response -> {
                 if (response.statusCode() / 100 != 2) {
                     Ironhold.LOGGER.warn("[Kangarude] Whisper HTTP {}: {}",
-                        response.statusCode(), response.body());
+                        response.statusCode(), AiLog.snippet(response.body()));
                     onResult.accept(null);
                     return;
                 }

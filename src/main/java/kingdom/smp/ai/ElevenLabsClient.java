@@ -87,6 +87,10 @@ public final class ElevenLabsClient {
 
         /** Stoic, declamatory recitation with theatrical weight — for a records-herald. */
         public static final VoiceSettings BRISK_HERALD = new VoiceSettings(0.70, 0.75, 0.45, true);
+
+        /** Theatrical doom-monger — low stability for wobble/dread, high style for sermonizing
+         *  prosody. Pairs with {@code eleven_multilingual_v2} for a plague-doctor cadence. */
+        public static final VoiceSettings PLAGUE_DOCTOR = new VoiceSettings(0.35, 0.75, 0.65, true);
     }
 
     /**
@@ -146,7 +150,7 @@ public final class ElevenLabsClient {
             .thenAccept(response -> {
                 if (response.statusCode() / 100 != 2) {
                     Ironhold.LOGGER.warn("[ElevenLabs] HTTP {}: {}",
-                        response.statusCode(), new String(response.body()));
+                        response.statusCode(), AiLog.snippet(new String(response.body(), java.nio.charset.StandardCharsets.UTF_8)));
                     onResult.accept(null);
                     return;
                 }

@@ -28,6 +28,7 @@ public class Ironhold {
 
     public Ironhold(IEventBus modEventBus, ModContainer modContainer) {
 
+        // SERVER type: the API keys in Config are never synced to connecting clients.
         modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.SERVER, Config.SPEC);
 
         modEventBus.addListener(this::commonSetup);
@@ -37,7 +38,9 @@ public class Ironhold {
         ModEntities.register(modEventBus);
         ModWorldgen.register(modEventBus);
         ModSounds.register(modEventBus);
+        ModParticles.register(modEventBus);
         ModEffects.register(modEventBus);
+        kingdom.smp.moon.ModMoonDimensions.register(modEventBus);
 
         // Let PlagueEffect resolve its own Holder lazily after registration.
         kingdom.smp.effect.PlagueEffect.setHolderSupplier(() -> ModEffects.PLAGUE_EFFECT);
@@ -52,17 +55,26 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(this);
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
         NeoForge.EVENT_BUS.register(AnkhShieldHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.item.BattleHammerCombatHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.block.wardheart.EndCrystalShieldHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.block.TripwireRackHandler.class);
         NeoForge.EVENT_BUS.register(ClassXpKillRewards.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.effect.PlagueHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.effect.BleedingHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.effect.LunarLevityHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.entity.CatVsRatHandler.class);
         NeoForge.EVENT_BUS.register(AccessoryTickHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.disguise.DisguiseEventHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.disguise.DisguiseSoundHandler.class);
         NeoForge.EVENT_BUS.register(CloudDoubleJumpHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.moon.MoonGravityHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.moon.MoonAnimalConversionHandler.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
         NeoForge.EVENT_BUS.register(EncumbranceHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearTooltipHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearAttributeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.SkillEventHandlers.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.quest.QuestEventHandlers.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.food.CookingInteractionHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.PickpocketHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.npc.NpcGiftHandler.class);
@@ -72,13 +84,20 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.useskill.SneakStealthHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.entity.VillageKnightSpawner.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.mine.MineDropQualityHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.FoolsGoldOreHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.EnhancedPickaxeSmeltHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.LockProtectionHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.trade.GoldCoinTradeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.rpg.ability.AbilityEffects.class);
-        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
-        // NeoForge.EVENT_BUS.register(kingdom.smp.seasons.SeasonTickHandler.class);
+        // Seasons: cycle advance + client sync, crop-growth gating, and seasonal snow/melt.
+        NeoForge.EVENT_BUS.register(kingdom.smp.seasons.SeasonTickHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.seasons.CropGrowthGate.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.seasons.SeasonWeatherHandler.class);
+        // Honeycomb: wax terrain against erosion, and seal armor stands (equip-lock + owner-only invincibility).
+        NeoForge.EVENT_BUS.register(kingdom.smp.honeycomb.HoneycombWax.class);
 
         modEventBus.addListener(ModNetworking::register);
-        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
-        // modEventBus.addListener(kingdom.smp.seasons.network.SeasonsNetworking::register);
+        modEventBus.addListener(kingdom.smp.seasons.network.SeasonsNetworking::register);
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

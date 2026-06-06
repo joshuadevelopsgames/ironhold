@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "minecraft:the_void",
+  "features": "ironhold:blue_glowshrooms_placed",
+  "step": "vegetal_decoration"
+}

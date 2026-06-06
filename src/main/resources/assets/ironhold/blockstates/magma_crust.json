@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "age=0": { "model": "ironhold:block/magma_crust" },
+    "age=1": { "model": "ironhold:block/magma_crust" },
+    "age=2": { "model": "ironhold:block/magma_crust" },
+    "age=3": { "model": "ironhold:block/magma_crust" }
+  }
+}

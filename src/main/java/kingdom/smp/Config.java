@@ -1,38 +1,14 @@
 package kingdom.smp;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-// An example config class. This is not required, but it's a good idea to have one to keep your config organized.
-// Demonstrates how to use Neo's config APIs
+// Ironhold server config. Registered as ModConfig.Type.SERVER so the API keys
+// below are NEVER synced to connecting clients (COMMON configs are). All values
+// here are read server-side only.
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
-
-    public static final ModConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("Whether to log the dirt block on common setup")
-            .define("logDirtBlock", true);
-
-    public static final ModConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("A magic number")
-            .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
-
-    public static final ModConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("What you want the introduction message to be for the magic number")
-            .define("magicNumberIntroduction", "The magic number is... ");
-
-    // a list of strings that are treated as resource locations for items
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("A list of items to log on common setup.")
-            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
 
     // ── Void Invoker LLM (OpenRouter) ─────────────────────────────────────────
     // Set these on the SERVER only — never share your API key publicly.
@@ -57,7 +33,7 @@ public class Config {
 
     public static final ModConfigSpec.IntValue KANGARUDE_IDLE_TIMEOUT_SECONDS = BUILDER
             .comment("How long Kangarude waits for the player to respond before walking off.")
-            .defineInRange("kangarudeIdleTimeoutSeconds", 25, 5, 600);
+            .defineInRange("kangarudeIdleTimeoutSeconds", 600, 5, 600);
 
     // ── Kangarude NPC: ElevenLabs voice ───────────────────────────────────────
     // Server-side only. Set ELEVENLABS_API_KEY in config or via environment override.
@@ -88,9 +64,16 @@ public class Config {
             .comment("Milliseconds of silence after a player stops speaking before sending the buffered audio to STT.")
             .defineInRange("sttSilenceMs", 1000, 200, 5000);
 
-    static final ModConfigSpec SPEC = BUILDER.build();
+    // ── Spawn lobby ───────────────────────────────────────────────────────────
+    // Keep lobbyEnabled false until you've built the lobby and set its spawn and
+    // exit portal in-game with /lobby setspawn and /lobby setportal pos1|pos2.
+    public static final ModConfigSpec.BooleanValue LOBBY_ENABLED = BUILDER
+            .comment("Master switch for the spawn lobby. Leave false until the lobby spawn and exit portal are set with /lobby setspawn and /lobby setportal.")
+            .define("lobbyEnabled", false);
 
-    private static boolean validateItemName(final Object obj) {
-        return obj instanceof String itemName && BuiltInRegistries.ITEM.containsKey(Identifier.parse(itemName));
-    }
+    public static final ModConfigSpec.BooleanValue LOBBY_EVERY_JOIN = BUILDER
+            .comment("true: every login routes the player into the lobby. false: only players never seen before (first join only).")
+            .define("lobbyEveryJoin", false);
+
+    static final ModConfigSpec SPEC = BUILDER.build();
 }

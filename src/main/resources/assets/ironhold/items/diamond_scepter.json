@@ -1,0 +1,36 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:display_context",
+    "cases": [
+      {
+        "when": "gui",
+        "model": {
+          "type": "minecraft:model",
+          "model": "ironhold:item/diamond_scepter"
+        }
+      },
+      {
+        "when": "ground",
+        "model": {
+          "type": "minecraft:model",
+          "model": "ironhold:item/diamond_scepter"
+        }
+      },
+      {
+        "when": "fixed",
+        "model": {
+          "type": "minecraft:model",
+          "model": "ironhold:item/diamond_scepter"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:special",
+      "base": "ironhold:item/diamond_scepter",
+      "model": {
+        "type": "geckolib:geckolib"
+      }
+    }
+  }
+}

@@ -53,10 +53,8 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -69,6 +67,16 @@ public final class IronholdCommands {
         for (VillagerProfession p : VillagerProfession.values()) {
             if (rem.isEmpty() || p.id().startsWith(rem)) {
                 builder.suggest(p.id());
+            }
+        }
+        return builder.buildFuture();
+    };
+
+    private static final SuggestionProvider<CommandSourceStack> QUEST_SUGGESTIONS = (ctx, builder) -> {
+        String rem = builder.getRemaining().toLowerCase();
+        for (kingdom.smp.quest.QuestDef def : kingdom.smp.quest.Quests.all()) {
+            if (rem.isEmpty() || def.id().startsWith(rem)) {
+                builder.suggest(def.id());
             }
         }
         return builder.buildFuture();
@@ -153,11 +161,12 @@ public final class IronholdCommands {
         return builder.buildFuture();
     };
 
+
     public static void register(RegisterCommandsEvent event) {
         event.getDispatcher()
             .register(
                 Commands.literal("k2")
-                    .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
+                    .requires(s -> kingdom.smp.perms.Perms.check(s, kingdom.smp.perms.ModPermissions.COMMAND_ADMIN))
                     .then(Commands.literal("whoami").executes(ctx -> whoami(ctx.getSource())))
                     .then(
                         Commands.literal("class")
@@ -250,6 +259,23 @@ public final class IronholdCommands {
                     .then(Commands.literal("kingdomgui").executes(ctx -> openKingdomGui(ctx.getSource())))
                     .then(Commands.literal("profile").executes(ctx -> openProfile(ctx.getSource())))
                     .then(Commands.literal("questboard").executes(ctx -> openQuestBoard(ctx.getSource())))
+                    .then(
+                        Commands.literal("quest")
+                            .then(Commands.literal("list").executes(ctx -> questList(ctx.getSource())))
+                            .then(
+                                Commands.literal("accept")
+                                    .then(
+                                        Commands.argument("id", StringArgumentType.word())
+                                            .suggests(QUEST_SUGGESTIONS)
+                                            .executes(ctx -> questAccept(
+                                                ctx.getSource(), StringArgumentType.getString(ctx, "id")))))
+                            .then(
+                                Commands.literal("redeem")
+                                    .then(
+                                        Commands.argument("id", StringArgumentType.word())
+                                            .suggests(QUEST_SUGGESTIONS)
+                                            .executes(ctx -> questRedeem(
+                                                ctx.getSource(), StringArgumentType.getString(ctx, "id"))))))
                     .then(
                         Commands.literal("villager")
                             .then(
@@ -383,60 +409,6 @@ public final class IronholdCommands {
         event.getDispatcher()
             .register(Commands.literal("console").executes(ctx -> openConsole(ctx.getSource())));
 
-        // Self gamemode shortcuts (PermissionSet: moderator+, like main SMP /c and /s)
-        event.getDispatcher()
-            .register(Commands.literal("c")
-                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
-                .executes(ctx -> setSelfGameMode(ctx.getSource(), GameType.CREATIVE)));
-        event.getDispatcher()
-            .register(Commands.literal("s")
-                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
-                .executes(ctx -> setSelfGameMode(ctx.getSource(), GameType.SURVIVAL)));
-
-        // /dimension <overworld|nether|end> — teleport between dimensions
-        SuggestionProvider<CommandSourceStack> dimSuggestions = (ctx, builder) -> {
-            for (String d : new String[]{"overworld", "nether", "end"}) {
-                if (d.startsWith(builder.getRemaining().toLowerCase())) builder.suggest(d);
-            }
-            return builder.buildFuture();
-        };
-        event.getDispatcher()
-            .register(Commands.literal("dimension")
-                .requires(s -> s.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
-                .then(Commands.argument("dim", StringArgumentType.word())
-                    .suggests(dimSuggestions)
-                    .executes(ctx -> switchDimension(ctx.getSource(),
-                        StringArgumentType.getString(ctx, "dim")))));
-    }
-
-    private static int switchDimension(CommandSourceStack src, String dim) {
-        if (!(src.getEntity() instanceof ServerPlayer player)) {
-            src.sendFailure(Component.literal("Players only."));
-            return 0;
-        }
-        var targetKey = switch (dim.toLowerCase()) {
-            case "overworld" -> Level.OVERWORLD;
-            case "nether", "the_nether" -> Level.NETHER;
-            case "end", "the_end" -> Level.END;
-            default -> null;
-        };
-        if (targetKey == null) {
-            src.sendFailure(Component.literal("Unknown dimension: " + dim + ". Use overworld, nether, or end."));
-            return 0;
-        }
-        ServerLevel targetLevel = player.level().getServer().getLevel(targetKey);
-        if (targetLevel == null) {
-            src.sendFailure(Component.literal("Dimension not loaded: " + dim));
-            return 0;
-        }
-        if (player.level().dimension() == targetKey) {
-            src.sendFailure(Component.literal("Already in " + dim + "."));
-            return 0;
-        }
-        player.teleportTo(targetLevel, player.getX(), player.getY(), player.getZ(),
-            java.util.Set.of(), player.getYRot(), player.getXRot(), false);
-        src.sendSuccess(() -> Component.literal("Teleported to " + dim + "."), true);
-        return 1;
     }
 
     private static int kangaJoin(CommandSourceStack src) {
@@ -451,8 +423,9 @@ public final class IronholdCommands {
         npc.setYRot(player.getYRot() + 180.0F);
         npc.setYHeadRot(player.getYRot() + 180.0F);
         level.addFreshEntity(npc);
-
-        kingdom.smp.entity.KangarudeTabList.add(src.getServer());
+        // The entity self-registers its single tab-list entry via
+        // KangarudePlayerListSync (see KangarudeEntity#ensureListedAsKangarude) —
+        // do NOT add another one here, or two "Kangarude" rows appear.
 
         Component joinMsg = Component.translatable(
                 "multiplayer.player.joined",
@@ -479,8 +452,8 @@ public final class IronholdCommands {
             return 0;
         }
         nearest.discard();
-
-        kingdom.smp.entity.KangarudeTabList.remove(src.getServer());
+        // discard() triggers KangarudePlayerListSync.broadcastRemove for this
+        // entity's entry, so no manual tab-list removal is needed here.
 
         Component leaveMsg = Component.translatable(
                 "multiplayer.player.left",
@@ -510,21 +483,6 @@ public final class IronholdCommands {
                 + " (" + villager.getPersonality().temperament().id() + ")"),
             true);
         return 1;
-    }
-
-    private static int setSelfGameMode(CommandSourceStack src, GameType mode) {
-        if (!(src.getEntity() instanceof ServerPlayer player)) {
-            src.sendFailure(Component.literal("Players only."));
-            return 0;
-        }
-        if (player.setGameMode(mode)) {
-            src.sendSuccess(
-                    () -> Component.literal("Set game mode to ").append(mode.getLongDisplayName()),
-                    true);
-            return 1;
-        }
-        src.sendFailure(Component.literal("Unable to change game mode."));
-        return 0;
     }
 
     private static int whoami(CommandSourceStack src) {
@@ -796,6 +754,47 @@ public final class IronholdCommands {
         return 1;
     }
 
+    private static int questList(CommandSourceStack src) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        kingdom.smp.quest.QuestSavedData data =
+            kingdom.smp.quest.QuestSavedData.get((net.minecraft.server.level.ServerLevel) player.level());
+        src.sendSuccess(() -> Component.literal("Quests:"), false);
+        for (kingdom.smp.quest.QuestDef def : kingdom.smp.quest.Quests.all()) {
+            kingdom.smp.quest.QuestProgress prog = data.get(player.getUUID(), def.id());
+            String status = prog == null ? "—" : prog.status().name();
+            src.sendSuccess(() -> Component.literal(
+                "  " + def.id() + " [" + def.giver() + "] — " + def.title() + "  (" + status + ")"), false);
+        }
+        return 1;
+    }
+
+    private static int questAccept(CommandSourceStack src, String id) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        if (kingdom.smp.quest.QuestService.accept(player, id)) {
+            return 1;
+        }
+        src.sendFailure(Component.literal("Cannot accept '" + id + "' (unknown or already in progress)."));
+        return 0;
+    }
+
+    private static int questRedeem(CommandSourceStack src, String id) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        if (kingdom.smp.quest.QuestService.redeem(player, id)) {
+            return 1;
+        }
+        src.sendFailure(Component.literal("Cannot redeem '" + id + "' (not complete)."));
+        return 0;
+    }
+
     private static int openKingdomGui(CommandSourceStack src) {
         if (!(src.getEntity() instanceof ServerPlayer player)) {
             src.sendFailure(Component.literal("Players only."));
@@ -835,6 +834,7 @@ public final class IronholdCommands {
         PacketDistributor.sendToPlayer(player, new OpenConsolePayload());
         return 1;
     }
+
 
     // ── Gear quality debug commands ───────────────────────────────────────────
 

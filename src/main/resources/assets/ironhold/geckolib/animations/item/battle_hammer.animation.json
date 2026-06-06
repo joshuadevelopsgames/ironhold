@@ -1,0 +1,35 @@
+{
+  "format_version": "1.8.0",
+  "animations": {
+    "animation.battle_hammer.idle": {
+      "loop": true,
+      "animation_length": 1,
+      "bones": {}
+    },
+    "animation.battle_hammer.windup": {
+      "loop": "hold_on_last_frame",
+      "animation_length": 0.3,
+      "bones": {
+        "handle": {
+          "rotation": {
+            "0.0": { "vector": [0, 0, 0] },
+            "0.3": { "vector": [-50, 0, 0] }
+          }
+        }
+      }
+    },
+    "animation.battle_hammer.smash": {
+      "loop": false,
+      "animation_length": 0.45,
+      "bones": {
+        "handle": {
+          "rotation": {
+            "0.0": { "vector": [-50, 0, 0] },
+            "0.13": { "vector": [-170, 0, 0] },
+            "0.45": { "vector": [0, 0, 0] }
+          }
+        }
+      }
+    }
+  }
+}

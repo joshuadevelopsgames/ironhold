@@ -3,6 +3,9 @@ package kingdom.smp.entity;
 import kingdom.smp.entity.goal.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -106,6 +109,15 @@ public class FilcherEntity extends Zombie {
     /** Item name the king wants this filcher to prioritize stealing. Null = any valuable item. */
     @Nullable private String assignedTargetItem = null;
 
+    /**
+     * King flag. The king's crown is drawn purely by the "crown" bone in
+     * FilcherModel (gated on this flag) — we deliberately do NOT equip a crown
+     * item in the HEAD slot, since that produced a second floating crown on top
+     * of the bone-crown.
+     */
+    private static final EntityDataAccessor<Boolean> DATA_IS_KING =
+        SynchedEntityData.defineId(FilcherEntity.class, EntityDataSerializers.BOOLEAN);
+
     public FilcherEntity(EntityType<? extends FilcherEntity> type, Level level) {
         super(type, level);
         this.setBaby(true);
@@ -117,6 +129,12 @@ public class FilcherEntity extends Zombie {
         // so we set proper values there; these are safe initial defaults)
         this.archetype   = FilcherArchetype.from(boldness, greed, sociability);
         this.filcherName = FilcherArchetype.nameFor(this.uuid.getLeastSignificantBits());
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_IS_KING, false);
     }
 
     @Override
@@ -222,10 +240,9 @@ public class FilcherEntity extends Zombie {
         return !stack.isEmpty() && stack.getItem() == kingdom.smp.ModItems.FOOLS_GOLD.get();
     }
 
-    /** Returns true if this filcher is wearing the crown — i.e. it is the pack king. */
+    /** Returns true if this filcher is the crowned pack king. */
     public boolean isKing() {
-        return !getItemBySlot(EquipmentSlot.HEAD).isEmpty()
-            && getItemBySlot(EquipmentSlot.HEAD).is(kingdom.smp.ModItems.FILCHER_CROWN.get());
+        return this.entityData.get(DATA_IS_KING);
     }
 
     /** Returns how many stash slots are currently occupied. */
@@ -669,9 +686,9 @@ public class FilcherEntity extends Zombie {
         return spawnGroupData;
     }
 
-    /** Promotes this filcher to king: equips the crown and announces the event. */
+    /** Promotes this filcher to king: sets the king flag and announces the event. */
     private void crownSelf() {
-        setItemSlot(EquipmentSlot.HEAD, new ItemStack(kingdom.smp.ModItems.FILCHER_CROWN.get()));
+        this.entityData.set(DATA_IS_KING, true);
         applyKingStats();
         // Fanfare: happy-villager particles + pitched-up contentment chirps
         if (level() instanceof ServerLevel serverLevel) {
@@ -707,13 +724,9 @@ public class FilcherEntity extends Zombie {
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {
-        // Handle crown drop manually (30% chance) — prevent vanilla's equipment system from double-dropping
-        ItemStack crown = getItemBySlot(EquipmentSlot.HEAD);
-        if (!crown.isEmpty() && crown.is(kingdom.smp.ModItems.FILCHER_CROWN.get())) {
-            setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
-            if (random.nextFloat() < 0.30f) {
-                this.spawnAtLocation(level, crown.copy());
-            }
+        // The king never wears a crown item (only the model bone), so drop one on death (30% chance).
+        if (isKing() && random.nextFloat() < 0.30f) {
+            this.spawnAtLocation(level, new ItemStack(kingdom.smp.ModItems.FILCHER_CROWN.get()));
         }
         super.dropCustomDeathLoot(level, source, killedByPlayer);
         // Explicitly drop carried item (guarantees it appears even if equipment system quirks out)
@@ -742,6 +755,7 @@ public class FilcherEntity extends Zombie {
         output.putString("FilcherName", filcherName);
         output.putString("Archetype", archetype.name());
         output.putString("Role", role.name());
+        output.putBoolean("IsKing", isKing());
         if (assignedTargetItem != null) output.putString("AssignedTargetItem", assignedTargetItem);
         if (denPos != null) {
             output.putInt("DenX", denPos.getX());
@@ -771,14 +785,15 @@ public class FilcherEntity extends Zombie {
         if (!savedRole.isEmpty()) {
             try { this.role = FilcherRole.valueOf(savedRole); } catch (IllegalArgumentException ignored) {}
         }
+        this.entityData.set(DATA_IS_KING, input.getBooleanOr("IsKing", false));
         String savedTarget = input.getStringOr("AssignedTargetItem", "");
         this.assignedTargetItem = savedTarget.isEmpty() ? null : savedTarget;
         int dx = input.getIntOr("DenX", Integer.MIN_VALUE);
         if (dx != Integer.MIN_VALUE) {
             this.denPos = new BlockPos(dx, input.getIntOr("DenY", 0), input.getIntOr("DenZ", 0));
         }
-        // Re-apply the king HP buff after load — equipment is restored by super, so
-        // isKing() is reliable at this point. applyKingStats is idempotent.
+        // Re-apply the king HP buff after load — the king flag is restored above,
+        // so isKing() is reliable here. applyKingStats is idempotent.
         if (isKing()) applyKingStats();
     }
 

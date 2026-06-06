@@ -1,0 +1,29 @@
+license="All Rights Reserved"
+
+[[mods]]
+modId="mirrors"
+version="${file.jarVersion}"
+displayName="Mirrors"
+logoFile="icon.png"
+authors="kingdom.smp"
+description='''
+A wall-hung mirror that places like a painting (auto-fitting the largest shape the wall allows)
+and renders a true real-time planar reflection of the world.
+'''
+
+[[mixins]]
+config="mirrors.mixins.json"
+
+[[dependencies.mirrors]]
+    modId="neoforge"
+    type="required"
+    versionRange="[26.1.2,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.mirrors]]
+    modId="minecraft"
+    type="required"
+    versionRange="[26.1.2,)"
+    ordering="NONE"
+    side="BOTH"

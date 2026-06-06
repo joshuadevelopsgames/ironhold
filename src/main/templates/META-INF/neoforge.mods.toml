@@ -43,6 +43,11 @@ description='''
 Example mod description.
 '''
 
+# Custom enum entries (NeoForge enum extension). Adds a Battle Hammer charge arm pose
+# to the client-only HumanoidModel ArmPose enum (see BattleHammerArmPose). The
+# referenced enum is client-only, so the entry is a no-op on a dedicated server.
+enumExtensions="META-INF/enumextensions.json"
+
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
 [[mixins]]
 config="${mod_id}.mixins.json"

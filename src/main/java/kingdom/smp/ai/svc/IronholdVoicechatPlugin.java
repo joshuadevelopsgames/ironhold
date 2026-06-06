@@ -5,6 +5,7 @@ import de.maxhenkel.voicechat.api.VoicechatApi;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
 import de.maxhenkel.voicechat.api.VolumeCategory;
+import de.maxhenkel.voicechat.api.events.EntitySoundPacketEvent;
 import de.maxhenkel.voicechat.api.events.EventRegistration;
 import de.maxhenkel.voicechat.api.events.MicrophonePacketEvent;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
@@ -79,5 +80,7 @@ public final class IronholdVoicechatPlugin implements VoicechatPlugin {
         });
         // Stream incoming mic audio for the active Kangarude partner (if any) into Whisper STT.
         r.registerEvent(MicrophonePacketEvent.class, MicrophoneListener::onMicrophone);
+        // Per-receiver NPC mute: cancel delivery of an NPC's voice to listeners who muted it.
+        r.registerEvent(EntitySoundPacketEvent.class, SvcVoiceBridgeImpl::onEntitySoundPacket);
     }
 }

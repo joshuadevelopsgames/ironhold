@@ -32,6 +32,8 @@ public class FilcherRenderer extends AbstractZombieRenderer<FilcherEntity, Filch
             ArmorModelSet.bake(ModelLayers.ZOMBIE_ARMOR,      ctx.getModelSet(), ZombieModel::new),
             ArmorModelSet.bake(ModelLayers.ZOMBIE_BABY_ARMOR, ctx.getModelSet(), BabyZombieModel::new)
         );
+        // Emissive glowing-yellow eyes over the dark face.
+        addLayer(new FilcherEyesLayer(this));
     }
 
     @Override

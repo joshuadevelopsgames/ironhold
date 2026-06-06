@@ -63,6 +63,13 @@ neoForge {
     // This line is optional. Access Transformers are automatically detected
     // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
 
+    // GeckoLib injects GeoRenderState onto vanilla EntityRenderState at runtime via its
+    // jar's META-INF/interface_injections.json. A compileOnly flat-file jar isn't scanned
+    // for that, so apply the same injection to the compile classpath here — otherwise
+    // AutoGlowingGeoLayer<..., LivingEntityRenderState> fails its R extends GeoRenderState
+    // bound. Kept out of resources/ so we don't duplicate GeckoLib's runtime injection.
+    interfaceInjectionData.from('interface_injections.json')
+
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {

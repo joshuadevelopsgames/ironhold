@@ -89,11 +89,11 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    private static final int BREED_COOLDOWN_TICKS = 7200; // 6 minutes
+    private static final int BREED_COOLDOWN_TICKS = 2400; // 2 minutes
     private static final double PARTNER_RADIUS = 8.0;
     private static final double FOOD_RADIUS = 8.0;
     private static final int CROP_SCAN_RADIUS = 4;
-    private static final int LOCAL_RAT_CAP = 8;
+    private static final int LOCAL_RAT_CAP = 16;
     private static final double LOCAL_CAP_RADIUS = 16.0;
 
     private int eatCropCooldown;
@@ -122,10 +122,24 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
                                               EntitySpawnReason reason, BlockPos pos, RandomSource random) {
         if (reason == EntitySpawnReason.NATURAL || reason == EntitySpawnReason.CHUNK_GENERATION) {
             long t = level.getLevel().getOverworldClockTime() % 24000L;
-            if (t < 13000L || t > 23000L) return false;
-            if (!nearVillage(level, pos)) return false;
+            boolean isNight = (t >= 13000L && t <= 23000L);
+            boolean nearVill = nearVillage(level, pos);
+            boolean isDark = level.getRawBrightness(pos, 0) <= 7;
+            
+            // Spawn if it's dark (like a monster) OR near a village at night
+            if (!isDark && !(isNight && nearVill)) {
+                return false;
+            }
+            
+            // Strictly cap natural spawns in the immediate area so they don't monopolize the server's mob cap
+            if (level.getEntitiesOfClass(RatEntity.class, new AABB(pos).inflate(24.0)).size() >= 6) {
+                return false;
+            }
+            
+            // Allow spawning on any solid block
+            return level.getBlockState(pos.below()).canOcclude();
         }
-        return checkAnimalSpawnRules(type, level, reason, pos, random);
+        return true;
     }
 
     private static boolean nearVillage(ServerLevelAccessor level, BlockPos pos) {
@@ -175,27 +189,56 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new PanicGoal(this, 1.6));
-        // Flee cats and ocelots on sight — even Black Rats. If a cat lands a hit,
-        // HurtByTargetGoal still kicks in so Black Rats fight back when cornered.
+        
+        // Flee cats and ocelots on sight
         this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this,
             net.minecraft.world.entity.animal.feline.Cat.class, 8.0F, 1.5, 1.8));
         this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this,
             net.minecraft.world.entity.animal.feline.Ocelot.class, 8.0F, 1.5, 1.8));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.4, false));
-        this.goalSelector.addGoal(4, new FollowOwnerGoal(this, 1.0, 8.0F, 3.0F));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0));
-        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 4.0F));
-        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+            
+        // Flee players on sight (all untamed rats)
+        this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this,
+            Player.class, 8.0F, 1.5, 1.8, (entity) -> !this.isTame()));
+            
+        // Flee the sun / hide in darkness
+        this.goalSelector.addGoal(3, new net.minecraft.world.entity.ai.goal.FleeSunGoal(this, 1.6));
 
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.4, false));
+        this.goalSelector.addGoal(4, new RatHoardGoal());
+        this.goalSelector.addGoal(5, new FollowOwnerGoal(this, 1.0, 8.0F, 3.0F));
+        this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0));
+        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 4.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+
+        // Swarm defense - Black Rats no longer attack on sight
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        // Black Rat is hostile to players on sight (untamed only)
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false,
-            (entity, level) -> isBlackRat() && !isTame()));
-        // Black Rat occasionally hunts villagers — randomInterval=300 (15s) makes the goal rarely
-        // re-acquire, so attacks on villagers are intermittent rather than constant.
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this,
-            net.minecraft.world.entity.npc.villager.AbstractVillager.class, 300, true, false,
-            (entity, level) -> isBlackRat() && !isTame()));
+    }
+
+    class RatHoardGoal extends net.minecraft.world.entity.ai.goal.Goal {
+        public RatHoardGoal() {
+            this.setFlags(java.util.EnumSet.of(net.minecraft.world.entity.ai.goal.Goal.Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            return !RatEntity.this.getMainHandItem().isEmpty() && RatEntity.this.nestPos != null;
+        }
+
+        @Override
+        public void tick() {
+            if (RatEntity.this.nestPos != null) {
+                double dist = RatEntity.this.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(RatEntity.this.nestPos));
+                if (dist > 4.0) {
+                    RatEntity.this.getNavigation().moveTo(RatEntity.this.nestPos.getX(), RatEntity.this.nestPos.getY(), RatEntity.this.nestPos.getZ(), 1.2);
+                } else {
+                    if (RatEntity.this.level() instanceof ServerLevel sl) {
+                        RatEntity.this.spawnAtLocation(sl, RatEntity.this.getMainHandItem());
+                    }
+                    RatEntity.this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                    RatEntity.this.getNavigation().stop();
+                }
+            }
+        }
     }
 
     @Override
@@ -229,7 +272,7 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
             } else {
                 plagueChance = isBlackRat() ? 0.5F : 0.05F;
             }
-            if (level.getRandom().nextFloat() < plagueChance && !victim.hasEffect(kingdom.smp.ModEffects.PLAGUE_EFFECT)) {
+            if (level.getRandom().nextFloat() < plagueChance && kingdom.smp.effect.PlagueHandler.canReceivePlague(victim)) {
                 victim.addEffect(new MobEffectInstance(kingdom.smp.ModEffects.PLAGUE_EFFECT,
                     PlagueEffect.TOTAL_DURATION_TICKS, 0, false, false, true), this);
             }
@@ -269,12 +312,69 @@ public class RatEntity extends TamableAnimal implements GeoEntity {
     public void aiStep() {
         super.aiStep();
         if (!this.level().isClientSide()) {
+            // Passive flea aura for Black Rats - staggered by entity ID for TPS optimization
+            if (this.isBlackRat() && (this.tickCount + this.getId()) % 20 == 0 && kingdom.smp.ModEffects.PLAGUE_EFFECT != null) {
+                if (this.level() instanceof ServerLevel sl) {
+                    sl.sendParticles(kingdom.smp.ModParticles.PLAGUE_FLEA.get(),
+                        this.getX(), this.getY() + 0.25, this.getZ(),
+                        3, 0.35, 0.18, 0.35, 0.03);
+                }
+                AABB aura = this.getBoundingBox().inflate(3.5);
+                for (LivingEntity le : this.level().getEntitiesOfClass(LivingEntity.class, aura)) {
+                    if ((le instanceof Player || le instanceof net.minecraft.world.entity.npc.villager.AbstractVillager || le instanceof net.minecraft.world.entity.animal.Animal) && !(le instanceof RatEntity)) {
+                        if (kingdom.smp.effect.PlagueHandler.canReceivePlague(le)) {
+                            // 5% chance per second to passively spread plague
+                            if (this.random.nextFloat() < 0.05F) {
+                                le.addEffect(new MobEffectInstance(kingdom.smp.ModEffects.PLAGUE_EFFECT,
+                                    PlagueEffect.TOTAL_DURATION_TICKS, 0, false, false, true), this);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Occasional chest thievery - staggered by entity ID for TPS
+            if ((this.tickCount + this.getId()) % 60 == 0 && this.getMainHandItem().isEmpty() && this.random.nextFloat() < 0.15F) {
+                tryStealFromChest();
+            }
+
             if (this.breedCooldown > 0) this.breedCooldown--;
             if (--eatCropCooldown <= 0) {
                 tryEatCrop();
                 eatCropCooldown = 20;
                 if (this.level() instanceof ServerLevel sl) {
                     tryBreed(sl);
+                }
+            }
+        }
+    }
+
+    private void tryStealFromChest() {
+        BlockPos here = this.blockPosition();
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    BlockPos p = here.offset(dx, dy, dz);
+                    net.minecraft.world.level.block.entity.BlockEntity be = this.level().getBlockEntity(p);
+                    if (be instanceof net.minecraft.world.Container container) {
+                        for (int i = 0; i < container.getContainerSize(); i++) {
+                            ItemStack stack = container.getItem(i);
+                            if (!stack.isEmpty() && stack.has(net.minecraft.core.component.DataComponents.FOOD)) {
+                                ItemStack stolen = stack.split(1);
+                                container.setItem(i, stack);
+                                
+                                this.level().playSound(null, p, net.minecraft.sounds.SoundEvents.WOOD_BREAK, net.minecraft.sounds.SoundSource.BLOCKS, 0.5F, 2.0F);
+                                
+                                net.minecraft.world.entity.item.ItemEntity item = new net.minecraft.world.entity.item.ItemEntity(
+                                    this.level(), p.getX() + 0.5, p.getY() + 1.0, p.getZ() + 0.5, stolen
+                                );
+                                item.setDeltaMovement((this.random.nextDouble() - 0.5) * 0.3, 0.2, (this.random.nextDouble() - 0.5) * 0.3);
+                                this.level().addFreshEntity(item);
+                                
+                                return; // only steal one item
+                            }
+                        }
+                    }
                 }
             }
         }

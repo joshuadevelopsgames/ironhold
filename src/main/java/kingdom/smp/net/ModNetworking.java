@@ -5,6 +5,7 @@ import kingdom.smp.ModAttachments;
 import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.accessory.AccessoryMenu;
 import kingdom.smp.client.ClientSneakDetectionState;
+import kingdom.smp.client.DisguiseCache;
 import kingdom.smp.client.VanityCache;
 import kingdom.smp.client.VillagerDialogueCache;
 import kingdom.smp.entity.MagicMinecartEntity;
@@ -12,6 +13,7 @@ import kingdom.smp.game.ClassStatHandler;
 import kingdom.smp.game.CloudDoubleJumpHandler;
 import kingdom.smp.item.SirensRingItem;
 import kingdom.smp.game.EncumbranceHandler;
+import kingdom.smp.game.PromotionStoneSummoner;
 import kingdom.smp.game.RpgXpBarSync;
 import kingdom.smp.rpg.ability.AbilityDispatch;
 import kingdom.smp.rpg.CompletedClasses;
@@ -53,6 +55,9 @@ public final class ModNetworking {
 
         registrar.playToClient(OpenConsolePayload.TYPE, OpenConsolePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(ClientRpgData::openConsole));
+
+        registrar.playToClient(WaxOverlayPayload.TYPE, WaxOverlayPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> kingdom.smp.client.WaxOverlayRenderer.add(payload.pos())));
 
         registrar.playToServer(ClassChoicePayload.TYPE, ClassChoicePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
@@ -138,6 +143,10 @@ public final class ModNetworking {
                     payload.vanityLegs(),
                     payload.vanityFeet())));
 
+        registrar.playToClient(SyncDisguisePayload.TYPE, SyncDisguisePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                DisguiseCache.update(payload.playerUUID(), payload.entityTypeId())));
+
         // ── Kingdom Villager dialogue & emotes ───────────────────────────────
         registrar.playToClient(VillagerDialoguePayload.TYPE, VillagerDialoguePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() ->
@@ -146,6 +155,22 @@ public final class ModNetworking {
         registrar.playToClient(VillagerEmotePayload.TYPE, VillagerEmotePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() ->
                 VillagerDialogueCache.receiveEmote(payload)));
+
+        // ── Player "point" emote (clean-room procedural pose) ────────────────
+        // NeoForge 26.1 requires explicit server + client handlers for a bidirectional
+        // payload (the single-handler overload leaves the clientbound side unhandled).
+        //  • Server handler: rebroadcast to nearby players, trusting the sender's UUID.
+        //  • Client handler: play the pose for that player. (Its body only class-loads
+        //    PointEmoteState on invocation, which never happens on a dedicated server.)
+        registrar.playBidirectional(PointEmotePayload.TYPE, PointEmotePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    PacketDistributor.sendToPlayersTrackingEntity(sp,
+                        new PointEmotePayload(sp.getUUID()));
+                }
+            }),
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                kingdom.smp.client.emote.PointEmoteState.receive(payload.player())));
 
         registrar.playToClient(OpenVillagerScreenPayload.TYPE, OpenVillagerScreenPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() ->
@@ -205,6 +230,30 @@ public final class ModNetworking {
 
         registrar.playToClient(SneakDetectionPayload.TYPE, SneakDetectionPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> ClientSneakDetectionState.receive(payload)));
+
+        registrar.playToClient(SyncMentionNamesPayload.TYPE, SyncMentionNamesPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                kingdom.smp.client.ClientMentionNames.receive(payload)));
+
+        // ── Immersive portals: cross-dimensional see-through streaming ────────
+        registrar.playToClient(ClientboundOpenPortalViewPayload.TYPE, ClientboundOpenPortalViewPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                kingdom.smp.portal.client.ClientDimensionStack.open(payload)));
+
+        registrar.playToClient(ClientboundChunkRedirectPayload.TYPE, ClientboundChunkRedirectPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                kingdom.smp.portal.client.ClientDimensionStack.applyChunk(payload)));
+
+        registrar.playToClient(ClientboundClosePortalViewPayload.TYPE, ClientboundClosePortalViewPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() ->
+                kingdom.smp.portal.client.ClientDimensionStack.close(payload.dimId())));
+
+        registrar.playToServer(ServerboundRequestPortalViewsPayload.TYPE, ServerboundRequestPortalViewsPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.portal.server.PortalViewTracker.handleRequest(sp, payload.views());
+                }
+            }));
 
         // ── Fishing bite minigame ─────────────────────────────────────────────
         registrar.playToClient(FishingBiteStartPayload.TYPE, FishingBiteStartPayload.STREAM_CODEC,
@@ -379,6 +428,9 @@ public final class ModNetworking {
         ClassStatHandler.apply(player, next);
         RpgXpBarSync.sync(player, next);
         syncToClient(player);
+
+        // Consume the summoned Class Stone they promoted at (no-op if none).
+        PromotionStoneSummoner.removeFor(player);
 
         // ── Broadcast ────────────────────────────────────────────────────────
         var server = player.level().getServer();

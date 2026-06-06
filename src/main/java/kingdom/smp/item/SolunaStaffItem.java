@@ -22,6 +22,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -52,7 +54,8 @@ public class SolunaStaffItem extends Item implements GeoItem {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    private static final int MAX_CHARGE_TICKS = 100; // ~5 seconds for full power
+    private static final int MAX_CHARGE_TICKS = 50; // ~2.5 seconds for full power
+    private static final int OVERCHARGE_TICKS = 160; // 8 seconds for portal
     private static final int COOLDOWN_TICKS = 25;
     private static final String CONTROLLER_NAME = "spin_controller";
 
@@ -140,12 +143,72 @@ public class SolunaStaffItem extends Item implements GeoItem {
             }
         }
 
+        // Passives
+        if (!level.isClientSide()) {
+            boolean night = isNight(level);
+            if (night) {
+                entity.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING, 20, 0, false, false, true));
+            } else {
+                entity.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 20, 0, false, false, true));
+            }
+        }
+
         // Charging hum
         if (!level.isClientSide() && charged % 10 == 0 && charged <= 30) {
             boolean night = isNight(level);
             level.playSound(null, entity.blockPosition(),
                 night ? SoundEvents.AMETHYST_BLOCK_CHIME : SoundEvents.BEACON_AMBIENT,
                 SoundSource.PLAYERS, 0.15F, 1.8F + charged * 0.02F);
+        }
+
+    }
+
+    private void generateMoonPortal(ServerLevel level, Player player) {
+        Vec3 look = player.getLookAngle();
+        look = new Vec3(look.x, 0, look.z).normalize();
+        net.minecraft.core.BlockPos center = player.blockPosition().offset((int)(look.x * 5), 0, (int)(look.z * 5));
+        
+        while (level.isEmptyBlock(center) && center.getY() > level.getMinY()) {
+            center = center.below();
+        }
+        center = center.above(); // Bottom center of the portal
+        
+        boolean isXAxis = Math.abs(look.x) > Math.abs(look.z);
+        net.minecraft.core.Direction.Axis axis = isXAxis ? net.minecraft.core.Direction.Axis.Z : net.minecraft.core.Direction.Axis.X;
+
+        net.minecraft.world.level.block.state.BlockState frame = net.minecraft.world.level.block.Blocks.QUARTZ_BLOCK.defaultBlockState();
+        net.minecraft.world.level.block.state.BlockState portal = kingdom.smp.ModBlocks.MOON_PORTAL.get().defaultBlockState()
+                .setValue(kingdom.smp.block.MoonPortalBlock.AXIS, axis);
+
+        for (int w = -1; w <= 2; w++) {
+            for (int h = -1; h <= 3; h++) {
+                net.minecraft.core.BlockPos pos = isXAxis ? center.offset(0, h, w) : center.offset(w, h, 0);
+                if (w == -1 || w == 2 || h == -1 || h == 3) {
+                    level.setBlockAndUpdate(pos, frame);
+                } else {
+                    level.setBlockAndUpdate(pos, portal);
+                }
+            }
+        }
+        
+        level.playSound(null, center, SoundEvents.END_PORTAL_SPAWN, SoundSource.BLOCKS, 1.0F, 1.0F);
+        
+        // Massive particle burst
+        level.sendParticles(ParticleTypes.END_ROD, center.getX() + 0.5, center.getY() + 1.5, center.getZ() + 0.5, 
+            100, 1.0, 1.5, 1.0, 0.2);
+    }
+
+    private void grantShootForTheMoonAchievement(ServerLevel level, Player player) {
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            net.minecraft.advancements.AdvancementHolder advancement = level.getServer().getAdvancements().get(net.minecraft.resources.Identifier.fromNamespaceAndPath(Ironhold.MODID, "shoot_for_the_moon"));
+            if (advancement != null) {
+                net.minecraft.advancements.AdvancementProgress progress = serverPlayer.getAdvancements().getOrStartProgress(advancement);
+                if (!progress.isDone()) {
+                    for (String criterion : progress.getRemainingCriteria()) {
+                        serverPlayer.getAdvancements().award(advancement, criterion);
+                    }
+                }
+            }
         }
     }
 
@@ -165,10 +228,26 @@ public class SolunaStaffItem extends Item implements GeoItem {
             Vec3 spawnPos = player.getEyePosition().add(look.scale(1.5));
             boolean night = isNight(level);
 
-            // Charge power: 0.0 (instant) → 1.0 at MAX_CHARGE (~5 seconds, capped)
+            // Charge power: 0.0 (instant) → 1.0 at MAX_CHARGE (~2.5 seconds, capped)
             float power = Math.min(1.0F, (float) chargeTime / MAX_CHARGE_TICKS);
-            // Launch speed: 0.15 (instant tap) → 3.0 (full charge, arrow speed)
-            double launchSpeed = 0.15 + power * 2.85;
+
+            if (night && power >= 1.0F) {
+                long t = level.getOverworldClockTime() % 24000;
+                double theta = ((t - 12000) / 12000.0) * Math.PI;
+                Vec3 moonDir = new Vec3(Math.cos(theta), Math.sin(theta), 0).normalize();
+                
+                if (moonDir.dot(look.normalize()) > 0.85) {
+                    generateMoonPortal((ServerLevel) level, player);
+                    stack.hurtAndBreak(5, player, player.getUsedItemHand());
+                    grantShootForTheMoonAchievement((ServerLevel) level, player);
+                    player.swing(player.getUsedItemHand());
+                    player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS * 2);
+                    return true;
+                }
+            }
+
+            // Launch speed: 1.0 (instant tap) → 4.5 (full charge, bolt speed)
+            double launchSpeed = 1.0 + power * 3.5;
 
             if (night) {
                 LunarOrbEntity orb = new LunarOrbEntity(player, look.scale(launchSpeed), level, power);

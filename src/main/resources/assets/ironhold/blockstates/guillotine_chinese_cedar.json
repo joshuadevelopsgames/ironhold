@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ironhold:block/guillotine_chinese_cedar" },
+    "facing=south": { "model": "ironhold:block/guillotine_chinese_cedar", "y": 180 },
+    "facing=west":  { "model": "ironhold:block/guillotine_chinese_cedar", "y": 270 },
+    "facing=east":  { "model": "ironhold:block/guillotine_chinese_cedar", "y": 90 }
+  }
+}

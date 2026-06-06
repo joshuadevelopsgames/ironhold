@@ -1,0 +1,3 @@
+[mcp_servers.blockbench]
+args = ["/Users/joshua/Kingdom SMP/ironhold/tools/bb-mcp/server.py"]
+command = "python3"

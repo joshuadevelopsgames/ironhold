@@ -41,6 +41,9 @@ public final class HalricStaffRopePhysics {
 
     private static final Vec3[] particles = new Vec3[LINKS];
     private static final Vec3[] prevParticles = new Vec3[LINKS];
+    /** Pre-tick snapshot for render interpolation. Captured at the start of each
+     *  tick so the renderer can lerp from renderPrev → particles using partial tick. */
+    private static final Vec3[] renderPrev = new Vec3[LINKS];
     private static boolean primed;
     private static long lastTick = -1;
 
@@ -61,9 +64,16 @@ public final class HalricStaffRopePhysics {
             for (int i = 0; i < LINKS; i++) {
                 particles[i] = anchorWorld.add(0, -SEG_LENGTH * (i + 1), 0);
                 prevParticles[i] = particles[i];
+                renderPrev[i] = particles[i];
             }
             primed = true;
             return;
+        }
+
+        // Snapshot current positions BEFORE integration for render interpolation.
+        // The renderer will lerp from renderPrev → particles using partial tick.
+        for (int i = 0; i < LINKS; i++) {
+            renderPrev[i] = particles[i];
         }
 
         // Verlet integration: implicit velocity from (current - prev), with damping
@@ -101,8 +111,33 @@ public final class HalricStaffRopePhysics {
         return primed ? particles[i] : Vec3.ZERO;
     }
 
+    /**
+     * Returns the particle position interpolated between the previous tick and
+     * the current tick. Use this for rendering to avoid snapping between ticks
+     * (e.g. during jumps where the anchor moves ~0.42 blocks in one tick).
+     *
+     * @param i           particle index (0 = anchor, LINKS-1 = tip)
+     * @param partialTick fraction of the current tick elapsed (0 = tick start, 1 = tick end)
+     */
+    public static Vec3 getParticleWorldLerped(int i, float partialTick) {
+        if (!primed) return Vec3.ZERO;
+        return renderPrev[i].lerp(particles[i], partialTick);
+    }
+
     /** Convenience: anchor position for the local player (head height roughly). */
     public static Vec3 defaultAnchorFor(Player player) {
         return player.getEyePosition();
+    }
+
+    /**
+     * Anchor position using partial-tick interpolation, matching Minecraft's
+     * entity rendering interpolation so the chain anchor tracks the visually
+     * rendered player position (not the tick-snapped position).
+     */
+    public static Vec3 interpolatedAnchorFor(Player player, float partialTick) {
+        double x = player.xo + (player.getX() - player.xo) * partialTick;
+        double y = player.yo + (player.getY() - player.yo) * partialTick;
+        double z = player.zo + (player.getZ() - player.zo) * partialTick;
+        return new Vec3(x, y + player.getEyeHeight(), z);
     }
 }

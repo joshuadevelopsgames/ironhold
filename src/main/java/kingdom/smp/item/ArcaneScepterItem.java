@@ -1,11 +1,12 @@
 package kingdom.smp.item;
 
 import kingdom.smp.Ironhold;
+import kingdom.smp.ModParticles;
 import kingdom.smp.entity.ArcaneOrbEntity;
 import kingdom.smp.entity.SpellBeamEntity;
+import kingdom.smp.game.BeamReflection;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -88,18 +89,18 @@ public class ArcaneScepterItem extends Item implements GeoItem {
 
             // Staff tip particles
             if (charged % 3 == 0) {
-                level.addParticle(ParticleTypes.WITCH,
+                level.addParticle(ModParticles.DIAMOND_SCEPTER_SPARK.get(),
                     tip.x + (Math.random() - 0.5) * 0.2,
                     tip.y + Math.random() * 0.2,
                     tip.z + (Math.random() - 0.5) * 0.2,
-                    0, 0.02, 0);
+                    0, 0.03, 0);
             }
             if (charged > 12 && charged % 5 == 0) {
-                level.addParticle(ParticleTypes.ENCHANT,
+                level.addParticle(ModParticles.DIAMOND_SCEPTER_SPARK.get(),
                     tip.x + (Math.random() - 0.5) * 0.3,
                     tip.y + Math.random() * 0.3,
                     tip.z + (Math.random() - 0.5) * 0.3,
-                    0, -0.3, 0);
+                    0, -0.05, 0);
             }
 
             // Target highlighting — show purple particles on the entity we're aiming at
@@ -114,7 +115,7 @@ public class ArcaneScepterItem extends Item implements GeoItem {
                         double px = target.getX() + Math.cos(a) * r;
                         double py = target.getY() + target.getBbHeight() * 0.5;
                         double pz = target.getZ() + Math.sin(a) * r;
-                        level.addParticle(ParticleTypes.WITCH, px, py, pz, 0, 0.02, 0);
+                        level.addParticle(ModParticles.DIAMOND_SCEPTER_SPARK.get(), px, py, pz, 0, 0.02, 0);
                     }
                     // Glow at target's feet
                     if (charged % 4 == 0) {
@@ -206,41 +207,48 @@ public class ArcaneScepterItem extends Item implements GeoItem {
         Vec3 eyePos = player.getEyePosition();
         Vec3 look    = player.getLookAngle();
         double range = 32.0;
-        Vec3 endPos  = eyePos.add(look.scale(range));
 
-        AABB searchBox = player.getBoundingBox().expandTowards(look.scale(range)).inflate(1.0);
-        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-            player, eyePos, endPos, searchBox,
+        // Trace the beam, bouncing off any mirrors in its path so players can bank trick shots.
+        BeamReflection.Result trace = BeamReflection.trace(level, player, eyePos, look, range,
             e -> !e.isSpectator() && e.isPickable() && e != player
                 && (e instanceof LivingEntity
                     || e instanceof net.minecraft.world.entity.boss.enderdragon.EndCrystal
-                    || e instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragonPart),
-            range * range);
+                    || e instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragonPart));
 
-        Vec3 impactPos;
+        EntityHitResult entityHit = trace.entityHit();
         if (entityHit != null) {
             Entity target = entityHit.getEntity();
             if (target instanceof net.minecraft.world.entity.boss.enderdragon.EnderDragonPart part) {
                 target = part.parentMob;
             }
             target.hurtServer(level, level.damageSources().indirectMagic(player, player), 5.0f);
-            impactPos = entityHit.getLocation();
             level.playSound(null, target.blockPosition(),
                 SoundEvents.ILLUSIONER_HURT, SoundSource.PLAYERS, 0.8F, 1.6F);
         } else {
-            BlockHitResult blockHit = level.clip(
-                new ClipContext(eyePos, endPos, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player));
-            impactPos = blockHit.getLocation();
             level.playSound(null, player.blockPosition(),
                 SoundEvents.ILLUSIONER_CAST_SPELL, SoundSource.PLAYERS, 0.7F, 1.4F);
         }
 
-        Vec3 origin = eyePos.add(look.scale(0.8));
-        SpellBeamEntity beam = SpellBeamEntity.create(level,
-            impactPos.x, impactPos.y, impactPos.z,
-            origin.x, origin.y, origin.z,
-            0x8844FF, 15);
-        level.addFreshEntity(beam);
+        // One visual beam per straight leg. The first leg starts at the staff tip; reflected
+        // legs start exactly where the previous leg met the mirror.
+        java.util.List<BeamReflection.Segment> segments = trace.segments();
+        for (int i = 0; i < segments.size(); i++) {
+            BeamReflection.Segment seg = segments.get(i);
+            Vec3 origin = i == 0 ? eyePos.add(look.scale(0.8)) : seg.start();
+            SpellBeamEntity beam = SpellBeamEntity.create(level,
+                seg.end().x, seg.end().y, seg.end().z,
+                origin.x, origin.y, origin.z,
+                0x8844FF, 15);
+            level.addFreshEntity(beam);
+        }
+
+        // Spark + illusioner "mirror" chime at each bounce so the redirect reads clearly.
+        for (Vec3 bounce : trace.bouncePoints()) {
+            level.sendParticles(ModParticles.DIAMOND_SCEPTER_SPARK.get(),
+                bounce.x, bounce.y, bounce.z, 8, 0.1, 0.1, 0.1, 0.05);
+            level.playSound(null, BlockPos.containing(bounce),
+                SoundEvents.ILLUSIONER_MIRROR_MOVE, SoundSource.PLAYERS, 0.7F, 1.4F);
+        }
 
         stack.hurtAndBreak(1, player, player.getUsedItemHand());
     }

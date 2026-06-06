@@ -19,6 +19,16 @@ public final class ModEffects {
     public static final DeferredHolder<MobEffect, kingdom.smp.effect.SlimedEffect> SLIMED_EFFECT =
         MOB_EFFECTS.register("slimed", kingdom.smp.effect.SlimedEffect::new);
 
+    public static final DeferredHolder<MobEffect, kingdom.smp.effect.BleedingEffect> BLEEDING_EFFECT =
+        MOB_EFFECTS.register("bleeding", kingdom.smp.effect.BleedingEffect::new);
+
+    public static final DeferredHolder<MobEffect, kingdom.smp.effect.StifledBleedingEffect> STIFLED_BLEEDING_EFFECT =
+        MOB_EFFECTS.register("stifled_bleeding", kingdom.smp.effect.StifledBleedingEffect::new);
+
+    /** Low-gravity (~1/6 g) buff from eating Moonshroom Stew. */
+    public static final DeferredHolder<MobEffect, kingdom.smp.effect.LunarLevityEffect> LUNAR_LEVITY_EFFECT =
+        MOB_EFFECTS.register("lunar_levity", kingdom.smp.effect.LunarLevityEffect::new);
+
     public static void register(IEventBus modEventBus) {
         MOB_EFFECTS.register(modEventBus);
     }

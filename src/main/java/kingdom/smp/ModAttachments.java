@@ -1,7 +1,9 @@
 package kingdom.smp;
 
 import kingdom.smp.accessory.AccessoryInventory;
+import kingdom.smp.disguise.DisguiseState;
 import kingdom.smp.food.KnownRecipes;
+import kingdom.smp.game.ActivePromotionStone;
 import kingdom.smp.game.CloudJumpState;
 import kingdom.smp.npc.PlayerNpcBonds;
 import kingdom.smp.rpg.CompletedClasses;
@@ -97,6 +99,16 @@ public final class ModAttachments {
             "guardian_vow",
             () -> AttachmentType.builder(() -> GuardianVowData.EMPTY).build());
 
+    /**
+     * What entity the player is currently disguised as (Master of Disguise tome). Ephemeral —
+     * not serialized (any damage clears it) and not auto-synced; the server pushes changes to
+     * tracking clients via {@link kingdom.smp.net.SyncDisguisePayload}.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<DisguiseState>> DISGUISE =
+        ATTACHMENT_TYPES.register(
+            "disguise",
+            () -> AttachmentType.builder(() -> DisguiseState.NONE).build());
+
     /** Skyrim-style use-to-level skill XP (Pickpocket, etc.). Persists across death. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PlayerUseSkills>> USE_SKILLS =
         ATTACHMENT_TYPES.register(
@@ -154,6 +166,40 @@ public final class ModAttachments {
             "mimic_checked",
             () -> AttachmentType.builder(() -> Boolean.FALSE)
                 .serialize(com.mojang.serialization.Codec.BOOL.fieldOf("checked"))
+                .build());
+
+    /**
+     * The class-stone pillar a player has summoned for a pending promotion (or
+     * {@link ActivePromotionStone#NONE}). copyOnDeath so the stone they were sent
+     * to find isn't lost on respawn. Not synced — used purely server-side.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<ActivePromotionStone>> ACTIVE_PROMOTION_STONE =
+        ATTACHMENT_TYPES.register(
+            "active_promotion_stone",
+            () -> AttachmentType.builder(() -> ActivePromotionStone.NONE)
+                .serialize(ActivePromotionStone.CODEC)
+                .copyOnDeath()
+                .build());
+
+    /**
+     * Ticks a cow / mooshroom has accumulated inside the moon dimension. Once it crosses the
+     * conversion threshold the animal turns into a Moonshroom (see
+     * {@link kingdom.smp.moon.MoonAnimalConversionHandler}). Serialized so the countdown survives
+     * chunk unloads and server restarts; defaults to 0. Server-only, so not synced.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> MOON_EXPOSURE_TICKS =
+        ATTACHMENT_TYPES.register(
+            "moon_exposure_ticks",
+            () -> AttachmentType.builder(() -> 0)
+                .serialize(com.mojang.serialization.Codec.INT.fieldOf("ticks"))
+                .build());
+
+    /** UUID string of the player who owns a locked chest, shelf, or armor stand. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>> LOCK_OWNER =
+        ATTACHMENT_TYPES.register(
+            "lock_owner",
+            () -> AttachmentType.builder(() -> "")
+                .serialize(com.mojang.serialization.Codec.STRING.fieldOf("owner"))
                 .build());
 
     public static void register(IEventBus modBus) {

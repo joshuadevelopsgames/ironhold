@@ -16,12 +16,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 /**
  * Mimic Key — an accessory that summons a baby mimic companion while equipped.
- * The baby mimic's name is stored on the key. Inventory is NOT stored on the
- * key — items drop when unequipped and the mimic starts empty on re-equip.
- * The key is the source of truth ONLY for the custom name.
+ * The key is the single source of truth for the companion: the custom name is
+ * stored in {@code CUSTOM_DATA}, and the 5-slot inventory in the vanilla
+ * {@code CONTAINER} component. The baby mimic entity is never saved to disk, so
+ * it is re-spawned from the key (with its items) after logout / chunk unload —
+ * which is why stored items survive a relog and no duplicate mimic can appear.
+ * Items still drop on unequip and on {@code /kill}; those paths clear the key's
+ * stored inventory so the re-spawned mimic doesn't duplicate the dropped items.
  */
 public class MimicKeyItem extends AccessoryItem {
 
@@ -48,15 +54,46 @@ public class MimicKeyItem extends AccessoryItem {
         if (owned.isEmpty()) {
             spawnCompanion(serverPlayer, level, stack);
         } else {
-            // Periodically sync the mimic's custom name back to the key so it
-            // survives unequip/re-equip and /kill without loss.
-            BabyMimicEntity companion = owned.getFirst();
-            if (companion.hasCustomName()) {
-                String name = companion.getCustomName().getString();
-                CustomData.update(DataComponents.CUSTOM_DATA, stack,
-                    tag -> tag.putString(TAG_MIMIC_NAME, name));
-            }
+            // Periodically sync the mimic's name + inventory back to the key so it
+            // survives logout, unequip/re-equip, and /kill without loss.
+            saveCompanionToKey(owned.getFirst(), stack);
         }
+    }
+
+    /** Persist a companion's custom name + inventory onto its key stack. */
+    private static void saveCompanionToKey(BabyMimicEntity companion, ItemStack keyStack) {
+        if (keyStack.isEmpty()) return;
+        if (companion.hasCustomName()) {
+            String name = companion.getCustomName().getString();
+            CustomData.update(DataComponents.CUSTOM_DATA, keyStack,
+                tag -> tag.putString(TAG_MIMIC_NAME, name));
+        }
+        keyStack.set(DataComponents.CONTAINER,
+            ItemContainerContents.fromItems(companion.getMimicInventory().getItems()));
+        // Hide the stored items from the key's tooltip — it's internal save data,
+        // not something the player should see listed on the key.
+        keyStack.set(DataComponents.TOOLTIP_DISPLAY,
+            TooltipDisplay.DEFAULT.withHidden(DataComponents.CONTAINER, true));
+    }
+
+    /**
+     * Sync the player's mimic to its key immediately (used on logout, so changes made
+     * within the last periodic-sync second aren't lost when the entity vanishes).
+     */
+    public static void syncCompanionToKey(ServerPlayer player) {
+        ServerLevel level = (ServerLevel) player.level();
+        List<BabyMimicEntity> owned = level.getEntitiesOfClass(
+            BabyMimicEntity.class,
+            player.getBoundingBox().inflate(64),
+            e -> e.isTame() && e.isOwnedBy(player));
+        if (owned.isEmpty()) return;
+        saveCompanionToKey(owned.getFirst(), findMimicKey(player));
+    }
+
+    /** Clear the stored inventory on the player's key (after items have been dropped). */
+    public static void clearStoredInventory(ServerPlayer owner) {
+        ItemStack keyStack = findMimicKey(owner);
+        if (!keyStack.isEmpty()) keyStack.remove(DataComponents.CONTAINER);
     }
 
     public static boolean isEquipped(Player player) {
@@ -105,6 +142,10 @@ public class MimicKeyItem extends AccessoryItem {
             companion.dropAllItems();
             companion.discard();
         }
+
+        // Items were dropped — clear the key's stored copy so a future re-equip
+        // (or re-spawn) starts empty rather than duplicating the dropped items.
+        if (!keyStack.isEmpty()) keyStack.remove(DataComponents.CONTAINER);
     }
 
     private void spawnCompanion(ServerPlayer player, ServerLevel level, ItemStack keyStack) {
@@ -123,6 +164,10 @@ public class MimicKeyItem extends AccessoryItem {
                 mimic.setCustomNameVisible(true);
             }
         }
+
+        // Restore stored inventory from the key (single source of truth).
+        keyStack.getOrDefault(DataComponents.CONTAINER, ItemContainerContents.EMPTY)
+            .copyInto(mimic.getMimicInventory().getItems());
 
         level.addFreshEntity(mimic);
     }

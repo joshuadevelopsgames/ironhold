@@ -3,6 +3,7 @@ package kingdom.smp;
 import kingdom.smp.block.BlueVinesBlock;
 import kingdom.smp.block.BlueVinesPlantBlock;
 import kingdom.smp.block.EbonyLeavesBlock;
+import kingdom.smp.block.FoolsGoldOreBlock;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -10,6 +11,7 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
+import net.minecraft.world.level.block.FlowerBedBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TallFlowerBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -42,14 +44,28 @@ public final class ModBlocks {
     // ── Fool's gold ore ───────────────────────────────────────────────────────
     // Worldgen: same y-range as gold ore (-64..32, trapezoid), count 3 per chunk
     // (vanilla gold uses count 4 → ~75% which matches the "2/3 frequency" intent).
-    // Drops itself; mineable with any pickaxe (no tool tier requirement).
+    // Drops fool's gold item (silk touch drops the block); requires iron pickaxe or better.
     public static final DeferredBlock<Block> FOOLS_GOLD_ORE = BLOCKS.register(
         "fools_gold_ore",
-        id -> new Block(
+        id -> new FoolsGoldOreBlock(
             BlockBehaviour.Properties.of()
                 .mapColor(MapColor.GOLD)
                 .strength(3.0f, 3.0f)
                 .sound(SoundType.STONE)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    // Deepslate variant — generated in the deepslate layer (see fools_gold_ore configured feature).
+    // Drops fool's gold item (silk touch drops the block); harder, like vanilla deepslate gold ore.
+    // Requires iron pickaxe or better.
+    public static final DeferredBlock<Block> DEEPSLATE_FOOLS_GOLD_ORE = BLOCKS.register(
+        "deepslate_fools_gold_ore",
+        id -> new FoolsGoldOreBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.DEEPSLATE)
+                .strength(4.5f, 3.0f)
+                .sound(SoundType.DEEPSLATE)
                 .setId(ResourceKey.create(Registries.BLOCK, id))
         )
     );
@@ -186,6 +202,151 @@ public final class ModBlocks {
         )
     );
 
+    // ── Chinese Cedar wood (pink heartwood, tan birch-style bark) ─────────────
+    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> CHINESE_CEDAR_LOG = BLOCKS.register(
+        "chinese_cedar_log",
+        id -> new net.minecraft.world.level.block.RotatedPillarBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<Block> CHINESE_CEDAR_PLANKS = BLOCKS.register(
+        "chinese_cedar_planks",
+        id -> new Block(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f, 3.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> STRIPPED_CHINESE_CEDAR_LOG = BLOCKS.register(
+        "stripped_chinese_cedar_log",
+        id -> new net.minecraft.world.level.block.RotatedPillarBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    // Stripped wood — all six faces show the stripped-log side grain.
+    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> STRIPPED_CHINESE_CEDAR_WOOD = BLOCKS.register(
+        "stripped_chinese_cedar_wood",
+        id -> new net.minecraft.world.level.block.RotatedPillarBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.SlabBlock> CHINESE_CEDAR_SLAB = BLOCKS.register(
+        "chinese_cedar_slab",
+        id -> new net.minecraft.world.level.block.SlabBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f, 3.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.StairBlock> CHINESE_CEDAR_STAIRS = BLOCKS.register(
+        "chinese_cedar_stairs",
+        id -> new net.minecraft.world.level.block.StairBlock(
+            CHINESE_CEDAR_PLANKS.get().defaultBlockState(),
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f, 3.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.FenceBlock> CHINESE_CEDAR_FENCE = BLOCKS.register(
+        "chinese_cedar_fence",
+        id -> new net.minecraft.world.level.block.FenceBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f, 3.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.FenceGateBlock> CHINESE_CEDAR_FENCE_GATE = BLOCKS.register(
+        "chinese_cedar_fence_gate",
+        id -> new net.minecraft.world.level.block.FenceGateBlock(
+            net.minecraft.world.level.block.state.properties.WoodType.DARK_OAK,
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(2.0f, 3.0f)
+                .sound(SoundType.WOOD)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.DoorBlock> CHINESE_CEDAR_DOOR = BLOCKS.register(
+        "chinese_cedar_door",
+        id -> new net.minecraft.world.level.block.DoorBlock(
+            net.minecraft.world.level.block.state.properties.BlockSetType.OAK,
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(3.0f)
+                .sound(SoundType.WOOD)
+                .noOcclusion()
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.TrapDoorBlock> CHINESE_CEDAR_TRAPDOOR = BLOCKS.register(
+        "chinese_cedar_trapdoor",
+        id -> new net.minecraft.world.level.block.TrapDoorBlock(
+            net.minecraft.world.level.block.state.properties.BlockSetType.OAK,
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(3.0f)
+                .sound(SoundType.WOOD)
+                .noOcclusion()
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.ButtonBlock> CHINESE_CEDAR_BUTTON = BLOCKS.register(
+        "chinese_cedar_button",
+        id -> new net.minecraft.world.level.block.ButtonBlock(
+            net.minecraft.world.level.block.state.properties.BlockSetType.OAK,
+            30,
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(0.5f)
+                .sound(SoundType.WOOD)
+                .noCollision()
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<net.minecraft.world.level.block.PressurePlateBlock> CHINESE_CEDAR_PRESSURE_PLATE = BLOCKS.register(
+        "chinese_cedar_pressure_plate",
+        id -> new net.minecraft.world.level.block.PressurePlateBlock(
+            net.minecraft.world.level.block.state.properties.BlockSetType.OAK,
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_PINK)
+                .strength(0.5f)
+                .sound(SoundType.WOOD)
+                .noCollision()
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
     // Ebony leaves — generated by ebony trees in the Ebonwood Hollow biome.
     // Fixed-colour texture (dark ashen grey-green); does NOT use biome tint.
     public static final DeferredBlock<EbonyLeavesBlock> EBONY_LEAVES = BLOCKS.register(
@@ -215,6 +376,36 @@ public final class ModBlocks {
                 .offsetType(BlockBehaviour.OffsetType.XZ)
                 .setId(ResourceKey.create(Registries.BLOCK, id))
         )
+    );
+
+    // Orange Glowshrooms — flowerbed-style (1-4) glowing mushrooms native to Ebonwood Hollow.
+    public static final DeferredBlock<FlowerBedBlock> ORANGE_GLOWSHROOMS = BLOCKS.register(
+        "orange_glowshrooms",
+        id -> new FlowerBedBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_ORANGE)
+                .noCollision()
+                .strength(0.0f)
+                .sound(SoundType.GRASS)
+                .lightLevel(state -> 2)
+                .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        ) {}
+    );
+
+    // Blue Glowshrooms — flowerbed-style (1-4) glowing mushrooms that grow on the Moon's surface.
+    public static final DeferredBlock<FlowerBedBlock> BLUE_GLOWSHROOMS = BLOCKS.register(
+        "blue_glowshrooms",
+        id -> new FlowerBedBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                .noCollision()
+                .strength(0.0f)
+                .sound(SoundType.GRASS)
+                .lightLevel(state -> 2)
+                .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        ) {}
     );
 
     // Ebonwood Grass — grass block with mud sides/bottom, generated on biome surface.
@@ -280,6 +471,60 @@ public final class ModBlocks {
         )
     );
 
+    // ── Moon Dimension Blocks ───────────────────────────────────────────────────
+    public static final DeferredBlock<Block> MOON_STONE = BLOCKS.register(
+        "moon_stone",
+        id -> new Block(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                .strength(1.5f, 6.0f)
+                .sound(SoundType.STONE)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<kingdom.smp.block.MoonDustBlock> MOON_DUST = BLOCKS.register(
+        "moon_dust",
+        id -> new kingdom.smp.block.MoonDustBlock(
+            new net.minecraft.util.ColorRGBA(0x8C8C91FF), // Silver/grey tint
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                .strength(0.5f)
+                .sound(SoundType.SAND)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    public static final DeferredBlock<kingdom.smp.block.MoonPortalBlock> MOON_PORTAL = BLOCKS.register(
+        "moon_portal",
+        id -> new kingdom.smp.block.MoonPortalBlock(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_GRAY)
+                .noCollision()
+                .randomTicks()
+                .strength(-1.0F)
+                .sound(SoundType.GLASS)
+                .lightLevel((state) -> 11)
+                .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
+    /** Light-blue mushroom — render-prop only (no BlockItem). Supplies the baked
+     *  block model for the Moonshroom's back-mushrooms, recoloured from vanilla red. */
+    public static final DeferredBlock<Block> MOON_MUSHROOM = BLOCKS.register(
+        "moon_mushroom",
+        id -> new Block(
+            BlockBehaviour.Properties.of()
+                .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                .noCollision()
+                .instabreak()
+                .noOcclusion()
+                .sound(SoundType.GRASS)
+                .setId(ResourceKey.create(Registries.BLOCK, id))
+        )
+    );
+
     // ── Guillotine blocks (wood variants) ───────────────────────────────────────
     private static DeferredBlock<Block> guillotineBlock(String name) {
         return BLOCKS.register(name,
@@ -316,6 +561,8 @@ public final class ModBlocks {
 
     public static final DeferredBlock<Block> GUILLOTINE_EBONY_BLOCK   = guillotineBlock("guillotine_ebony");
 
+    public static final DeferredBlock<Block> GUILLOTINE_CHINESE_CEDAR_BLOCK = guillotineBlock("guillotine_chinese_cedar");
+
     // Block entity type — shared by all guillotine variants
     public static final DeferredRegister<net.minecraft.world.level.block.entity.BlockEntityType<?>> BLOCK_ENTITY_TYPES =
         DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Ironhold.MODID);
@@ -328,7 +575,8 @@ public final class ModBlocks {
                 GUILLOTINE_OAK_BLOCK.get(), GUILLOTINE_SPRUCE_BLOCK.get(), GUILLOTINE_BIRCH_BLOCK.get(),
                 GUILLOTINE_JUNGLE_BLOCK.get(), GUILLOTINE_ACACIA_BLOCK.get(), GUILLOTINE_DARK_OAK_BLOCK.get(),
                 GUILLOTINE_MANGROVE_BLOCK.get(), GUILLOTINE_CHERRY_BLOCK.get(), GUILLOTINE_CRIMSON_BLOCK.get(),
-                GUILLOTINE_WARPED_BLOCK.get(), GUILLOTINE_EBONY_BLOCK.get()
+                GUILLOTINE_WARPED_BLOCK.get(), GUILLOTINE_EBONY_BLOCK.get(),
+                GUILLOTINE_CHINESE_CEDAR_BLOCK.get()
             )
         );
 
@@ -383,6 +631,36 @@ public final class ModBlocks {
             () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
                 kingdom.smp.block.ClassStoneBlockEntity::new,
                 CLASS_STONE_BLOCK.get()));
+
+    // ── Tripwire rack ─────────────────────────────────────────────────────────
+    // Vanilla tripwire hooks double as a wall rack that can hold a single tool /
+    // item. The EntityBlock interface is grafted onto TripWireHookBlock by
+    // {@link kingdom.smp.mixin.TripWireHookEntityBlockMixin}, so this BE type is
+    // bound to the vanilla block rather than one of ours.
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.TripwireRackBlockEntity>>
+            TRIPWIRE_RACK_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("tripwire_rack",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.TripwireRackBlockEntity::new,
+                net.minecraft.world.level.block.Blocks.TRIPWIRE_HOOK));
+
+    // ── Magma Crust ───────────────────────────────────────────────────────────
+    // Temporary, self-reverting solid laid over lava by the Magma Boots so the
+    // wearer can walk across it (Frost-Walker style). Glows, safe to stand on,
+    // no BlockItem (world-only). See {@link kingdom.smp.block.MagmaCrustBlock}.
+    public static final DeferredBlock<kingdom.smp.block.MagmaCrustBlock> MAGMA_CRUST =
+        BLOCKS.register("magma_crust",
+            id -> new kingdom.smp.block.MagmaCrustBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_ORANGE)
+                    .strength(0.5f)
+                    .sound(SoundType.BASALT)
+                    .lightLevel(s -> 7)
+                    .noLootTable()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
 
     public static void register(IEventBus modEventBus) {
         BLOCKS.register(modEventBus);

@@ -85,9 +85,11 @@ public final class SkillEventHandlers {
 
         event.setCanceled(true);
         if (player instanceof ServerPlayer sp) {
-            sp.sendOverlayMessage(
-                    Component.literal("Requires Mining: " + required.displayName())
-                            .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            sp.sendOverlayMessage(Component.literal("🔒 ")
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
+                    .append(state.getBlock().getName().copy().withStyle(ChatFormatting.WHITE))
+                    .append(Component.literal(" — needs Mining: " + required.displayName())
+                            .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
         }
     }
 
@@ -275,7 +277,14 @@ public final class SkillEventHandlers {
                 if (!visited.add(adj)) continue;
                 BlockState adjState = level.getBlockState(adj);
                 if (adjState.getBlock() != targetBlock) continue;
-                level.destroyBlock(adj, true, player);
+                // Only chain through ores the held tool can actually harvest, and
+                // break them through the gamemode so each block consumes durability
+                // and rolls proper drops/XP (the real player-mining path) instead of
+                // a free destroyBlock. When the tool wears out mid-vein, harvesting
+                // stops naturally. Re-entry into this handler is guarded by
+                // activeVeinBreakers, so the recursive break events are no-ops.
+                if (!player.hasCorrectToolForDrops(adjState)) continue;
+                if (!player.gameMode.destroyBlock(adj)) continue;
                 queue.add(adj);
                 broken++;
             }

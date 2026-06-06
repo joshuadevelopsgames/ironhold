@@ -39,9 +39,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * {@value #MIN_CAUTION_RADIUS}, making the player effectively invisible
  * inside their reduced bubble.
  *
- * <p>Sneak XP is awarded each tracker tick the player is in NEARBY state
- * (humanoids within range but no line of sight on the player) — i.e. when
- * the player is actually sneaking past a witness.
+ * <p>Sneak XP is awarded each tracker tick the player is crouching and
+ * undetected (HIDDEN or NEARBY state) <em>while at least one mob/humanoid is
+ * within the caution radius</em>. The nearby mob does not have to witness the
+ * player (no line of sight / facing required) — crouching near oblivious mobs
+ * still earns XP. It stops once a witness has line of sight on the player
+ * (SEEN), a mob targets them (DETECTED), or no mob is in the area at all.
  *
  * <p>"Watching" is stricter than geometric line of sight: a humanoid is only
  * counted as a watcher if the player is also within the humanoid's front
@@ -75,7 +78,7 @@ public final class SneakDetectionTracker {
     private static final double BASE_CAUTION_RADIUS = 16.0;
     private static final double MIN_CAUTION_RADIUS = 8.0;
 
-    /** XP awarded per tracker tick (every 5 ticks) to a player in NEARBY state. */
+    /** XP awarded per tracker tick (every 5 ticks) to a crouching, undetected player with a mob in range. */
     private static final float SNEAK_XP_PER_TICK = 0.08f;
 
     /** Dot threshold for "watcher is facing the player." 0.3 ≈ 140° front cone. */
@@ -137,18 +140,27 @@ public final class SneakDetectionTracker {
             return;
         }
 
-        byte state = computeState(player);
+        DetectionResult result = computeState(player);
+        byte state = result.state();
         Byte prev = stateCache.put(player.getUUID(), state);
         if (prev == null || prev != state) {
             PacketDistributor.sendToPlayer(player, new SneakDetectionPayload(state));
         }
 
-        if (state == NEARBY) {
+        // XP for time spent sneaking undetected. A mob/humanoid must be in your
+        // area, but it does NOT need to witness you (no line of sight / facing
+        // required) — so crouching near oblivious mobs counts. Granted while
+        // HIDDEN or NEARBY; stops once a witness SEES you or a mob DETECTS you,
+        // and grants nothing when you're completely alone.
+        if (result.mobInArea() && (state == HIDDEN || state == NEARBY)) {
             grantSneakXp(player);
         }
     }
 
-    private static byte computeState(ServerPlayer player) {
+    /** Result of a detection scan: the HUD state plus whether any qualifying mob is in range. */
+    private record DetectionResult(byte state, boolean mobInArea) {}
+
+    private static DetectionResult computeState(ServerPlayer player) {
         double cautionRadius = effectiveCautionRadius(player);
         double cautionSq = cautionRadius * cautionRadius;
 
@@ -159,12 +171,14 @@ public final class SneakDetectionTracker {
         Vec3 playerLook = player.getViewVector(1.0f);
         boolean anyWatcherInView = false;     // → SEEN
         boolean anyWatcherOutOfView = false;  // → NEARBY
+        boolean anyMobInArea = false;         // qualifying mob within caution radius (watching or not)
 
         for (LivingEntity entity : nearby) {
             if (entity == player) continue;
-            if (entity instanceof Mob mob && mob.getTarget() == player) return DETECTED;
+            if (entity instanceof Mob mob && mob.getTarget() == player) return new DetectionResult(DETECTED, true);
             if (!countsAsWitness(entity)) continue;
             if (entity.distanceToSqr(player) > cautionSq) continue;
+            anyMobInArea = true;
             if (!isWatching(entity, player)) continue;
 
             if (isInPlayerView(playerEye, playerLook, entity)) {
@@ -174,9 +188,8 @@ public final class SneakDetectionTracker {
             }
         }
 
-        if (anyWatcherInView) return SEEN;
-        if (anyWatcherOutOfView) return NEARBY;
-        return HIDDEN;
+        byte state = anyWatcherInView ? SEEN : anyWatcherOutOfView ? NEARBY : HIDDEN;
+        return new DetectionResult(state, anyMobInArea);
     }
 
     /**

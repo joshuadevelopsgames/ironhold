@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "type=bottom,waterlogged=false": {
+      "model": "ironhold:block/chinese_cedar_slab"
+    },
+    "type=bottom,waterlogged=true": {
+      "model": "ironhold:block/chinese_cedar_slab"
+    },
+    "type=double,waterlogged=false": {
+      "model": "ironhold:block/chinese_cedar_planks"
+    },
+    "type=double,waterlogged=true": {
+      "model": "ironhold:block/chinese_cedar_planks"
+    },
+    "type=top,waterlogged=false": {
+      "model": "ironhold:block/chinese_cedar_slab_top"
+    },
+    "type=top,waterlogged=true": {
+      "model": "ironhold:block/chinese_cedar_slab_top"
+    }
+  }
+}

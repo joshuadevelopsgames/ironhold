@@ -70,7 +70,8 @@ public class GuillotineBlockRenderer extends GeoBlockRenderer<GuillotineBlockEnt
             Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_CHERRY_BLOCK.get(),    tex("guillotine_cherry")),
             Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_CRIMSON_BLOCK.get(),   tex("guillotine_crimson")),
             Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_WARPED_BLOCK.get(),    tex("guillotine_warped")),
-            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_EBONY_BLOCK.get(),     tex("guillotine_ebony"))
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_EBONY_BLOCK.get(),     tex("guillotine_ebony")),
+            Map.entry(kingdom.smp.ModBlocks.GUILLOTINE_CHINESE_CEDAR_BLOCK.get(), tex("guillotine_chinese_cedar"))
         );
 
         static final Identifier DEFAULT_TEXTURE = tex("guillotine_oak");

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:item_frame",
+    "minecraft:glass_pane"
+  ],
+  "result": {
+    "id": "ironhold:invisible_item_frame",
+    "count": 1
+  }
+}

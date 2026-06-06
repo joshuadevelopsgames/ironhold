@@ -82,6 +82,33 @@ public class ClassStoneBlock extends Block implements EntityBlock {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.PASS;
 
+        java.util.UUID owner = null;
+        if (level.getBlockEntity(pos) instanceof ClassStoneBlockEntity be) {
+            owner = be.getOwner();
+        }
+
+        // ── Summoned promotion stone (owner-bound) ───────────────────────────
+        if (owner != null) {
+            if (!owner.equals(sp.getUUID())) {
+                sp.sendSystemMessage(Component.literal("✗ This Class Stone was summoned for another. ")
+                    .withStyle(ChatFormatting.RED)
+                    .append(Component.literal("It will not answer you.")
+                        .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
+                level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 0.6f, 0.6f);
+                return InteractionResult.FAIL;
+            }
+            if (!kingdom.smp.game.RpgProgressionActions.hasPendingPromotion(sp)) {
+                // Owner has nothing to promote into — clean up the orphaned stone.
+                kingdom.smp.game.PromotionStoneSummoner.removeFor(sp);
+                return InteractionResult.SUCCESS;
+            }
+            PacketDistributor.sendToPlayer(sp, new OpenClassSelectionPayload());
+            level.playSound(null, pos, SoundEvents.ENCHANTMENT_TABLE_USE,
+                SoundSource.BLOCKS, 0.7f, 1.0f);
+            return InteractionResult.SUCCESS;
+        }
+
+        // ── Legacy unowned pedestal (PEASANT starter pick) ───────────────────
         PlayerKingdomRpgData rpg = sp.getData(ModAttachments.PLAYER_RPG.get());
         PlayerClass current = rpg.playerClass();
 

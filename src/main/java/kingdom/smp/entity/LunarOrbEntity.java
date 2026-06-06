@@ -47,8 +47,10 @@ public class LunarOrbEntity extends AbstractHurtingProjectile {
 
     public LunarOrbEntity(LivingEntity owner, Vec3 direction, Level level, float power) {
         super(kingdom.smp.ModEntities.LUNAR_ORB.get(), owner, direction, level);
-        this.accelerationPower = 0.04;
         this.power = power;
+        double speed = 1.0 + power * 3.5;
+        this.accelerationPower = speed * (1.0 - 0.97); // 0.97 is inertia
+        this.setDeltaMovement(direction.normalize().scale(speed));
     }
 
     @Override
@@ -82,23 +84,19 @@ public class LunarOrbEntity extends AbstractHurtingProjectile {
             sl.sendParticles(SILVER_DUST, pos.x, pos.y, pos.z, coreCount, coreSpread, coreSpread, coreSpread, 0);
             sl.sendParticles(BLUE_DUST, pos.x, pos.y, pos.z, 1 + (int) (this.power * 2), coreSpread * 0.8, coreSpread * 0.8, coreSpread * 0.8, 0);
 
-            // Spiraling end rod trail (moonlight wisps)
+            // Spiraling dust trail
             double a = this.lifeTicks * 0.7;
             double r = (0.3 + Math.sin(this.lifeTicks * 0.25) * 0.1) * s;
-            sl.sendParticles(ParticleTypes.END_ROD,
+            sl.sendParticles(SILVER_DUST,
                 pos.x + Math.cos(a) * r,
                 pos.y + Math.sin(a * 0.6) * 0.12 * s,
                 pos.z + Math.sin(a) * r,
                 1, 0, 0, 0, 0);
-            // Frost sparkle
-            if (this.lifeTicks % 3 == 0) {
-                double sparkleSpread = 0.3 * s;
-                sl.sendParticles(ParticleTypes.SNOWFLAKE,
-                    pos.x + (Math.random() - 0.5) * sparkleSpread,
-                    pos.y + (Math.random() - 0.5) * sparkleSpread,
-                    pos.z + (Math.random() - 0.5) * sparkleSpread,
-                    1, 0, 0, 0, 0.01);
-            }
+            sl.sendParticles(BLUE_DUST,
+                pos.x + Math.cos(a + Math.PI) * r * 0.8,
+                pos.y + Math.sin((a + Math.PI) * 0.6) * 0.12 * s,
+                pos.z + Math.sin(a + Math.PI) * r * 0.8,
+                1, 0, 0, 0, 0);
         }
 
         if (this.lifeTicks > 100) {
@@ -195,6 +193,12 @@ public class LunarOrbEntity extends AbstractHurtingProjectile {
                 e.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40 + (int) (this.power * 20), 0));
             }
         }
+
+        StaffZoneEntity zone = new StaffZoneEntity(kingdom.smp.ModEntities.STAFF_ZONE.get(), sl);
+        zone.setPos(pos);
+        zone.setZoneType(1);
+        zone.setRadius(blastRadius);
+        sl.addFreshEntity(zone);
     }
 
     /** Returns true if the owner is a player currently in a Mage-role class. */

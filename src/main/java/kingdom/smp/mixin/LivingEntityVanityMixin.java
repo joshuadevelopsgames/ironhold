@@ -1,8 +1,7 @@
 package kingdom.smp.mixin;
 
-import kingdom.smp.ModAttachments;
-import kingdom.smp.accessory.AccessoryInventory;
 import kingdom.smp.client.VanityCache;
+import kingdom.smp.item.VanityCosmeticItem;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -40,16 +39,16 @@ public abstract class LivingEntityVanityMixin {
 
         // Prefer attachment (updated immediately by container slot sync on this client);
         // VanityCache covers other players via SyncVanityPayload.
-        ItemStack vanity = ItemStack.EMPTY;
-        AccessoryInventory inv = player.getExistingDataOrNull(ModAttachments.ACCESSORY_INV.get());
-        if (inv != null) {
-            vanity = inv.getVanityForSlot(slot);
-        }
+        ItemStack vanity = VanityCache.resolve(player, slot);
         if (vanity.isEmpty()) {
-            vanity = VanityCache.getVanity(player.getUUID(), slot);
+            return;
         }
-        if (!vanity.isEmpty()) {
-            cir.setReturnValue(vanity);
+        // Additive accessories (halo, wings) overlay the armor instead of replacing it,
+        // so leave the real equipment visible — their render layer reads them off
+        // VanityAccessoryRenderState instead.
+        if (vanity.getItem() instanceof VanityCosmeticItem cosmetic && cosmetic.overlaysArmor()) {
+            return;
         }
+        cir.setReturnValue(vanity);
     }
 }

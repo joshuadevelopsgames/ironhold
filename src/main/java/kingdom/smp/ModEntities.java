@@ -24,10 +24,14 @@ import kingdom.smp.entity.SolarOrbEntity;
 import kingdom.smp.entity.ArcaneWizardEntity;
 import kingdom.smp.entity.HexBoltEntity;
 import kingdom.smp.entity.HoplingEntity;
+import kingdom.smp.entity.MoonHoplingEntity;
+import kingdom.smp.entity.ShroomlingEntity;
+import kingdom.smp.entity.MoonshroomEntity;
 import kingdom.smp.entity.KangarudeEntity;
 import kingdom.smp.entity.SpellBeamEntity;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.entity.TempestArrowEntity;
+import kingdom.smp.entity.StaffZoneEntity;
 import kingdom.smp.entity.ArcaneMageEntity;
 import kingdom.smp.entity.FilcherEntity;
 import kingdom.smp.entity.EnderVillagerEntity;
@@ -43,6 +47,7 @@ import kingdom.smp.entity.VoidInvokerEntity;
 import kingdom.smp.entity.BabyMimicEntity;
 import kingdom.smp.entity.MimicEntity;
 import kingdom.smp.entity.NullStalkerEntity;
+import kingdom.smp.entity.StoneGolemEntity;
 import kingdom.smp.entity.dragon.KingdomDragonEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -138,6 +143,21 @@ public final class ModEntities {
             MobCategory.MISC,
             b -> b.sized(0.1F, 0.1F).clientTrackingRange(64).updateInterval(20).noSummon());
 
+    public static final DeferredHolder<EntityType<?>, EntityType<StaffZoneEntity>> STAFF_ZONE =
+        ENTITY_TYPES.registerEntityType(
+            "staff_zone",
+            StaffZoneEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.1F, 0.1F).clientTrackingRange(64).updateInterval(2).noSummon());
+
+    // Visual-only terrain chunks flung up by the Battle Hammer ground slam.
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.SlamDebrisEntity>> SLAM_DEBRIS =
+        ENTITY_TYPES.registerEntityType(
+            "slam_debris",
+            kingdom.smp.entity.SlamDebrisEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.85F, 0.85F).clientTrackingRange(8).updateInterval(20).noSummon());
+
     public static final DeferredHolder<EntityType<?>, EntityType<TempestArrowEntity>> TEMPEST_ARROW_ENTITY =
         ENTITY_TYPES.registerEntityType(
             "tempest_arrow",
@@ -165,6 +185,13 @@ public final class ModEntities {
             NullStalkerEntity::new,
             MobCategory.MONSTER,
             b -> b.sized(0.6F, 2.9F).clientTrackingRange(10).updateInterval(3));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<StoneGolemEntity>> STONE_GOLEM =
+        ENTITY_TYPES.registerEntityType(
+            "stone_golem",
+            StoneGolemEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(1.6F, 3.9F).clientTrackingRange(10).updateInterval(3));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PinkDeerEntity>> PINK_DEER =
         ENTITY_TYPES.registerEntityType(
@@ -201,12 +228,41 @@ public final class ModEntities {
             MobCategory.CREATURE,
             b -> b.sized(0.9F, 0.9F).clientTrackingRange(8).updateInterval(2));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<MoonHoplingEntity>> MOON_HOPLING =
+        ENTITY_TYPES.registerEntityType(
+            "moon_hopling",
+            MoonHoplingEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.9F, 1.1F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ShroomlingEntity>> SHROOMLING =
+        ENTITY_TYPES.registerEntityType(
+            "shroomling",
+            ShroomlingEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.8F, 0.6F).clientTrackingRange(8).updateInterval(2));
+
+    /** Moonshroom — light-blue lunar mooshroom variant; spawns on moon regolith. */
+    public static final DeferredHolder<EntityType<?>, EntityType<MoonshroomEntity>> MOONSHROOM =
+        ENTITY_TYPES.registerEntityType(
+            "moonshroom",
+            MoonshroomEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.9F, 1.4F).clientTrackingRange(10).updateInterval(2));
+
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.RatEntity>> RAT =
         ENTITY_TYPES.registerEntityType(
             "rat",
             kingdom.smp.entity.RatEntity::new,
             MobCategory.CREATURE,
             b -> b.sized(0.35F, 0.2F).clientTrackingRange(8).updateInterval(2));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.VampireBatEntity>> VAMPIRE_BAT =
+        ENTITY_TYPES.registerEntityType(
+            "vampire_bat",
+            kingdom.smp.entity.VampireBatEntity::new,
+            MobCategory.AMBIENT,
+            b -> b.sized(0.5F, 0.9F).clientTrackingRange(8).updateInterval(2));
 
     public static final DeferredHolder<EntityType<?>, EntityType<WillOWispEntity>> WILL_O_WISP =
         ENTITY_TYPES.registerEntityType(
@@ -303,6 +359,14 @@ public final class ModEntities {
         ENTITY_TYPES.registerEntityType(
             "blacksmith_tobias",
             kingdom.smp.entity.BlacksmithTobiasEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** Doctor Corvus — raven-masked plague doctor. Sells buboes, cleanses afflictions for relics. Voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.PlagueDoctorEntity>> PLAGUE_DOCTOR =
+        ENTITY_TYPES.registerEntityType(
+            "plague_doctor",
+            kingdom.smp.entity.PlagueDoctorEntity::new,
             MobCategory.CREATURE,
             b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
 
@@ -507,6 +571,17 @@ public final class ModEntities {
             MobCategory.MISC,
             b -> b.sized(0.5F, 0.5F).clientTrackingRange(4).updateInterval(2).noSummon());
 
+    /** Wall-hung mirror — painting-like decoration entity; reflection rendered client-side. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.MirrorEntity>> MIRROR =
+        ENTITY_TYPES.registerEntityType(
+            "mirror",
+            kingdom.smp.entity.MirrorEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(kingdom.smp.entity.MirrorEntity.DEFAULT_WIDTH, kingdom.smp.entity.MirrorEntity.DEFAULT_HEIGHT)
+                  .eyeHeight(0.0F)
+                  .clientTrackingRange(10)
+                  .updateInterval(Integer.MAX_VALUE));
+
     public static void register(IEventBus modEventBus) {
         ENTITY_TYPES.register(modEventBus);
         modEventBus.addListener(ModEntities::registerEntityAttributes);
@@ -538,6 +613,7 @@ public final class ModEntities {
                 .add(Attributes.SCALE, 1.0)
                 .build());
         event.put(NULL_STALKER.get(), NullStalkerEntity.createAttributes().build());
+        event.put(STONE_GOLEM.get(), StoneGolemEntity.createAttributes().build());
         event.put(ARCANE_MAGE.get(), ArcaneMageEntity.createAttributes().build());
         event.put(FILCHER.get(), FilcherEntity.createAttributes().build());
         event.put(POSSESSED_ARMOR.get(), PossessedArmorEntity.createAttributes().build());
@@ -569,6 +645,7 @@ public final class ModEntities {
         event.put(CEMETERY_WATCHER.get(), kingdom.smp.entity.CemeteryWatcherEntity.createAttributes().build());
         event.put(MIRA_INNKEEPER.get(), kingdom.smp.entity.MiraInnkeeperEntity.createAttributes().build());
         event.put(BLACKSMITH_TOBIAS.get(), kingdom.smp.entity.BlacksmithTobiasEntity.createAttributes().build());
+        event.put(PLAGUE_DOCTOR.get(), kingdom.smp.entity.PlagueDoctorEntity.createAttributes().build());
         event.put(PRIEST_CEDRIC.get(), kingdom.smp.entity.PriestCedricEntity.createAttributes().build());
         event.put(OLD_HESTA.get(), kingdom.smp.entity.OldHestaEntity.createAttributes().build());
         event.put(OLD_BEREN.get(), kingdom.smp.entity.OldBerenEntity.createAttributes().build());
@@ -586,7 +663,11 @@ public final class ModEntities {
         event.put(RARE_PINK_DEER.get(), PinkDeerEntity.createAttributes().build());
         event.put(MOM_PINK_DEER.get(), MomPinkDeerEntity.createAttributes().build());
         event.put(HOPLING.get(), HoplingEntity.createAttributes().build());
+        event.put(MOON_HOPLING.get(), MoonHoplingEntity.createAttributes().build());
+        event.put(SHROOMLING.get(), ShroomlingEntity.createAttributes().build());
+        event.put(MOONSHROOM.get(), net.minecraft.world.entity.animal.cow.Cow.createAttributes().build());
         event.put(RAT.get(), kingdom.smp.entity.RatEntity.createAttributes().build());
+        event.put(VAMPIRE_BAT.get(), kingdom.smp.entity.VampireBatEntity.createAttributes().build());
     }
 
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -597,13 +678,41 @@ public final class ModEntities {
             Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             Animal::checkAnimalSpawnRules,
             RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Moon Hopling — rarer celestial cousin; same End-island ground spawn rules
+        event.register(
+            MOON_HOPLING.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            Animal::checkAnimalSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Shroomling — passive cave mushroom; ground spawn at any light level
+        event.register(
+            SHROOMLING.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            ShroomlingEntity::checkShroomlingSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Moonshroom — lunar mooshroom; ground spawn on moon regolith at any light level
+        event.register(
+            MOONSHROOM.get(),
+            SpawnPlacementTypes.ON_GROUND,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            MoonshroomEntity::checkMoonshroomSpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
         // Rat — vermin, ground spawn at night under standard animal rules
         event.register(
             RAT.get(),
             SpawnPlacementTypes.ON_GROUND,
-            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             kingdom.smp.entity.RatEntity::checkRatSpawnRules,
-            RegisterSpawnPlacementsEvent.Operation.REPLACE);
+            net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Vampire Bat — flying mob in dark caves
+        event.register(
+            VAMPIRE_BAT.get(),
+            SpawnPlacementTypes.NO_RESTRICTIONS,
+            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            kingdom.smp.entity.VampireBatEntity::checkVampireBatSpawnRules,
+            net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent.Operation.REPLACE);
         // Pink Deer — passive animal, spawns on grass in daylight
         event.register(
             PINK_DEER.get(),

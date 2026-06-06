@@ -1,34 +1,47 @@
 package kingdom.smp.effect;
 
+import kingdom.smp.Ironhold;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Slimed — the goop a Slime Pet leaves on whatever it bites.
  *
- * <p>For its (short) duration it pins the victim down: strong, hidden Slowness plus a
- * deeply-negative Jump Boost so the jump impulse goes negative and they can't leave the
- * ground. The visible cue is a cloud of pink ooze dust. Applied for 60 ticks (3s).
- *
- * <p>The vanilla Slowness/Jump re-applications are kept hidden (no icon, no swirl) so the
- * only thing the player sees in their effect list is "Slimed".
+ * <p>For its short duration it makes movement sticky: a movement-speed attribute modifier
+ * handles ordinary walking, and the tick handler damps momentum plus clips upward jump
+ * velocity into a weak hop instead of stacking hidden vanilla effects.
  */
 public class SlimedEffect extends MobEffect {
 
     /** Hot-pink ooze. */
     private static final int PINK = 0xFF6EC7;
     private static final DustParticleOptions OOZE = new DustParticleOptions(0xFF000000 | PINK, 1.2F);
-
-    /** Negative jump boost — 0.1 * (amp + 1) = -12.7, well below the 0.42 base jump impulse. */
-    private static final int JUMP_LOCK_AMPLIFIER = -128;
+    private static final Identifier SLIMED_MOVEMENT =
+        Identifier.fromNamespaceAndPath(Ironhold.MODID, "slimed_movement");
+    private static final double WALK_STEP_DISTANCE_SQR = 0.58 * 0.58;
+    private static final Map<UUID, StepSoundState> STEP_SOUNDS = new ConcurrentHashMap<>();
 
     public SlimedEffect() {
         super(MobEffectCategory.HARMFUL, PINK);
+        this.addAttributeModifier(
+            Attributes.MOVEMENT_SPEED,
+            SLIMED_MOVEMENT,
+            -0.55,
+            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
     }
 
     @Override
@@ -38,9 +51,13 @@ public class SlimedEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(ServerLevel level, LivingEntity entity, int amplifier) {
-        // Keep the mechanics fresh each tick; they expire a few ticks after Slimed ends.
-        entity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 5, 3, true, false, false));
-        entity.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, 5, JUMP_LOCK_AMPLIFIER, true, false, false));
+        Vec3 motion = entity.getDeltaMovement();
+        double horizontalDamp = entity.onGround() ? 0.74 : 0.88;
+        double y = motion.y;
+        if (y > 0.12) {
+            y = 0.12;
+        }
+        entity.setDeltaMovement(motion.x * horizontalDamp, y, motion.z * horizontalDamp);
 
         if (level.getGameTime() % 4 == 0) {
             double dx = (level.getRandom().nextDouble() - 0.5) * entity.getBbWidth();
@@ -51,5 +68,47 @@ public class SlimedEffect extends MobEffect {
                 2, 0.0, 0.02, 0.0, 0.0);
         }
         return true;
+    }
+
+    public static void tickPlayerStepSound(ServerLevel level, Player player) {
+        if (!player.hasEffect(kingdom.smp.ModEffects.SLIMED_EFFECT)) {
+            STEP_SOUNDS.remove(player.getUUID());
+            return;
+        }
+        StepSoundState state = STEP_SOUNDS.computeIfAbsent(player.getUUID(),
+            ignored -> new StepSoundState(player.getX(), player.getZ(), 0.0));
+        if (!player.onGround() || player.isPassenger()) {
+            state.lastX = player.getX();
+            state.lastZ = player.getZ();
+            state.distanceSqr = 0.0;
+            return;
+        }
+        double dx = player.getX() - state.lastX;
+        double dz = player.getZ() - state.lastZ;
+        state.lastX = player.getX();
+        state.lastZ = player.getZ();
+        double movedSqr = dx * dx + dz * dz;
+        if (movedSqr < 1.0e-5) {
+            return;
+        }
+        state.distanceSqr += movedSqr;
+        if (state.distanceSqr >= WALK_STEP_DISTANCE_SQR) {
+            state.distanceSqr = 0.0;
+            level.playSound(null, player.getX(), player.getY(), player.getZ(),
+                SoundEvents.SLIME_SQUISH, SoundSource.PLAYERS, 0.35F,
+                0.85F + level.getRandom().nextFloat() * 0.25F);
+        }
+    }
+
+    private static final class StepSoundState {
+        double lastX;
+        double lastZ;
+        double distanceSqr;
+
+        StepSoundState(double lastX, double lastZ, double distanceSqr) {
+            this.lastX = lastX;
+            this.lastZ = lastZ;
+            this.distanceSqr = distanceSqr;
+        }
     }
 }

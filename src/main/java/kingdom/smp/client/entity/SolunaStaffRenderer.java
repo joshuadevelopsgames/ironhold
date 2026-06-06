@@ -6,6 +6,7 @@ import com.geckolib.constant.DataTickets;
 import com.geckolib.renderer.GeoItemRenderer;
 import com.geckolib.renderer.base.GeoRenderState;
 import com.geckolib.renderer.base.RenderPassInfo;
+import com.geckolib.renderer.layer.builtin.AutoGlowingGeoLayer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
@@ -20,6 +21,7 @@ public class SolunaStaffRenderer extends GeoItemRenderer<SolunaStaffItem> {
 
     public SolunaStaffRenderer() {
         super(new SolunaStaffModel());
+        withRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override

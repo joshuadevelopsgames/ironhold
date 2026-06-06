@@ -56,8 +56,46 @@ public final class KangarudePlayerListSync {
         String name = nameFor(mode);
         LISTED.put(profileId, new Listing(profileId, name, mode));
 
+        // Don't show the synthetic entry while a real player with the same name
+        // is online — otherwise the tab list shows two identical "Kangarude"
+        // rows. It's restored automatically when that player logs off
+        // (onRealPlayerLeave). The listing stays tracked either way.
+        if (isNameOnline(server, name)) return;
+
         ClientboundPlayerInfoUpdatePacket pkt = buildAddPacket(profileId, name);
         server.getPlayerList().getPlayers().forEach(p -> p.connection.send(pkt));
+    }
+
+    /** True if a real, connected player currently uses this name. */
+    private static boolean isNameOnline(MinecraftServer server, String name) {
+        return server.getPlayerList().getPlayerByName(name) != null;
+    }
+
+    /**
+     * When a real player joins, hide any synthetic entry that shares their name
+     * so only one row shows. The listing stays tracked and is restored when the
+     * real player logs off.
+     */
+    public static void onRealPlayerJoin(MinecraftServer server, ServerPlayer joining) {
+        if (server == null || joining == null) return;
+        String name = joining.getGameProfile().name();
+        for (Listing listing : LISTED.values()) {
+            if (!listing.displayName().equals(name)) continue;
+            ClientboundPlayerInfoRemovePacket pkt =
+                new ClientboundPlayerInfoRemovePacket(List.of(listing.profileId()));
+            server.getPlayerList().getPlayers().forEach(p -> p.connection.send(pkt));
+        }
+    }
+
+    /** When a real player leaves, restore any synthetic entry that shares their name. */
+    public static void onRealPlayerLeave(MinecraftServer server, ServerPlayer leaving) {
+        if (server == null || leaving == null) return;
+        String name = leaving.getGameProfile().name();
+        for (Listing listing : LISTED.values()) {
+            if (!listing.displayName().equals(name)) continue;
+            ClientboundPlayerInfoUpdatePacket pkt = buildAddPacket(listing.profileId(), listing.displayName());
+            server.getPlayerList().getPlayers().forEach(p -> p.connection.send(pkt));
+        }
     }
 
     /** Broadcast a REMOVE entry to every online player. */
@@ -73,7 +111,10 @@ public final class KangarudePlayerListSync {
     /** Re-send every currently-listed entry to a player who just logged in. */
     public static void resendAllTo(ServerPlayer player) {
         if (player == null) return;
+        MinecraftServer server = player.level().getServer();
         for (Listing listing : LISTED.values()) {
+            // Skip synthetic entries whose name is taken by an online real player.
+            if (server != null && isNameOnline(server, listing.displayName())) continue;
             player.connection.send(buildAddPacket(listing.profileId, listing.displayName));
         }
     }

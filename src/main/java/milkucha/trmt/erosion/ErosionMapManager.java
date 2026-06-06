@@ -61,6 +61,8 @@ public class ErosionMapManager {
 
     public void onStep(BlockPos worldPos, Block block, float amount, long currentGameTime) {
         if (state == null) return;
+        // Honeycomb-waxed blocks are sealed against walk erosion (Ironhold feature).
+        if (kingdom.smp.honeycomb.HoneycombWax.isErosionProtected(server, worldPos)) return;
         ChunkPos chunkPos = ChunkPos.containing(worldPos);
         ChunkErosionMap map = state.computeChunkMap(chunkPos);
         map.recordStep(worldPos, block, amount, currentGameTime);

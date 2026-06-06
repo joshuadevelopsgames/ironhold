@@ -5,9 +5,11 @@ import kingdom.smp.net.RespecSkillPayload;
 import kingdom.smp.net.SpendSkillPointPayload;
 import kingdom.smp.skill.ClientSkillData;
 import kingdom.smp.skill.ClientUseSkillData;
+import kingdom.smp.skill.MiningGating;
 import kingdom.smp.skill.Profession;
 import kingdom.smp.skill.ProfessionRank;
 import kingdom.smp.skill.useskill.UseSkill;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -95,12 +97,20 @@ public class SkillTreeScreen extends Screen {
     private static final int BAR_FILL   = 0xFF5FCF66;
     private static final int BAR_MAXED  = 0xFFE0B83A;
 
-    private static final String[] TAB_LABELS = { "Mastery", "Practice" };
+    // ── Gate-ladder colors ───────────────────────────────────────────────
+    private static final int GATE_RAIL_DONE   = 0xFFD9A53A;
+    private static final int GATE_RAIL_LOCKED = 0xFF777777;
+    private static final int GATE_ROW_CURRENT = 0x553FAE4D;
+    private static final int GATE_VEIL        = 0xC8101014;
+
+    private static final String[] TAB_LABELS = { "Mastery", "Practice", "Gates" };
     private static final int TAB_MASTERY = 0;
     private static final int TAB_PRACTICE = 1;
+    private static final int TAB_GATES = 2;
 
     private final Map<Profession, ItemStack> icons = new EnumMap<>(Profession.class);
     private final Map<UseSkill, ItemStack> useSkillIcons = new EnumMap<>(UseSkill.class);
+    private final List<List<ItemStack>> gateIcons = new ArrayList<>();
     private final @Nullable Screen returnTo;
 
     private int activeTab = TAB_MASTERY;
@@ -123,6 +133,12 @@ public class SkillTreeScreen extends Screen {
         useSkillIcons.put(UseSkill.PICKPOCKET, new ItemStack(Items.GOLD_INGOT));
         useSkillIcons.put(UseSkill.SNEAK,      new ItemStack(Items.LEATHER_BOOTS));
         useSkillIcons.put(UseSkill.FISHING,    new ItemStack(Items.FISHING_ROD));
+
+        for (MiningGating.GateTier tier : MiningGating.tiers()) {
+            List<ItemStack> stacks = new ArrayList<>();
+            for (ItemLike it : tier.icons()) stacks.add(new ItemStack(it));
+            gateIcons.add(stacks);
+        }
     }
 
     private int panelX() { return (width - PANEL_WIDTH) / 2; }
@@ -190,11 +206,18 @@ public class SkillTreeScreen extends Screen {
                     ? COLOR_OK : COLOR_TEXT_DIM;
             int unspentX = px + PANEL_WIDTH - 12 - font.width(unspentLabel);
             gfx.text(font, unspentLabel, unspentX, py + TAB_TOP + 4, unspentColor, false);
+        } else if (activeTab == TAB_GATES) {
+            ProfessionRank mining = ClientSkillData.rankFor(Profession.MINING);
+            String label = "Mining: " + (mining == null ? "Untrained" : mining.displayName());
+            int labelX = px + PANEL_WIDTH - 12 - font.width(label);
+            gfx.text(font, label, labelX, py + TAB_TOP + 4,
+                    mining == null ? COLOR_TEXT_DIM : COLOR_MAXED, false);
         }
 
         gfx.fill(px + 8, py + 25, px + PANEL_WIDTH - 8, py + 26, COLOR_HEADER_RULE);
 
         HoverTarget hover = null;
+        List<Component> gateTip = null;
         if (activeTab == TAB_MASTERY) {
             int rowY = py + CONTENT_TOP;
             int rowIndex = 0;
@@ -204,8 +227,10 @@ public class SkillTreeScreen extends Screen {
                 rowY += ROW_HEIGHT;
                 rowIndex++;
             }
-        } else {
+        } else if (activeTab == TAB_PRACTICE) {
             renderPractice(gfx, px, py + CONTENT_TOP);
+        } else {
+            gateTip = renderGates(gfx, px, py + CONTENT_TOP, mouseX, mouseY);
         }
 
         super.extractRenderState(gfx, mouseX, mouseY, partialTick);
@@ -213,6 +238,8 @@ public class SkillTreeScreen extends Screen {
         // Tooltip pass — drawn on top of everything else
         if (hover != null) {
             renderNodeTooltip(gfx, hover, mouseX, mouseY);
+        } else if (gateTip != null) {
+            drawTooltipBox(gfx, gateTip, mouseX + 12, mouseY - 6);
         }
     }
 
@@ -246,6 +273,107 @@ public class SkillTreeScreen extends Screen {
 
             y += rowH;
         }
+    }
+
+    // ── Gates tab (mining ore ladder) ──────────────────────────────────────
+
+    /**
+     * Vertical "gate ladder": one rung per mining tier, from the free baseline up to the
+     * Veinbreaker capstone. Reached rungs show bright ore icons + a green requirement label;
+     * locked rungs dim the ore icons behind a gold padlock and show the rank still needed.
+     * The player's current rung is highlighted. Returns the tooltip for a hovered rung, if any.
+     */
+    private List<Component> renderGates(GuiGraphicsExtractor gfx, int px, int top, int mouseX, int mouseY) {
+        if (!ClientSkillData.hasReceived()) {
+            gfx.text(font, "loading...", px + 12, top + 4, COLOR_TEXT_DIM, false);
+            return null;
+        }
+        List<MiningGating.GateTier> tiers = MiningGating.tiers();
+        ProfessionRank mining = ClientSkillData.rankFor(Profession.MINING);
+        int miningOrder = mining == null ? -1 : mining.order();
+
+        int rowH = 29;
+        int railX = px + 22;
+        int rowLeft = px + 6;
+        int rowRight = px + PANEL_WIDTH - 6;
+
+        List<Component> tip = null;
+        int prevCenterY = -1;
+
+        for (int i = 0; i < tiers.size(); i++) {
+            MiningGating.GateTier tier = tiers.get(i);
+            int y = top + 2 + i * rowH;
+            int nodeY = y + 9;
+            int centerY = nodeY + 5;
+
+            boolean unlocked = tier.isFree() || (mining != null && miningOrder >= tier.rank().order());
+            boolean isCurrent = tier.isFree() ? mining == null : mining == tier.rank();
+
+            // Rail segment leading up from the previous rung — gold once this rung is reached.
+            if (prevCenterY >= 0) {
+                gfx.fill(railX + 4, prevCenterY, railX + 6, centerY,
+                        unlocked ? GATE_RAIL_DONE : GATE_RAIL_LOCKED);
+            }
+
+            boolean rowHovered = mouseY >= y && mouseY < y + rowH - 1
+                    && mouseX >= rowLeft && mouseX < rowRight;
+            if (isCurrent)        gfx.fill(rowLeft, y, rowRight, y + rowH - 1, GATE_ROW_CURRENT);
+            else if (rowHovered)  gfx.fill(rowLeft, y, rowRight, y + rowH - 1, COLOR_ROW_ALT);
+
+            if (unlocked) drawBeveledNode(gfx, railX, nodeY, 11, NODE_UNLOCK_FILL, NODE_UNLOCK_HI, NODE_UNLOCK_LO);
+            else          drawBeveledNode(gfx, railX, nodeY, 11, NODE_LOCKED_FILL, NODE_LOCKED_HI, NODE_LOCKED_LO);
+
+            String title = tier.isFree() ? "Open" : tier.rank().displayName();
+            int titleColor = isCurrent ? COLOR_MAXED : (unlocked ? COLOR_OK : COLOR_NO);
+            gfx.text(font, title, railX + 18, y + 4, titleColor, false);
+            gfx.text(font, tier.label(), railX + 18, y + 15, COLOR_TEXT_DIM, false);
+
+            // Ore icons, right-aligned.
+            List<ItemStack> stacks = gateIcons.get(i);
+            int iconY = y + (rowH - 16) / 2;
+            int ix = rowRight - 8 - (stacks.size() * 18 - 2);
+            for (ItemStack stack : stacks) {
+                gfx.item(stack, ix, iconY);
+                if (!unlocked) {
+                    gfx.fill(ix, iconY, ix + 16, iconY + 16, GATE_VEIL);
+                    drawPadlock(gfx, ix + 4, iconY + 4);
+                }
+                ix += 18;
+            }
+
+            if (rowHovered) tip = gateTooltip(tier, unlocked);
+            prevCenterY = centerY;
+        }
+        return tip;
+    }
+
+    private static List<Component> gateTooltip(MiningGating.GateTier tier, boolean unlocked) {
+        List<Component> lines = new ArrayList<>();
+        String head = tier.isFree() ? "Open Mining"
+                : tier.isPerk() ? "Veinbreaker"
+                : tier.rank().displayName() + " Gate";
+        lines.add(Component.literal(head)
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)));
+        if (unlocked) {
+            lines.add(Component.literal(tier.isPerk() ? "Active — veins chain-mine." : "Unlocked — you can mine these.")
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
+        } else {
+            lines.add(Component.literal("Locked — reach Mining " + tier.rank().displayName())
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+        }
+        lines.add(Component.literal(tier.label()).withStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
+        return lines;
+    }
+
+    /** Small gold padlock badge (~8×8) drawn over a locked ore icon. */
+    private static void drawPadlock(GuiGraphicsExtractor gfx, int x, int y) {
+        int shackle = 0xFFE8E8E8;
+        gfx.fill(x + 2, y, x + 6, y + 1, shackle);        // top bar
+        gfx.fill(x + 2, y, x + 3, y + 3, shackle);        // left arm
+        gfx.fill(x + 5, y, x + 6, y + 3, shackle);        // right arm
+        gfx.outline(x, y + 3, 8, 5, 0xFF000000);          // body border
+        gfx.fill(x + 1, y + 4, x + 7, y + 7, 0xFFE0B83A); // gold body
+        gfx.fill(x + 3, y + 5, x + 5, y + 7, 0xFF5A4510); // keyhole
     }
 
     // ── Mastery tab (profession perk trees) ────────────────────────────────

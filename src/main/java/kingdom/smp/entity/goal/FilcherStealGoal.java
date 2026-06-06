@@ -26,8 +26,8 @@ import java.util.EnumSet;
  * After a successful steal, sprint to cover. If spotted mid-approach, freeze for
  * 1–2 seconds; if still spotted after that, abandon and let other goals take over.
  *
- * <p>Kings (filchers wearing FILCHER_CROWN) bypass the post-failure cooldown so
- * they're more aggressive than the rest of the pack.
+ * <p>Kings bypass the post-failure cooldown so they're more aggressive than the
+ * rest of the pack.
  */
 public class FilcherStealGoal extends Goal {
 
@@ -261,8 +261,8 @@ public class FilcherStealGoal extends Goal {
         if (filcher.level().isClientSide()) return;
         var inventory = target.getInventory();
 
-        // First pass: always grab Fool's Gold if present
-        for (int i = 0; i < 9; i++) {
+        // First pass: always grab Fool's Gold if present (check entire main inventory, not just hotbar)
+        for (int i = 0; i < 36; i++) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty() && FilcherEntity.isFoolsGold(stack)) {
                 executeSteal(inventory, i, stack);

@@ -3,6 +3,7 @@ package kingdom.smp.entity;
 import java.util.UUID;
 
 import kingdom.smp.Ironhold;
+import kingdom.smp.ModParticles;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -121,7 +122,7 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
 
             double a = this.lifeTicks * 0.9;
             double r = 0.35 + Math.sin(this.lifeTicks * 0.35) * 0.12;
-            sl.sendParticles(ParticleTypes.END_ROD,
+            sl.sendParticles(ModParticles.DIAMOND_SCEPTER_SPARK.get(),
                 pos.x + Math.cos(a) * r,
                 pos.y + Math.sin(a * 0.7) * 0.15,
                 pos.z + Math.sin(a) * r,
@@ -168,7 +169,7 @@ public class ArcaneOrbEntity extends AbstractHurtingProjectile {
         boolean playerShot = this.getOwner() instanceof net.minecraft.world.entity.player.Player;
         double scale = playerShot ? 1.8 : 1.0;
         sl.sendParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y, pos.z, 1, 0, 0, 0, 0);
-        sphereOut(sl, pos, ParticleTypes.END_ROD, (int)(28 * scale), 0.85 * scale, 0.22);
+        sphereOut(sl, pos, ModParticles.DIAMOND_SCEPTER_SPARK.get(), (int)(28 * scale), 0.85 * scale, 0.22);
         sphereOut(sl, pos, ParticleTypes.REVERSE_PORTAL, (int)(22 * scale), 1.0 * scale, 0.28);
         burst(sl, pos, dust(128, 52, 240, 1.8F), (int)(14 * scale), 0.35 * scale, 0.35 * scale, 0.35 * scale, 0.04);
         this.playSound(SoundEvents.WITHER_SHOOT, playerShot ? 0.5F : 0.35F, 1.5F);

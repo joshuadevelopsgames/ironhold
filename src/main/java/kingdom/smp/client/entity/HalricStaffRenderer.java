@@ -7,9 +7,9 @@ import com.geckolib.animation.state.BoneSnapshot;
 import com.geckolib.cache.model.BakedGeoModel;
 import com.geckolib.constant.DataTickets;
 import com.geckolib.renderer.GeoItemRenderer;
+import com.geckolib.renderer.layer.builtin.AutoGlowingGeoLayer;
 import com.geckolib.renderer.base.GeoRenderState;
 import com.geckolib.renderer.base.RenderPassInfo;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.util.Mth;
@@ -17,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
@@ -29,8 +28,15 @@ import org.joml.Vector3f;
  */
 public class HalricStaffRenderer extends GeoItemRenderer<HalricStaffItem> {
 
+    /** Third-person verlet swing damping, matched to first-person's 0.4 swingScale. */
+    private static final float THIRD_PERSON_SWING_SCALE = 0.4f;
+
     public HalricStaffRenderer() {
         super(new HalricStaffModel());
+        // Emissive lantern: renders pixels from halric_staff_glowmask.png at full
+        // brightness so the lantern glows in the dark. The glowmask masks everything
+        // except the lantern's warm pixels.
+        withRenderLayer(new AutoGlowingGeoLayer<>(this));
     }
 
     @Override
@@ -144,11 +150,27 @@ public class HalricStaffRenderer extends GeoItemRenderer<HalricStaffItem> {
 
     /**
      * Converts the verlet rope's world-space direction into a chain_link_1
-     * rotation, using the actual pose-stack matrix to handle the unknown
-     * arm-bone transform that breaks analytical Euler bias for third-person.
+     * rotation. Uses the player's body yaw (not camera rotation) to convert
+     * world → model space, so that head/camera look never affects the chain
+     * in third person. Works correctly for both back and front third-person views.
+     *
+     * <p>The raw verlet direction is fed through a spring-damper (same style as
+     * {@link HalricStaffChainPhysics}) so that sudden movements like jumps
+     * produce smooth organic chain motion instead of snapping.
      */
+
+    // Spring-damper state for smoothing the verlet → bone output.
+    // Matched to HalricStaffChainPhysics's SPRING/DAMPING for consistent feel.
+    private static final float TP_SPRING  = 0.18f;
+    private static final float TP_DAMPING = 0.82f;
+    private static float smoothRotX = 0f, smoothRotZ = 0f;
+    private static float omegaRotX  = 0f, omegaRotZ  = 0f;
+
     private void applyVerletToBones(RenderPassInfo<GeoRenderState> renderPassInfo) {
         if (HalricStaffRopePhysics.getParticleWorld(0).equals(Vec3.ZERO)) return;
+
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
 
         var ps = renderPassInfo.poseStack();
 
@@ -160,35 +182,66 @@ public class HalricStaffRenderer extends GeoItemRenderer<HalricStaffItem> {
         if (dlen < 1e-6) return;
         dirWorld = dirWorld.scale(1.0 / dlen);
 
-        // Convert world direction → camera-relative via inverse camera rotation.
-        // Camera.rotation() is local-to-world (camera-frame → world), so inverting
-        // gives world → camera.
-        Camera cam = Minecraft.getInstance().gameRenderer.getMainCamera();
-        Quaternionf invCamRot = new Quaternionf(cam.rotation()).invert();
-        Vector3f dir = new Vector3f((float) dirWorld.x, (float) dirWorld.y, (float) dirWorld.z);
-        invCamRot.transform(dir);
-
-        // Convert camera-relative → model-local via inverse pose-stack rotation.
-        // ps.last().pose() at this point is model-to-camera (display transforms
-        // applied), so its inverse maps the camera-frame direction back into
-        // model-local — the parent frame of chain_link_1.
+        // The pose stack in Minecraft 1.15+ contains the full Model → World transform
+        // (ignoring camera translation, which is subtracted at the root).
+        // Therefore, its inverse directly transforms World space to Model space.
+        // This elegantly handles body yaw, arm swinging, and the display transform
+        // all at once, without leaking camera rotation (which was the root cause
+        // of the previous bugs).
         Matrix3f poseRotInv = new Matrix3f(ps.last().pose()).invert();
+
+        // Convert world direction into raw model space.
+        Vector3f dir = new Vector3f((float) dirWorld.x, (float) dirWorld.y, (float) dirWorld.z);
         poseRotInv.transform(dir);
 
-        // Decompose target direction into chain_link_1's Euler X+Z bone rotation.
+        // Convert resting direction (world-down) into raw model space.
+        Vector3f rest = new Vector3f(0f, -1f, 0f);
+        poseRotInv.transform(rest);
+
+        // Swing is the deviation from resting down. Because poseRotInv correctly
+        // mapped world directions into the staff's local coordinate space,
+        // swing.x and swing.z already represent the front/back and left/right
+        // sway relative to the staff. No manual axis swapping or polarity flipping is needed!
+        Vector3f swing = new Vector3f(dir).sub(rest);
+
+        // Dampen the swing to match first-person intensity (HalricStaffChainPhysics
+        // uses swingScale 0.4). Rest is preserved when swing is zero.
+        Vector3f target = new Vector3f(rest).add(swing.mul(THIRD_PERSON_SWING_SCALE));
+        if (target.lengthSquared() > 1e-8f) target.normalize();
+
+        // Decompose target into Euler X+Z — this is the raw "goal" the spring chases.
         // GeckoLib applies bone rotation as Mojang's Z·Y·X-on-vertex convention,
         // so for setRotation(α, 0, β) the chain's local -Y maps to:
         //   R_Z(β)·R_Y(0)·R_X(α)·(0, -1, 0) = (cos α sin β, -cos α cos β, -sin α)
-        // Decompose: α = asin(-dir.z); β = atan2(dir.x, -dir.y).
-        float rotX = (float) Math.asin(Mth.clamp(-dir.z, -1f, 1f));
-        float rotZ = (float) Math.atan2(dir.x, -dir.y);
+        // Decompose: α = asin(-target.z); β = atan2(target.x, -target.y).
+        float targetRotX = (float) Math.asin(Mth.clamp(-target.z, -1f, 1f));
+        float targetRotZ = (float) Math.atan2(target.x, -target.y);
 
-        // Apply to chain_link_1; zero out the other links (rigid chain for now,
-        // per-link bending is a follow-up).
+        // Clamp the target rotation to match first-person's intensity limit.
+        // First-person clamps each link to LAG_PER_LINK_DEG (7 degrees). Since
+        // we're applying the full verlet target to chain_link_1 (which then propagates
+        // down the hierarchy), we need to cap the maximum angle it can chase so it
+        // doesn't swing too far out during intense movement like jumps.
+        // We'll use 45 degrees as a reasonable upper bound for the top link's sway.
+        final float MAX_SWAY_RAD = 45f * Mth.DEG_TO_RAD;
+        targetRotX = Mth.clamp(targetRotX, -MAX_SWAY_RAD, MAX_SWAY_RAD);
+        targetRotZ = Mth.clamp(targetRotZ, -MAX_SWAY_RAD, MAX_SWAY_RAD);
+
+        // Spring-damper: smoothly converge toward the verlet target, matching
+        // first-person's HalricStaffChainPhysics approach. The spring has inertia
+        // (omega) so jumps and sudden movements produce organic overshoot and
+        // settling instead of snapping.
+        omegaRotX = (omegaRotX + (targetRotX - smoothRotX) * TP_SPRING) * TP_DAMPING;
+        omegaRotZ = (omegaRotZ + (targetRotZ - smoothRotZ) * TP_SPRING) * TP_DAMPING;
+        smoothRotX += omegaRotX;
+        smoothRotZ += omegaRotZ;
+
+        // Apply the smoothed rotation to chain_link_1; zero out the other links
+        // (rigid chain for now, per-link bending is a follow-up).
         BakedGeoModel baked = renderPassInfo.model();
         baked.getBone("chain_link_1").ifPresent(bone -> {
             if (bone.frameSnapshot == null) bone.frameSnapshot = BoneSnapshot.create(bone);
-            bone.frameSnapshot.setRotation(rotX, 0f, rotZ);
+            bone.frameSnapshot.setRotation(smoothRotX, 0f, smoothRotZ);
         });
         for (int i = 2; i <= HalricStaffRopePhysics.LINKS; i++) {
             final String boneName = "chain_link_" + i;

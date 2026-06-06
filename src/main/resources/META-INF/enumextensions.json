@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "ironhold_BATTLE_HAMMER_CHARGE",
+      "constructor": "(ZZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "kingdom/smp/client/entity/BattleHammerArmPose",
+        "field": "CHARGE_POSE"
+      }
+    }
+  ]
+}

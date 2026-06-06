@@ -182,7 +182,7 @@ public final class OllamaClient {
                     JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
 
                     if (!root.has("choices")) {
-                        Ironhold.LOGGER.warn("[VoidInvoker] Unexpected OpenRouter response: {}", response.body());
+                        Ironhold.LOGGER.warn("[VoidInvoker] Unexpected OpenRouter response: {}", AiLog.snippet(response.body()));
                         onResult.accept(VoidResponse.fallback());
                         return;
                     }
@@ -264,7 +264,7 @@ public final class OllamaClient {
                 try {
                     JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
                     if (!root.has("choices")) {
-                        Ironhold.LOGGER.warn("[LLM] Unexpected response body: {}", response.body());
+                        Ironhold.LOGGER.warn("[LLM] Unexpected response body: {}", AiLog.snippet(response.body()));
                         onResult.accept(null);
                         return;
                     }
@@ -329,7 +329,7 @@ public final class OllamaClient {
                 try {
                     JsonObject root = JsonParser.parseString(response.body()).getAsJsonObject();
                     if (!root.has("choices")) {
-                        Ironhold.LOGGER.warn("[NullStalker] Unexpected response: {}", response.body());
+                        Ironhold.LOGGER.warn("[NullStalker] Unexpected response: {}", AiLog.snippet(response.body()));
                         onResult.accept(VoidResponse.fallback());
                         return;
                     }

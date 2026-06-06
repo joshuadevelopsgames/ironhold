@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "axis=x": { "model": "ironhold:block/stripped_chinese_cedar_wood", "x": 90, "y": 90 },
+    "axis=y": { "model": "ironhold:block/stripped_chinese_cedar_wood" },
+    "axis=z": { "model": "ironhold:block/stripped_chinese_cedar_wood", "x": 90 }
+  }
+}

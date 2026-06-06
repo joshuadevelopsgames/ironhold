@@ -29,10 +29,10 @@ public class ErodedSandBlock extends Block {
 
     private static final VoxelShape[] COLLISION_SHAPES = {
         Block.box(0, 0, 0, 16, 16, 16), // stage 0 — full height
-        Block.box(0, 0, 0, 16, 10, 16), // stage 1
-        Block.box(0, 0, 0, 16, 10, 16), // stage 2
-        Block.box(0, 0, 0, 16, 10, 16), // stage 3
-        Block.box(0, 0, 0, 16, 10, 16), // stage 4
+        Block.box(0, 0, 0, 16, 14, 16), // stage 1 — match outline height for placement
+        Block.box(0, 0, 0, 16, 14, 16), // stage 2 — match outline height for placement
+        Block.box(0, 0, 0, 16, 12, 16), // stage 3 — match outline height for placement
+        Block.box(0, 0, 0, 16, 10, 16), // stage 4 — match outline height for placement
     };
 
     private static final VoxelShape[] OUTLINE_SHAPES = {

@@ -1,0 +1,124 @@
+package kingdom.smp.client.block;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import kingdom.smp.block.TripwireRackBlockEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.TripWireHookBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Renders the item a tripwire hook is holding (see {@link TripwireRackBlockEntity}).
+ *
+ * <p>Mirrors the look of the original "Item Racks" datapack, which hung the item
+ * in an invisible armor stand's raised hand: the item is drawn in the held
+ * ({@code THIRD_PERSON_RIGHT_HAND}) pose so it juts out from the wall in 3D, like
+ * a tool resting on a peg. The block entity's {@code orientation} (0-3) spins it
+ * in the wall plane so it hangs one of four ways: down, left, up, right.
+ *
+ * <p>The constants below are the geometry dials — tweak them if the item floats
+ * too far off the wall, sits too high/low, or doesn't start "hanging down" at
+ * orientation 0.
+ */
+public class TripwireRackRenderer
+    implements BlockEntityRenderer<TripwireRackBlockEntity, TripwireRackRenderer.RenderState> {
+
+    /** Height up the block where the item pivots on the hook. */
+    private static final float HOOK_Y = 0.56f;
+    /** Base spin (deg) about the wall normal so orientation 0 reads as "hanging down". */
+    private static final float HANG_ROLL_BASE = 0.0f;
+    /** Tilt (deg) out of the wall plane so the item juts off the hook like a peg. */
+    private static final float JUT_PITCH = 32.0f;
+    /** How far the item dangles below the hook pivot (after the hang rotation). */
+    private static final float HANG = 0.14f;
+    /** How far to push the item out from the wall into open space. */
+    private static final float OUT_LIFT = 0.20f;
+    /** Item render scale (1.0 ≈ how big an armor stand holds it). */
+    private static final float SCALE = 0.92f;
+
+    public TripwireRackRenderer(BlockEntityRendererProvider.Context ctx) {}
+
+    public static final class RenderState extends BlockEntityRenderState {
+        public ItemStack item = ItemStack.EMPTY;
+        public Direction facing = Direction.NORTH;
+        public int orientation = 0;
+        public int seed = 0;
+    }
+
+    @Override
+    public RenderState createRenderState() {
+        return new RenderState();
+    }
+
+    @Override
+    public void extractRenderState(
+        TripwireRackBlockEntity be, RenderState state, float partialTicks,
+        Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress
+    ) {
+        BlockEntityRenderer.super.extractRenderState(be, state, partialTicks, cameraPosition, breakProgress);
+        state.item = be.getItem();
+        state.orientation = be.getOrientation();
+        BlockState bs = be.getBlockState();
+        state.facing = bs.hasProperty(TripWireHookBlock.FACING)
+            ? bs.getValue(TripWireHookBlock.FACING)
+            : Direction.NORTH;
+        // Stable per-position seed so randomised item models don't flicker.
+        state.seed = (int) be.getBlockPos().asLong();
+    }
+
+    @Override
+    public void submit(RenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        if (state.item.isEmpty()) return;
+
+        Direction facing = state.facing;
+        if (facing.getAxis().isVertical()) return; // hooks are always wall-mounted
+
+        poseStack.pushPose();
+
+        // Pivot point: cell centre horizontally, at hook height.
+        poseStack.translate(0.5f, HOOK_Y, 0.5f);
+
+        // Face out of the wall — after this, local +Z points away from the wall
+        // (item-frame math; horizontal facings only need the yaw term).
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0f - facing.toYRot()));
+
+        // Hang direction: spin in the wall plane (down → left → up → right).
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.orientation * 90.0f + HANG_ROLL_BASE));
+
+        // Tilt out of the wall plane so the item juts off the hook in 3D.
+        poseStack.mulPose(Axis.XP.rotationDegrees(JUT_PITCH));
+
+        // Dangle below the (now-rotated) pivot and push out off the wall.
+        poseStack.translate(0.0f, -HANG, OUT_LIFT);
+        poseStack.scale(SCALE, SCALE, SCALE);
+
+        Minecraft mc = Minecraft.getInstance();
+        ItemStackRenderState itemState = new ItemStackRenderState();
+        // THIRD_PERSON_RIGHT_HAND = the "held tool" pose the datapack's armor
+        // stand used, giving the item real 3D depth as it hangs on the hook.
+        mc.getItemModelResolver().updateForTopItem(
+            itemState, state.item, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, mc.level, null, state.seed);
+        itemState.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+
+        poseStack.popPose();
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(TripwireRackBlockEntity be) {
+        return new AABB(be.getBlockPos()).inflate(0.5);
+    }
+}

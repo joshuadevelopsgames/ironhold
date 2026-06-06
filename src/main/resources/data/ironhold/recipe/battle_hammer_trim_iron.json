@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smithing_transform",
+  "base": "ironhold:battle_hammer",
+  "addition": "minecraft:iron_ingot",
+  "result": {
+    "id": "ironhold:battle_hammer",
+    "components": {
+      "ironhold:forge_trim": "iron"
+    }
+  }
+}

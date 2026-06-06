@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/nether_portal_ns",
+  "textures": {
+    "portal": "ironhold:block/moon_portal",
+    "particle": "ironhold:block/moon_portal"
+  }
+}

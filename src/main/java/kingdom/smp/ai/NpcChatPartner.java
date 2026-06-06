@@ -22,6 +22,40 @@ public interface NpcChatPartner {
     /** Forward a player utterance (typed or transcribed) into this NPC's conversation. */
     void onPartnerChat(ServerPlayer player, String message);
 
+    /** How an NPC reply should reach the player. */
+    enum ReplyChannel {
+        /** The voiced dialogue screen (right-click interaction). */
+        SCREEN,
+        /** A private chat whisper (an {@code @mention} from chat). */
+        CHAT
+    }
+
+    /**
+     * Route a chat {@code @mention} turn. Starts a conversation session with the
+     * player if one isn't already active (preserving history if it is), then
+     * generates a reply. Called by {@link kingdom.smp.chat.MentionRouter}.
+     *
+     * <p>NPCs built on {@link kingdom.smp.entity.AbstractVoicedNpcEntity} (and
+     * Kangarude) override this to deliver the reply as a private chat whisper.
+     * The default simply forwards the utterance into the NPC's normal
+     * conversation pipeline.
+     */
+    default void onMentionTurn(ServerPlayer player, String message) {
+        if (message == null || message.isBlank()) return;
+        if (!player.getUUID().equals(getPartnerId())) beginConversationWith(player);
+        onPartnerChat(player, message);
+    }
+
+    /**
+     * Whether this NPC can hold a private chat-whisper conversation. Only NPCs
+     * that deliver replies over the chat channel return true; the
+     * {@link kingdom.smp.chat.MentionRouter} won't DM-route a mention otherwise
+     * (it leaves the {@code @name} as plain text instead of silently failing).
+     */
+    default boolean supportsWhisper() {
+        return false;
+    }
+
     /** The level this NPC lives in — used to hop back onto the server thread. */
     Level level();
 

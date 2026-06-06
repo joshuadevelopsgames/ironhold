@@ -482,6 +482,8 @@ public class ArcaneWizardEntity extends Illusioner {
             if (target == null || !target.isAlive()) return false;
             if (ArcaneWizardEntity.this.isCastingSpell()) return false;
             if (ArcaneWizardEntity.this.distanceToSqr(target) > 256.0) return false;
+            // No casting through walls — require an unobstructed line of sight.
+            if (!ArcaneWizardEntity.this.getSensing().hasLineOfSight(target)) return false;
             return ArcaneWizardEntity.this.tickCount >= this.nextCastTick;
         }
 

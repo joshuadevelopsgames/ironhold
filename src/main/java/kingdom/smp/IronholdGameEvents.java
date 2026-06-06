@@ -16,6 +16,7 @@ import kingdom.smp.world.KingdomWorldData;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.projectile.ShulkerBullet;
@@ -76,8 +77,18 @@ public final class IronholdGameEvents {
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         IronholdCommands.register(event);
         kingdom.smp.command.SkillsCommand.register(event);
-        // TEMP: WIP seasons feature disabled — re-enable when source compiles against current MC API.
-        // kingdom.smp.seasons.SeasonsCommand.register(event);
+        kingdom.smp.seasons.SeasonsCommand.register(event);
+        kingdom.smp.lobby.LobbyCommand.register(event);
+        kingdom.smp.perms.PermissionCommands.register(event);
+        kingdom.smp.command.StoneGolemDebugCommand.register(event);
+    }
+
+    /** Warm up the lobby's landing chunks once the server is up, if the lobby is enabled. */
+    @SubscribeEvent
+    public static void onServerStartedLobby(net.neoforged.neoforge.event.server.ServerStartedEvent event) {
+        if (Config.LOBBY_ENABLED.get()) {
+            kingdom.smp.lobby.Lobby.warmUpSpawnChunks(event.getServer());
+        }
     }
 
     @SubscribeEvent
@@ -127,10 +138,20 @@ public final class IronholdGameEvents {
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        NpcSessionGreetings.forgetPlayer(event.getEntity().getUUID());
+        java.util.UUID uuid = event.getEntity().getUUID();
+        NpcSessionGreetings.forgetPlayer(uuid);
+        // Release any in-progress NPC conversation + push-to-talk mic state so a
+        // player who disconnects mid-conversation doesn't leak registry bindings
+        // or an open audio buffer/decoder until the NPC happens to time out.
+        kingdom.smp.ai.NpcChatRegistry.clearActive(uuid);
+        kingdom.smp.ai.KangaPttBridge.clearForPlayer(uuid);
         if (event.getEntity() instanceof ServerPlayer sp) {
             kingdom.smp.fishing.FishingMinigameManager.clear(sp);
             kingdom.smp.blacksmithing.BlacksmithingMinigameManager.clear(sp);
+            // If a real player named like an NPC (e.g. "Kangarude") logs off,
+            // restore the synthetic NPC tab-list entry that was hidden while
+            // they were online.
+            kingdom.smp.entity.KangarudePlayerListSync.onRealPlayerLeave(sp.level().getServer(), sp);
         }
     }
 
@@ -152,6 +173,26 @@ public final class IronholdGameEvents {
         // so they appear in this player's list immediately on login (rather than
         // waiting for the next entity tick to broadcast).
         kingdom.smp.entity.KangarudePlayerListSync.resendAllTo(player);
+        // If this real player shares a name with a synthetic NPC entry (e.g. the
+        // actual "Kangarude" account), hide the NPC row so only one shows.
+        kingdom.smp.entity.KangarudePlayerListSync.onRealPlayerJoin(player.level().getServer(), player);
+        // Seed the client's chat @mention tab-completion with current NPC names.
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+            new kingdom.smp.net.SyncMentionNamesPayload(
+                java.util.List.copyOf(kingdom.smp.chat.NpcMentionRegistry.allNames())));
+
+        // Spawn lobby: route the player into the lobby dimension on login. By
+        // default only players never seen before are routed (first join); flip
+        // lobbyEveryJoin to route on every login. They leave via the exit portal.
+        if (Config.LOBBY_ENABLED.get()) {
+            kingdom.smp.lobby.LobbySavedData lobby =
+                kingdom.smp.lobby.LobbySavedData.get(player.level().getServer());
+            boolean route = Config.LOBBY_EVERY_JOIN.get() || !lobby.hasSeen(player.getUUID());
+            lobby.markSeen(player.getUUID());
+            if (route) {
+                kingdom.smp.lobby.Lobby.sendToLobby(player);
+            }
+        }
     }
 
     @SubscribeEvent
@@ -160,6 +201,14 @@ public final class IronholdGameEvents {
             return;
         }
         var rpg = player.getData(ModAttachments.PLAYER_RPG.get());
+        // On a death respawn, dying costs your in-level progress but not the level
+        // itself: reset XP to the start of the current level, keeping classLevel.
+        // End-portal returns keep their progress untouched.
+        if (!event.isEndConquered() && rpg.xpIntoLevel() != 0) {
+            rpg = new kingdom.smp.rpg.PlayerKingdomRpgData(
+                rpg.kingdomIndex(), rpg.classIndex(), rpg.classLevel(), 0);
+            player.setData(ModAttachments.PLAYER_RPG.get(), rpg);
+        }
         // Class attribute modifiers are transient, so they're wiped when the
         // player entity is recreated on respawn. Re-apply them so the class's
         // bonus hearts (and other stats) survive death instead of resetting.
@@ -177,17 +226,31 @@ public final class IronholdGameEvents {
         if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+        // Spawn lobby exit: stepping into the configured portal box sends the
+        // player to the real world. Cheap — only checks when the lobby is on and
+        // the player is actually in the lobby dimension.
+        if (Config.LOBBY_ENABLED.get() && kingdom.smp.lobby.Lobby.isLobby(player)) {
+            kingdom.smp.lobby.LobbySavedData lobby =
+                kingdom.smp.lobby.LobbySavedData.get(player.level().getServer());
+            if (lobby.portalContains(player.getX(), player.getY(), player.getZ())) {
+                kingdom.smp.lobby.Lobby.sendToWorld(player);
+                return;
+            }
+        }
         var rpg = player.getData(ModAttachments.PLAYER_RPG.get());
         // Cheap when no-op — only re-applies attribute modifiers if the player
         // has been marked dirty by a class/level change since last apply.
         ClassStatHandler.applyIfDirty(player, rpg);
         EncumbranceHandler.tick(player, ModAttachments.PLAYER_RPG.get());
         RpgXpBarSync.sync(player, rpg);
+        kingdom.smp.effect.SlimedEffect.tickPlayerStepSound(player.level(), player);
+        // Magma Boots: smoke trail while moving, melt ice/snow, walk on lava.
+        kingdom.smp.game.MagmaBootsHandler.tick(player);
 
-        // Force pending promotions — re-show the class-selection screen on a
-        // throttle until the player picks. Class XP gain is already blocked at
-        // the grant site.
-        kingdom.smp.game.RpgProgressionActions.reopenPromotionScreenIfNeeded(player);
+        // Pending promotions — keep the Class Stone's coordinates on the action
+        // bar until the player travels there and promotes. Class XP gain is
+        // already blocked at the grant site.
+        kingdom.smp.game.RpgProgressionActions.remindPendingPromotionIfNeeded(player);
 
         // Periodic RPG data sync to client (every SYNC_INTERVAL ticks)
         if (player.tickCount % SYNC_INTERVAL == 0) {
@@ -224,6 +287,26 @@ public final class IronholdGameEvents {
             event.getX() + r, event.getY() + r, event.getZ() + r);
 
         if (!level.getEntitiesOfClass(WillOWispEntity.class, box).isEmpty()) {
+            event.setSpawnCancelled(true);
+            event.setCanceled(true);
+        }
+    }
+
+    /** Fraction of wild-animal spawns to suppress, halving their effective spawn rate. */
+    private static final float ANIMAL_SPAWN_SUPPRESS_CHANCE = 0.50F;
+
+    /**
+     * Halves the spawn rate of all passive animals ({@link MobCategory#CREATURE})
+     * by cancelling 50% of their natural / chunk-generation spawn attempts. Only
+     * wild spawns are throttled — breeding, spawn eggs, spawners, and structure
+     * spawns use other reasons and are left untouched.
+     */
+    @SubscribeEvent
+    public static void onAnimalSpawnThrottle(FinalizeSpawnEvent event) {
+        if (event.getEntity().getType().getCategory() != MobCategory.CREATURE) return;
+        EntitySpawnReason reason = event.getSpawnType();
+        if (reason != EntitySpawnReason.NATURAL && reason != EntitySpawnReason.CHUNK_GENERATION) return;
+        if (event.getLevel().getRandom().nextFloat() < ANIMAL_SPAWN_SUPPRESS_CHANCE) {
             event.setSpawnCancelled(true);
             event.setCanceled(true);
         }
@@ -355,8 +438,6 @@ public final class IronholdGameEvents {
     private static final float MANSION_POSSESSED_ARMOR_CHANCE = 0.10F;
     /** Every Nth pillager spawned at a Pillager Outpost is rerolled into a Possessed Armor. */
     private static final int OUTPOST_POSSESSED_ARMOR_INTERVAL = 15;
-    private static final java.util.concurrent.atomic.AtomicInteger OUTPOST_PILLAGER_COUNT =
-        new java.util.concurrent.atomic.AtomicInteger();
 
     /**
      * Periodic special drops: every 8th Breeze yields a Breeze in a Bottle and
@@ -436,7 +517,9 @@ public final class IronholdGameEvents {
             .getStructureWithPieceAt(pillager.blockPosition(),
                 holder -> holder.is(BuiltinStructures.PILLAGER_OUTPOST));
         if (!outpost.isValid()) return;
-        if (OUTPOST_PILLAGER_COUNT.incrementAndGet() % OUTPOST_POSSESSED_ARMOR_INTERVAL != 0) return;
+        // World-wide persistent counter (survives restarts and world switches)
+        // rather than a process-global field that leaks state between worlds.
+        if (!killTally(level).recordAndShouldDrop("outpost_pillager", OUTPOST_POSSESSED_ARMOR_INTERVAL)) return;
 
         kingdom.smp.entity.PossessedArmorEntity armor =
             kingdom.smp.ModEntities.POSSESSED_ARMOR.get().create(level, EntitySpawnReason.STRUCTURE);
@@ -471,9 +554,15 @@ public final class IronholdGameEvents {
         }
     }
 
-    /** Routes the active partner's chat messages to a Kangarude they're talking with. */
+    /**
+     * Handles chat: first the {@code @mention} router (highlight + ping a player,
+     * or whisper-DM an NPC's AI), then the legacy proximity routing that forwards
+     * a locked-in player's plain chat to the Kangarude they right-clicked.
+     */
     @SubscribeEvent
-    public static void onServerChatForKangarude(ServerChatEvent event) {
+    public static void onServerChat(ServerChatEvent event) {
+        if (kingdom.smp.chat.MentionRouter.handle(event)) return;
+
         ServerPlayer player = event.getPlayer();
         KangarudeEntity npc = KangarudeEntity.activePartnerOf(player.getUUID());
         if (npc == null) return;
@@ -483,6 +572,20 @@ public final class IronholdGameEvents {
             return;
         }
         npc.onPartnerChat(player, event.getRawText());
+    }
+
+    /** Index voiced NPCs by name so chat {@code @mentions} can resolve them. */
+    @SubscribeEvent
+    public static void onNpcChatPartnerJoin(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide()) return;
+        if (event.getEntity() instanceof kingdom.smp.ai.NpcChatPartner npc && npc.supportsWhisper()) {
+            if (kingdom.smp.chat.NpcMentionRegistry.register(npc)) {
+                // A name not seen before — refresh every client's completion list.
+                net.neoforged.neoforge.network.PacketDistributor.sendToAllPlayers(
+                    new kingdom.smp.net.SyncMentionNamesPayload(
+                        java.util.List.copyOf(kingdom.smp.chat.NpcMentionRegistry.allNames())));
+            }
+        }
     }
 
     /**

@@ -1,0 +1,16 @@
+# gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ide
+.idea/
+*.iml
+.vscode/
+
+# os
+.DS_Store
+
+# moddev / run
+run/
+runs/

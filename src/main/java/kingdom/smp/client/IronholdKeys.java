@@ -42,4 +42,19 @@ public final class IronholdKeys {
      */
     public static final KeyMapping SEASHELL_DASH = new KeyMapping(
         "key.ironhold.seashell_dash", GLFW.GLFW_KEY_LEFT_SHIFT, CATEGORY);
+
+    /** Point emote — discrete press via {@code consumeClick()}, default B. */
+    public static final KeyMapping EMOTE_POINT = new KeyMapping(
+        "key.ironhold.emote_point", GLFW.GLFW_KEY_B, CATEGORY);
+
+    // ── Dev: stone golem hammer-grip tuner (see StoneGolemHammerTuning) ──
+    /** Cycle which grip field the -/= keys nudge (posX..scale). */
+    public static final KeyMapping GOLEM_HAMMER_CYCLE = new KeyMapping(
+        "key.ironhold.golem_hammer_cycle", GLFW.GLFW_KEY_SEMICOLON, CATEGORY);
+    /** Decrease the active grip field. */
+    public static final KeyMapping GOLEM_HAMMER_DEC = new KeyMapping(
+        "key.ironhold.golem_hammer_dec", GLFW.GLFW_KEY_MINUS, CATEGORY);
+    /** Increase the active grip field. */
+    public static final KeyMapping GOLEM_HAMMER_INC = new KeyMapping(
+        "key.ironhold.golem_hammer_inc", GLFW.GLFW_KEY_EQUAL, CATEGORY);
 }
