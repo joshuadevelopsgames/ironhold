@@ -10,6 +10,7 @@ import kingdom.smp.item.HermesBootsItem;
 import kingdom.smp.item.MagicMinecartItem;
 import kingdom.smp.item.MimicKeyItem;
 import kingdom.smp.item.MirrorItem;
+import kingdom.smp.item.LockKeyItem;
 import kingdom.smp.item.PinkSlimeBallItem;
 import kingdom.smp.item.TempestArrowItem;
 import kingdom.smp.item.TempestBowItem;
@@ -694,6 +695,13 @@ public final class ModItems {
         props -> props.stacksTo(16).rarity(net.minecraft.world.item.Rarity.UNCOMMON)
     );
 
+    /** Transferable key that a lock owner binds to one locked target. */
+    public static final DeferredItem<LockKeyItem> KEY = ITEMS.registerItem(
+        "key",
+        LockKeyItem::new,
+        props -> props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+    );
+
     // Invisible Item Frame — places a vanilla frame flagged invisible (only the held item shows).
     // Crafted from an item frame + a glass pane. Same inventory texture as a normal frame, but
     // always enchant-glinted (forced via ENCHANTMENT_GLINT_OVERRIDE) so the two are easy to tell
@@ -1242,6 +1250,7 @@ public final class ModItems {
                 output.accept(MAGIC_MINECART_ITEM.get());
                 output.accept(MIRROR.get());
                 output.accept(LOCK.get());
+                output.accept(KEY.get());
                 output.accept(INVISIBLE_ITEM_FRAME.get());
                 output.accept(TEMPEST_BOW.get());
                 output.accept(TEMPEST_ARROW.get());
@@ -1323,6 +1332,7 @@ public final class ModItems {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(MAGIC_MINECART_ITEM.get());
             event.accept(LOCK.get());
+            event.accept(KEY.get());
         }
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             event.accept(ARCANE_MAGE_SPAWN_EGG.get());

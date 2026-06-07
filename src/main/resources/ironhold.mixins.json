@@ -10,6 +10,7 @@
     "PlayerGravityPoseMixin",
     "LivingEntityGravityTravelMixin",
     "AnvilForgeGateMixin",
+    "ArmorStandPistonMixin",
     "BatFlowerMixin",
     "BatSpawnMixin",
     "FishingHookBiteMixin",

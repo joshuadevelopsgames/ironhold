@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "minecraft:gold_nugget",
+    "I": "minecraft:iron_nugget"
+  },
+  "pattern": [
+    " G ",
+    " I ",
+    " II"
+  ],
+  "result": {
+    "count": 1,
+    "id": "ironhold:key"
+  }
+}

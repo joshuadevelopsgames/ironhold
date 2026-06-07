@@ -30,25 +30,15 @@ import org.jspecify.annotations.Nullable;
  * a tool resting on a peg. The block entity's {@code orientation} (0-3) spins it
  * in the wall plane so it hangs one of four ways: down, left, up, right.
  *
- * <p>The constants below are the geometry dials — tweak them if the item floats
- * too far off the wall, sits too high/low, or doesn't start "hanging down" at
- * orientation 0.
+ * <p>The geometry dials live in {@link TripwireRackTuning} so they can be nudged live in-game with
+ * {@code /rackdebug} — tweak them if the item floats too far off the wall, sits too high/low, or
+ * doesn't start "hanging down" at orientation 0. The item hangs on the hook's <em>ring</em> (the
+ * metal hole the tripwire string threads through); from the vanilla model that ring sits at roughly
+ * block-fraction (0.5, 0.49, 0.60) — just below the block's vertical centre and tucked toward the
+ * wall — so {@code hookY} + {@code hang} place the item's hang point there.
  */
 public class TripwireRackRenderer
     implements BlockEntityRenderer<TripwireRackBlockEntity, TripwireRackRenderer.RenderState> {
-
-    /** Height up the block where the item pivots on the hook. */
-    private static final float HOOK_Y = 0.56f;
-    /** Base spin (deg) about the wall normal so orientation 0 reads as "hanging down". */
-    private static final float HANG_ROLL_BASE = 0.0f;
-    /** Tilt (deg) out of the wall plane so the item juts off the hook like a peg. */
-    private static final float JUT_PITCH = 32.0f;
-    /** How far the item dangles below the hook pivot (after the hang rotation). */
-    private static final float HANG = 0.14f;
-    /** How far to push the item out from the wall into open space. */
-    private static final float OUT_LIFT = 0.20f;
-    /** Item render scale (1.0 ≈ how big an armor stand holds it). */
-    private static final float SCALE = 0.92f;
 
     public TripwireRackRenderer(BlockEntityRendererProvider.Context ctx) {}
 
@@ -87,24 +77,32 @@ public class TripwireRackRenderer
         Direction facing = state.facing;
         if (facing.getAxis().isVertical()) return; // hooks are always wall-mounted
 
+        // Live dials (see TripwireRackTuning / the /rackdebug command). Read once per frame.
+        final float hookY = TripwireRackTuning.hookY;
+        final float hang = TripwireRackTuning.hang;
+        final float outLift = TripwireRackTuning.outLift;
+        final float jutPitch = TripwireRackTuning.jutPitch;
+        final float hangRollBase = TripwireRackTuning.hangRollBase;
+        final float scale = TripwireRackTuning.scale;
+
         poseStack.pushPose();
 
         // Pivot point: cell centre horizontally, at hook height.
-        poseStack.translate(0.5f, HOOK_Y, 0.5f);
+        poseStack.translate(0.5f, hookY, 0.5f);
 
         // Face out of the wall — after this, local +Z points away from the wall
         // (item-frame math; horizontal facings only need the yaw term).
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f - facing.toYRot()));
 
         // Hang direction: spin in the wall plane (down → left → up → right).
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.orientation * 90.0f + HANG_ROLL_BASE));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.orientation * 90.0f + hangRollBase));
 
         // Tilt out of the wall plane so the item juts off the hook in 3D.
-        poseStack.mulPose(Axis.XP.rotationDegrees(JUT_PITCH));
+        poseStack.mulPose(Axis.XP.rotationDegrees(jutPitch));
 
         // Dangle below the (now-rotated) pivot and push out off the wall.
-        poseStack.translate(0.0f, -HANG, OUT_LIFT);
-        poseStack.scale(SCALE, SCALE, SCALE);
+        poseStack.translate(0.0f, -hang, outLift);
+        poseStack.scale(scale, scale, scale);
 
         Minecraft mc = Minecraft.getInstance();
         ItemStackRenderState itemState = new ItemStackRenderState();

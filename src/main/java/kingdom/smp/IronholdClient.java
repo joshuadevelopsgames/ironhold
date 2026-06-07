@@ -125,6 +125,7 @@ public class IronholdClient {
         NeoForge.EVENT_BUS.register(kingdom.smp.client.HalricStaffDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.QuestBoardSlotDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.StoneGolemHammerDebugCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.TripwireRackDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.IronholdSlotDebugHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.CraftingSlotDebugHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.FurnaceSlotDebugHandler.class);

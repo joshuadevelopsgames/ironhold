@@ -58,7 +58,10 @@ public final class HoneycombWax {
         }
 
         Player player = event.getEntity();
-        level.levelEvent(player, LevelEvent.PARTICLES_AND_SOUND_WAX_ON, pos, 0);
+        // Source must be null, not the player: we cancel the client-side interaction above, so the
+        // actor never predicts the wax sound locally. ServerLevel#levelEvent excludes a Player source
+        // from the broadcast — passing the player would leave the person waxing hearing nothing.
+        level.levelEvent(null, LevelEvent.PARTICLES_AND_SOUND_WAX_ON, pos, 0);
         // Brief orange overlay on the block for nearby clients (fades over a few seconds).
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayersTrackingChunk(

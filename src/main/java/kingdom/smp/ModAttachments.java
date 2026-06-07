@@ -202,6 +202,14 @@ public final class ModAttachments {
                 .serialize(com.mojang.serialization.Codec.STRING.fieldOf("owner"))
                 .build());
 
+    /** Secret shared by a locked target and any transferable keys bound to it. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>> LOCK_KEY_ID =
+        ATTACHMENT_TYPES.register(
+            "lock_key_id",
+            () -> AttachmentType.builder(() -> "")
+                .serialize(com.mojang.serialization.Codec.STRING.fieldOf("key_id"))
+                .build());
+
     public static void register(IEventBus modBus) {
         ATTACHMENT_TYPES.register(modBus);
     }
