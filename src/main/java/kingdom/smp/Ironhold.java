@@ -40,6 +40,7 @@ public class Ironhold {
         ModSounds.register(modEventBus);
         ModParticles.register(modEventBus);
         ModEffects.register(modEventBus);
+        kingdom.smp.enchant.ModEnchantments.register(modEventBus);
         kingdom.smp.moon.ModMoonDimensions.register(modEventBus);
 
         // Let PlagueEffect resolve its own Holder lazily after registration.

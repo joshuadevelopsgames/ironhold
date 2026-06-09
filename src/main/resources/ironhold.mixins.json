@@ -38,6 +38,7 @@
     "SpiderEbonwoodMixin",
     "SurfaceSystemMixin",
     "TripWireHookEntityBlockMixin",
+    "TrueflightArrowDespawnMixin",
     "VanillaRegistriesMixin"
   ],
   "client": [

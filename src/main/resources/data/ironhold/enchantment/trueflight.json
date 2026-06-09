@@ -1,0 +1,40 @@
+{
+  "description": {
+    "translate": "enchantment.ironhold.trueflight"
+  },
+  "supported_items": [
+    "minecraft:bow",
+    "ironhold:tempest_bow"
+  ],
+  "weight": 2,
+  "max_level": 1,
+  "min_cost": {
+    "base": 20,
+    "per_level_above_first": 0
+  },
+  "max_cost": {
+    "base": 35,
+    "per_level_above_first": 0
+  },
+  "anvil_cost": 4,
+  "slots": [
+    "mainhand"
+  ],
+  "effects": {
+    "minecraft:projectile_spread": [
+      {
+        "effect": {
+          "type": "minecraft:set",
+          "value": 0.0
+        }
+      }
+    ],
+    "minecraft:projectile_spawned": [
+      {
+        "effect": {
+          "type": "ironhold:no_gravity_projectile"
+        }
+      }
+    ]
+  }
+}
