@@ -22,8 +22,8 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
  * defensive (armor) affixes modify incoming damage + reflect. Registered to the game bus in
  * {@code Ironhold}. Spec: {@code specs/fantasia-ports/07-gear-affixes.md}.
  *
- * <p>Voltaic ships as a recursion-safe chain <i>stun</i> this increment. Prospector/Scholar/Enduring
- * are deferred (need break-speed / xp / durability hooks).
+ * <p>Voltaic ships as a recursion-safe chain <i>stun</i> this increment. Prospector/Scholar live in
+ * {@link AffixUtilityHandler}; Enduring in {@code ItemStackMaxDamageMixin}.
  */
 public final class AffixCombatHandler {
     private AffixCombatHandler() {}

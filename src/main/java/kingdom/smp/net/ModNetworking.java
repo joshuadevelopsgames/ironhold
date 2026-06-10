@@ -101,6 +101,19 @@ public final class ModNetworking {
                 }
             }));
 
+        registrar.playToServer(QuestRedeemPayload.TYPE, QuestRedeemPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                // Only honour a redeem for the quest the player's open board actually shows;
+                // QuestService.redeem re-validates status + live items on top of that.
+                if (ctx.player() instanceof ServerPlayer sp
+                        && sp.containerMenu instanceof kingdom.smp.quest.QuestBoardMenu menu
+                        && !payload.questId().isEmpty()
+                        && payload.questId().equals(menu.questData().questId())) {
+                    kingdom.smp.quest.QuestService.redeem(sp, payload.questId());
+                    sp.closeContainer();
+                }
+            }));
+
         registrar.playToServer(SirensRingActivatePayload.TYPE, SirensRingActivatePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp && SirensRingItem.isEquipped(sp)) {

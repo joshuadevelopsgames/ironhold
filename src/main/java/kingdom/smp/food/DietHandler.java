@@ -20,14 +20,20 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Reward-only diet (Phase 5 ⑪): eating from varied food groups grants a scaling "Well Fed" buff; a poor
  * diet just means no bonus (never a penalty). Registered to the game bus in {@code Ironhold}.
  *
- * <p>Cooking tie-in (cooked meals stronger + Cooking-rank scaling) is the planned refinement.
+ * <p>Cooking tie-in (spec §5): items tagged {@code #ironhold:diet/cooked} keep their food groups
+ * satisfied 50% longer, Cooking Expert+ adds a Health Boost level, and Cooking Master starts the
+ * Regeneration bonus at 4 satisfied groups instead of 5.
  * Spec: {@code specs/fantasia-ports/10-diet.md}.
  */
 public final class DietHandler {
     private DietHandler() {}
 
     private static final long GROUP_DURATION = 6000L; // a group stays satisfied ~5 min after eating from it
+    private static final long COOKED_DURATION = 9000L; // cooked meals hold their groups 50% longer
     private static final int CHECK_INTERVAL = 40;     // re-evaluate the buff every 2s
+
+    private static final TagKey<Item> COOKED_TAG = TagKey.create(Registries.ITEM,
+        Identifier.fromNamespaceAndPath(Ironhold.MODID, "diet/cooked"));
 
     private static final String[] GROUP_NAMES = { "protein", "grain", "vegetable", "fruit", "sweet" };
     private static final TagKey<Item>[] GROUP_TAGS = makeTags();
@@ -52,9 +58,10 @@ public final class DietHandler {
         DietState state = player.getData(ModAttachments.DIET.get());
         Map<String, Long> next = new HashMap<>(state.until());
         boolean changed = false;
+        long duration = stack.is(COOKED_TAG) ? COOKED_DURATION : GROUP_DURATION;
         for (int g = 0; g < GROUP_TAGS.length; g++) {
             if (stack.is(GROUP_TAGS[g])) {
-                next.put(GROUP_NAMES[g], now + GROUP_DURATION);
+                next.put(GROUP_NAMES[g], now + duration);
                 changed = true;
             }
         }
@@ -76,8 +83,14 @@ public final class DietHandler {
         int satisfied = player.getData(ModAttachments.DIET.get()).satisfiedCount(now);
         if (satisfied >= 3) {
             int amp = Math.min(satisfied - 3, 2); // 3 groups → I, 4 → II, 5 → III
+            if (kingdom.smp.skill.SkillEffects.hasAtLeast(player,
+                    kingdom.smp.skill.Profession.COOKING, kingdom.smp.skill.ProfessionRank.EXPERT)) {
+                amp += 1; // Cooking Expert+ → one extra Health Boost level
+            }
             player.addEffect(new MobEffectInstance(MobEffects.HEALTH_BOOST, 60, amp, true, false, true));
-            if (satisfied >= 5) {
+            int regenThreshold = kingdom.smp.skill.SkillEffects.hasAtLeast(player,
+                    kingdom.smp.skill.Profession.COOKING, kingdom.smp.skill.ProfessionRank.MASTER) ? 4 : 5;
+            if (satisfied >= regenThreshold) {
                 player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 60, 0, true, false, false));
             }
         }

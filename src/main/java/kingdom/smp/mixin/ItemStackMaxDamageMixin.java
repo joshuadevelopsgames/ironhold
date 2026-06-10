@@ -33,10 +33,18 @@ public abstract class ItemStackMaxDamageMixin {
 
         ItemQuality quality = GearComponents.getQuality(self);
 
-        // Fast path: default (Good) quality → 1.0 multiplier, return as-is.
-        if (quality == ItemQuality.defaultQuality()) return;
+        float mult = quality.durabilityMultiplier();
+        // Enduring affix: "-X% durability loss" ≈ the item lasts 1/(1-X) times as long, so fold it
+        // into the same max-damage multiplier the quality system uses.
+        float enduring = kingdom.smp.gear.AffixData.rollOf(self, kingdom.smp.gear.Affix.ENDURING);
+        if (enduring > 0f) {
+            mult /= (1f - Math.min(0.9f, enduring));
+        }
 
-        float modified = original * quality.durabilityMultiplier();
+        // Fast path: 1.0 multiplier → return as-is.
+        if (mult == 1.0f) return;
+
+        float modified = original * mult;
         // Floor of 1 so quality nerfs never produce a 0-durability "instant break" item.
         cir.setReturnValue(Math.max(1, Math.round(modified)));
     }

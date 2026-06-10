@@ -48,10 +48,10 @@ import java.util.UUID;
 
 /**
  * Warden Halric — onboarding NPC at Wayfarer's Hollow gate. First interaction
- * gives the player a class-appropriate starter kit and shows the static intro
- * line. After that, conversation runs on Claude Haiku 4.5 via OpenRouter with
- * a tightly scoped system prompt (anti-hallucination feature whitelist) and
- * speaks through ElevenLabs using an old-wizard voice preset.
+ * gives the player a basic starter kit and shows the static intro line. After
+ * that, conversation runs on Claude Haiku 4.5 via OpenRouter with a tightly
+ * scoped system prompt (anti-hallucination feature whitelist) and speaks
+ * through ElevenLabs using an old-wizard voice preset.
  */
 public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner {
 
@@ -113,10 +113,11 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
           it appears in the dialogue box as written and looks wrong.
 
         FEATURE WHITELIST — the ONLY mechanics you may discuss:
-        - Press R to open the class selection screen.
-        - Press B to open your skill book (visible after picking a class).
-        - The starter kit you handed them on arrival includes food, torches,
-          iron tools, and class-appropriate gear.
+        - After reaching the fifth level as a Peasant, recruits seek out Class
+          Stones in the world to choose their calling.
+        - Press B to open your skill book (visible after choosing a class).
+        - The starter kit given upon arrival includes food, torches, iron tools,
+          and basic gear for a new recruit.
         - Wandering traders called "Filchers" will appear in the wilds and can
           barter — but they are sneaky and may try to lift a coin off you.
         - Sleeping in a bed advances time, but never during a storm.

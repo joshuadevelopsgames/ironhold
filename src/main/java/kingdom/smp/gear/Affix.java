@@ -17,8 +17,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
  * via {@link AffixAttributeHandler}; <b>on-hit</b> affixes (null attribute, category {@link AffixCategory#ON_HIT})
  * are dispatched by id in {@link AffixCombatHandler}.
  *
- * <p>v1 ships 12 of the 21 designed affixes; the remaining 9 need bespoke damage-calc hooks (follow-up).
- * Spec: {@code specs/fantasia-ports/07-gear-affixes.md}.
+ * <p>All 21 designed affixes ship: attribute + on-hit ones here/{@link AffixCombatHandler}, and the
+ * three non-combat hooks (Prospector/Scholar/Enduring) in {@link AffixUtilityHandler} +
+ * {@code ItemStackMaxDamageMixin}. Spec: {@code specs/fantasia-ports/07-gear-affixes.md}.
  */
 public enum Affix {
     // ── Offensive (weapons) ──
@@ -45,6 +46,9 @@ public enum Affix {
         Attributes.BLOCK_INTERACTION_RANGE, AttributeModifier.Operation.ADD_VALUE),
     LUCKY("lucky", AffixCategory.UTILITY, "Lucky", ChatFormatting.GREEN, 1f, 2f, false,
         Attributes.LUCK, AttributeModifier.Operation.ADD_VALUE),
+    PROSPECTOR("prospector", AffixCategory.UTILITY, "Prospector", ChatFormatting.GREEN, 0.08f, 0.20f, true, null, null),
+    SCHOLAR("scholar", AffixCategory.UTILITY, "Scholar", ChatFormatting.GREEN, 0.05f, 0.15f, true, null, null),
+    ENDURING("enduring", AffixCategory.UTILITY, "Enduring", ChatFormatting.GREEN, 0.10f, 0.25f, true, null, null),
     // ── Special on-hit (weapons) ──
     LEECHING("leeching", AffixCategory.ON_HIT, "Leeching", ChatFormatting.RED, 0.05f, 0.12f, true, null, null),
     SERRATED("serrated", AffixCategory.ON_HIT, "Serrated", ChatFormatting.RED, 0.20f, 0.40f, true, null, null),

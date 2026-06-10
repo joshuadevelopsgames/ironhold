@@ -827,13 +827,14 @@ public final class IronholdCommands {
             src.sendFailure(Component.literal("Players only."));
             return 0;
         }
-        // Open the menu via SimpleMenuProvider — server creates it with sample
-        // quest data; client reconstructs it via the no-arg ctor (which also
-        // uses QuestData.sample() so the visuals match).
+        // Build the player's live board snapshot server-side and ship it to the client as the
+        // menu's open data — the client menu factory decodes the same QuestData, so both sides
+        // render the same quest and REDEEM round-trips through QuestRedeemPayload.
+        kingdom.smp.quest.QuestData data = kingdom.smp.quest.QuestService.boardData(player);
         player.openMenu(new net.minecraft.world.SimpleMenuProvider(
-            (id, playerInv, p) -> new kingdom.smp.quest.QuestBoardMenu(
-                id, playerInv, kingdom.smp.quest.QuestData.sample()),
-            Component.literal("Quest Board")));
+                (id, playerInv, p) -> new kingdom.smp.quest.QuestBoardMenu(id, playerInv, data),
+                Component.literal("Quest Board")),
+            buf -> kingdom.smp.quest.QuestData.STREAM_CODEC.encode(buf, data));
         return 1;
     }
 

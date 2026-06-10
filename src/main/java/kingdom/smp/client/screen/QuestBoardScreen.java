@@ -85,23 +85,22 @@ public class QuestBoardScreen extends AbstractContainerScreen<QuestBoardMenu> {
     }
 
     private void onRedeem() {
-        // TODO Phase 2: server payload that grants rewards + consumes task items.
-        if (minecraft != null && minecraft.player != null) {
-            minecraft.player.sendSystemMessage(
-                Component.literal("[Quest] (placeholder) Redeem clicked.")
-                    .withStyle(ChatFormatting.YELLOW));
+        QuestData q = menu.questData();
+        if (q.redeemable() && !q.questId().isEmpty()) {
+            kingdom.smp.client.ClientPayloads.sendToServer(
+                new kingdom.smp.net.QuestRedeemPayload(q.questId()));
         }
         onClose();
     }
 
+    /** Reward slots are display-only — the quest's reward is fixed, so clicking just names it. */
     private void onRewardClicked(int idx) {
         if (minecraft == null || minecraft.player == null) return;
         QuestData q = menu.questData();
         if (idx >= q.rewards().size()) return;
         ItemStack reward = q.rewards().get(idx);
-        // TODO Phase 2: send a server payload that selects/claims this reward.
         minecraft.player.sendSystemMessage(
-            Component.literal("[Quest] Reward " + (idx + 1) + " clicked: ")
+            Component.literal("[Quest] Reward: ")
                 .append(reward.getHoverName())
                 .withStyle(ChatFormatting.AQUA));
     }

@@ -43,14 +43,15 @@ public final class IronholdLore {
         - The Wandering Wolf Stage — Bram's nightly stand.
 
         ── PEOPLE & CLASSES ─────────────────────────────────────────────
-        Newcomers start as Peasants and pick a calling at the gate by
-        pressing R: Squire (tank), Mage Apprentice, Archer, or Medic. From
-        there they rise — Knights, Wizards, Rangers, Clerics — and on to
+        Newcomers start as Peasants. After reaching the fifth level as a
+        Peasant, they may seek out Class Stones in the world to choose their
+        calling: Squire (tank), Mage Apprentice, Archer, or Medic, and others.
+        From there they rise — Knights, Wizards, Rangers, Clerics — and on to
         legendary ranks: Paladin, Elementalist, Marksman, Saint, Berserker,
-        Champion, Sorcerer Supreme, Deadshot, Redeemer, Bishop. The very
-        rare ones blend disciplines: Arcane Knight, Iron Ranger, Arcane
-        Ranger, Divine Knight. Skill points are spent in the skill book —
-        press B once you've chosen a class.
+        Champion, Sorcerer Supreme, Deadshot, Redeemer, Bishop. The very rare
+        ones blend disciplines: Arcane Knight, Iron Ranger, Arcane Ranger,
+        Divine Knight. Skill points are spent in the skill book — press B once
+        you've chosen a class.
 
         ── NOTABLE FOLK ─────────────────────────────────────────────────
         - Warden Halric: stands at Wayfarer's Hollow gate, kits out new

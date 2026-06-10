@@ -65,6 +65,7 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.game.BossArtifactHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixAttributeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixCombatHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixUtilityHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixTooltipHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.command.AffixCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.game.CampfireRestHandler.class);

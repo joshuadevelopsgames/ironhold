@@ -121,6 +121,43 @@ public final class QuestService {
         if (def != null) QuestFeedback.failed(player, def);
     }
 
+    // ── Quest board ─────────────────────────────────────────────────────────
+
+    /**
+     * Snapshot of the quest the board should show this player: a COMPLETE (redeemable) quest wins,
+     * else the first ACTIVE one, else an informational "no active quest" board. Task counts come
+     * from {@link #count} so the board reflects live inventory.
+     */
+    public static QuestData boardData(ServerPlayer player) {
+        QuestSavedData data = data(player);
+        QuestDef pick = null;
+        QuestProgress pickProg = null;
+        for (QuestDef def : Quests.all()) {
+            QuestProgress prog = data.get(player.getUUID(), def.id());
+            if (prog == null) continue;
+            if (prog.status() == QuestStatus.COMPLETE) {
+                pick = def;
+                pickProg = prog;
+                break;
+            }
+            if (pick == null && prog.status() == QuestStatus.ACTIVE) {
+                pick = def;
+                pickProg = prog;
+            }
+        }
+        if (pick == null) return QuestData.noActiveQuest();
+
+        java.util.List<QuestData.Task> tasks = new java.util.ArrayList<>();
+        for (int i = 0; i < pick.objectives().size(); i++) {
+            QuestObjective obj = pick.objectives().get(i);
+            tasks.add(new QuestData.Task(obj.icon(), count(player, pick, pickProg, i), obj.count()));
+        }
+        java.util.List<ItemStack> rewards = pick.reward().items().stream()
+            .filter(s -> !s.isEmpty()).limit(3).map(ItemStack::copy).toList();
+        return new QuestData(pick.id(), pick.title(), pick.description(), tasks, rewards,
+            pickProg.status() == QuestStatus.COMPLETE);
+    }
+
     // ── Redeem ──────────────────────────────────────────────────────────────
 
     /** Claim rewards for a COMPLETE quest. Returns true on payout. */

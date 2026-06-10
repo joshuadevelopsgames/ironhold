@@ -69,9 +69,9 @@ public class QuestBoardMenu extends AbstractContainerMenu {
         addPlayerInventory(playerInv);
     }
 
-    /** Client-side ctor (no extra data over the wire — show sample quest). */
+    /** Fallback ctor (no extra data) — real opens go through the buffer-decoding menu factory. */
     public QuestBoardMenu(int containerId, Inventory playerInv) {
-        this(containerId, playerInv, QuestData.sample());
+        this(containerId, playerInv, QuestData.EMPTY);
     }
 
     private void addPlayerInventory(Inventory playerInv) {
