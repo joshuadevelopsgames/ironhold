@@ -243,6 +243,12 @@ public final class ModItems {
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.PRIEST_CEDRIC.get()).stacksTo(64)));
 
 
+    public static final DeferredItem<Item> MINER_DUNSTAN_SPAWN_EGG =
+        ITEMS.registerItem(
+            "miner_dunstan_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.MINER_DUNSTAN.get()).stacksTo(64)));
+
+
     public static final DeferredItem<Item> OLD_HESTA_SPAWN_EGG =
         ITEMS.registerItem(
             "old_hesta_spawn_egg",
@@ -1363,6 +1369,7 @@ public final class ModItems {
                 output.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
                 output.accept(PLAGUE_DOCTOR_SPAWN_EGG.get());
                 output.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
+                output.accept(MINER_DUNSTAN_SPAWN_EGG.get());
                 output.accept(OLD_HESTA_SPAWN_EGG.get());
                 output.accept(OLD_BEREN_SPAWN_EGG.get());
                 output.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
@@ -1579,6 +1586,7 @@ public final class ModItems {
             event.accept(BLACKSMITH_TOBIAS_SPAWN_EGG.get());
             event.accept(PLAGUE_DOCTOR_SPAWN_EGG.get());
             event.accept(PRIEST_CEDRIC_SPAWN_EGG.get());
+            event.accept(MINER_DUNSTAN_SPAWN_EGG.get());
             event.accept(OLD_HESTA_SPAWN_EGG.get());
             event.accept(OLD_BEREN_SPAWN_EGG.get());
             event.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());

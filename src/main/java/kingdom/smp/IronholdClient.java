@@ -344,6 +344,8 @@ public class IronholdClient {
             ctx -> new kingdom.smp.client.entity.PlagueDoctorRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.PRIEST_CEDRIC.get(),
             ctx -> new kingdom.smp.client.entity.PriestCedricRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.MINER_DUNSTAN.get(),
+            ctx -> new kingdom.smp.client.entity.MinerDunstanRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.OLD_HESTA.get(),
             ctx -> new kingdom.smp.client.entity.OldHestaRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.OLD_BEREN.get(),

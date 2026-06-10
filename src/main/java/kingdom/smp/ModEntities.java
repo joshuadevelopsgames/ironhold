@@ -395,6 +395,14 @@ public final class ModEntities {
             MobCategory.CREATURE,
             b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
 
+    /** Foreman Dunstan — pit-foreman of the Old Shafts, Mining-profession mentor. Peaceful, voiced. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.MinerDunstanEntity>> MINER_DUNSTAN =
+        ENTITY_TYPES.registerEntityType(
+            "miner_dunstan",
+            kingdom.smp.entity.MinerDunstanEntity::new,
+            MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
     /** Old Hesta — village seer at the Hollow Shrine. Peaceful, voiced. */
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.OldHestaEntity>> OLD_HESTA =
         ENTITY_TYPES.registerEntityType(
@@ -723,6 +731,7 @@ public final class ModEntities {
         event.put(BLACKSMITH_TOBIAS.get(), kingdom.smp.entity.BlacksmithTobiasEntity.createAttributes().build());
         event.put(PLAGUE_DOCTOR.get(), kingdom.smp.entity.PlagueDoctorEntity.createAttributes().build());
         event.put(PRIEST_CEDRIC.get(), kingdom.smp.entity.PriestCedricEntity.createAttributes().build());
+        event.put(MINER_DUNSTAN.get(), kingdom.smp.entity.MinerDunstanEntity.createAttributes().build());
         event.put(OLD_HESTA.get(), kingdom.smp.entity.OldHestaEntity.createAttributes().build());
         event.put(OLD_BEREN.get(), kingdom.smp.entity.OldBerenEntity.createAttributes().build());
         event.put(CAPTAIN_ROSELIND.get(), kingdom.smp.entity.CaptainRoselindEntity.createAttributes().build());
