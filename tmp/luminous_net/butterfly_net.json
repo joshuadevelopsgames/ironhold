@@ -1,0 +1,14 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "luminous_butterflies:item/butterflynet"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "luminous_butterflies:butterfly_net_captured": 1
+      },
+      "model": "luminous_butterflies:item/butterfly_net_0"
+    }
+  ]
+}

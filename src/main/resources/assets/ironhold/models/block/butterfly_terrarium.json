@@ -1,0 +1,326 @@
+{
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "all": "ironhold:block/butterfly_terrarium",
+    "particle": "ironhold:block/butterfly_terrarium"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        7,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            3,
+            3.5
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            3,
+            0,
+            6,
+            3.5
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            0,
+            3.5,
+            3,
+            7
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            3,
+            3.5,
+            6,
+            7
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            9,
+            3,
+            6,
+            0
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            9,
+            3,
+            6,
+            6
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        7,
+        6
+      ],
+      "to": [
+        10,
+        8,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            9,
+            4.5,
+            9.5
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            9,
+            3,
+            11,
+            3.5
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            9,
+            3.5,
+            11,
+            4
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            9,
+            4,
+            11,
+            4.5
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            9,
+            2.5,
+            7
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            8.5,
+            4.5,
+            10.5
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        8,
+        5.5
+      ],
+      "to": [
+        10.5,
+        10,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            8.5,
+            8,
+            11,
+            9
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            9,
+            0,
+            11.5,
+            1
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            9,
+            1,
+            11.5,
+            2
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            9,
+            2,
+            11.5,
+            3
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            8.5,
+            8.5,
+            6,
+            6
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            2.5,
+            7,
+            0,
+            9.5
+          ],
+          "texture": "#all"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        10,
+        6
+      ],
+      "to": [
+        10,
+        11,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            9,
+            4.5,
+            11,
+            5
+          ],
+          "texture": "#all"
+        },
+        "east": {
+          "uv": [
+            9,
+            5,
+            11,
+            5.5
+          ],
+          "texture": "#all"
+        },
+        "south": {
+          "uv": [
+            9,
+            5.5,
+            11,
+            6
+          ],
+          "texture": "#all"
+        },
+        "west": {
+          "uv": [
+            8.5,
+            9,
+            10.5,
+            9.5
+          ],
+          "texture": "#all"
+        },
+        "up": {
+          "uv": [
+            10.5,
+            8,
+            8.5,
+            6
+          ],
+          "texture": "#all"
+        },
+        "down": {
+          "uv": [
+            8.5,
+            8.5,
+            6.5,
+            10.5
+          ],
+          "texture": "#all"
+        }
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "thirdperson_lefthand": {
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        0,
+        4,
+        0
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        0,
+        4,
+        0
+      ]
+    },
+    "ground": {
+      "translation": [
+        0,
+        5,
+        0
+      ]
+    },
+    "head": {
+      "translation": [
+        0,
+        14.5,
+        0
+      ]
+    }
+  }
+}

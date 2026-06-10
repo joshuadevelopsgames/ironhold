@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " N ",
+    "G G",
+    "GGG"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "N": "minecraft:iron_nugget"
+  },
+  "result": {
+    "id": "ironhold:butterfly_terrarium",
+    "count": 1
+  }
+}

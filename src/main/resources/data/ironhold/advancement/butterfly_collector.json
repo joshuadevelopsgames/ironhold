@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:husbandry/root",
+  "display": {
+    "icon": {
+      "id": "ironhold:butterfly_encyclopedia"
+    },
+    "title": {
+      "translate": "advancements.ironhold.butterfly_collector.title",
+      "fallback": "Lepidopterist"
+    },
+    "description": {
+      "translate": "advancements.ironhold.butterfly_collector.description",
+      "fallback": "Discover every species of butterfly"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "unlock": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

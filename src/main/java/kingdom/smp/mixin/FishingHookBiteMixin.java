@@ -1,5 +1,6 @@
 package kingdom.smp.mixin;
 
+import kingdom.smp.fishing.BaitRegistry;
 import kingdom.smp.fishing.FishingMinigameManager;
 import kingdom.smp.fishing.IFishingHookMinigame;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,6 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class FishingHookBiteMixin implements IFishingHookMinigame {
 
     @Shadow private int nibble;
+    @Shadow private int timeUntilLured;
     @Shadow @Final private int luck;
 
     @Unique private int ironhold$prevNibble = 0;
@@ -58,6 +60,19 @@ public abstract class FishingHookBiteMixin implements IFishingHookMinigame {
             // Large enough to survive any single-tick decrement, small enough not to
             // overflow / get treated weirdly by vanilla logic that checks nibble > N.
             this.nibble = 200;
+            return;
+        }
+        // Faster bites: stronger bait shortens the wait before a bite by giving
+        // vanilla's lure countdown extra progress each server tick, proportional to
+        // the held bait's power (Terraria: higher bait power → quicker bites).
+        FishingHook self = (FishingHook) (Object) this;
+        if (!self.level().isClientSide() && this.timeUntilLured > 0
+                && self.getPlayerOwner() instanceof ServerPlayer sp) {
+            BaitRegistry.BestBait bait = BaitRegistry.findBest(sp);
+            if (bait != null) {
+                int extra = Math.max(1, bait.power() / 15); // ~+1..3 ticks/tick
+                this.timeUntilLured = Math.max(1, this.timeUntilLured - extra);
+            }
         }
     }
 
@@ -71,7 +86,15 @@ public abstract class FishingHookBiteMixin implements IFishingHookMinigame {
         if (!ironhold$minigameActive && ironhold$prevNibble == 0 && nibble > 0) {
             Player owner = self.getPlayerOwner();
             if (owner instanceof ServerPlayer sp) {
-                FishingMinigameManager.tryStart(sp, self);
+                // Strict bait gate (Terraria-style "no bait, no bites"): without
+                // bait the fish nibbles but never takes the hook. Zeroing nibble
+                // makes vanilla re-roll a fresh lure delay next tick — so the line
+                // keeps fishing but can never land a catch until bait is held.
+                if (!BaitRegistry.hasBait(sp)) {
+                    this.nibble = 0;
+                } else {
+                    FishingMinigameManager.tryStart(sp, self);
+                }
             }
         }
         ironhold$prevNibble = nibble;

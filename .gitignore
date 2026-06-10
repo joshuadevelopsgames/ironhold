@@ -48,3 +48,5 @@ repo/
 run/
 scripts/preview/
 structures/
+__pycache__/
+*.pyc

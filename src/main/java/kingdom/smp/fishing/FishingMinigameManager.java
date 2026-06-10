@@ -15,6 +15,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.item.FishingRodItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -53,7 +54,8 @@ public final class FishingMinigameManager {
     /** Pre-rolled drops queued for the upcoming {@code FishingHook.retrieve}. */
     private static final Map<UUID, List<ItemStack>> PENDING_PREROLLS = new ConcurrentHashMap<>();
 
-    private record Session(FishingHook hook, List<ItemStack> preRolledDrops) {}
+    private record Session(FishingHook hook, List<ItemStack> preRolledDrops,
+                           Item baitItem, int baitPower) {}
 
     /**
      * Called by {@link kingdom.smp.mixin.FishingHookBiteMixin} when a bite
@@ -70,13 +72,20 @@ public final class FishingMinigameManager {
         int hookZone = hookZoneFor(rank, useLevel);
         int motion = pickMotion(player, rank);
 
+        // ── Bait: the strict gate in FishingHookBiteMixin guarantees the player
+        // had bait at bite time. Pick the strongest (Terraria spends best first)
+        // so its power drives catch quality and its identity drives consumption.
+        BaitRegistry.BestBait bait = BaitRegistry.findBest(player);
+        int baitPower = bait == null ? 0 : bait.power();
+
         // ── Pre-roll the loot once so the minigame shows the actual catch.
         ItemStack rod = findRod(player);
         List<ItemStack> drops;
         if (rod == null) {
             drops = List.of();
         } else {
-            drops = FishingLootRoller.roll(hook, player, rod);
+            drops = FishingLootRoller.roll(hook, player, rod, baitPower,
+                    bait == null ? null : bait.themeId());
             // Fold the Fishing-profession bonus-drop perk into the pre-roll so it's
             // both reflected in the catch and consistent with the displayed item.
             int bonusChance = SkillEffects.extraDropChancePercent(player, Profession.FISHING);
@@ -90,7 +99,7 @@ public final class FishingMinigameManager {
 
         ItemStack preview = drops.isEmpty() ? motionFallback(motion) : drops.get(0).copy();
 
-        SESSIONS.put(uuid, new Session(hook, drops));
+        SESSIONS.put(uuid, new Session(hook, drops, bait == null ? null : bait.item(), baitPower));
         ((IFishingHookMinigame) hook).ironhold$setMinigameActive(true);
         PacketDistributor.sendToPlayer(player,
                 new FishingBiteStartPayload(hook.getId(), hookZone, motion, preview));
@@ -127,6 +136,12 @@ public final class FishingMinigameManager {
                 int damage = hook.retrieve(rod);
                 rod.hurtAndBreak(damage, player, hand);
                 awardFishingXp(player, drops);
+                // Terraria-style: bait is consumed only on a successful catch, and
+                // only probabilistically — stronger bait lasts more catches.
+                if (session.baitItem() != null
+                        && BaitRegistry.rollConsume(player.getRandom(), session.baitPower())) {
+                    BaitRegistry.consumeOne(player, session.baitItem());
+                }
             } else {
                 hook.discard();
             }
