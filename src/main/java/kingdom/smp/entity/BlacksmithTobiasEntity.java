@@ -108,18 +108,16 @@ public class BlacksmithTobiasEntity extends AbstractVoicedNpcEntity {
     @Override public String displaySubtitle() { return "Blacksmith  •  The Iron Hearth"; }
 
     /**
-     * Sneak-right-click with affixable gear in hand → reforge its affixes for coins. A normal
-     * right-click falls through to the voiced-AI dialogue. (Lock-and-reroll GUI is the refinement.)
+     * Sneak-right-click with affixable gear in hand → open the lock-and-reroll reforge screen
+     * (spec 07 §5). A normal right-click falls through to the voiced-AI dialogue.
      */
     @Override
     protected net.minecraft.world.InteractionResult mobInteract(
             net.minecraft.world.entity.player.Player player, net.minecraft.world.InteractionHand hand) {
         if (!level().isClientSide() && hand == net.minecraft.world.InteractionHand.MAIN_HAND
                 && player.isShiftKeyDown() && player instanceof net.minecraft.server.level.ServerPlayer sp) {
-            net.minecraft.world.item.ItemStack held = sp.getMainHandItem();
-            if (kingdom.smp.gear.AffixRoller.gearClass(held) != kingdom.smp.gear.AffixRoller.GearClass.NONE
-                    && kingdom.smp.gear.AffixData.capacity(held) > 0) {
-                kingdom.smp.gear.AffixReforge.tryReroll(sp, held);
+            if (kingdom.smp.gear.AffixReforge.reforgeable(sp.getMainHandItem())) {
+                kingdom.smp.gear.AffixReforge.open(sp);
                 return net.minecraft.world.InteractionResult.SUCCESS;
             }
         }

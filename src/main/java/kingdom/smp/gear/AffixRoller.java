@@ -47,6 +47,42 @@ public final class AffixRoller {
         AffixData.set(stack, result);
     }
 
+    /**
+     * Reroll keeping the affix instances at {@code lockedIdx} (their rolled values included);
+     * everything else rerolls fresh from the pool, never duplicating a kept affix.
+     */
+    public static void rerollKeeping(ItemStack stack, java.util.Set<Integer> lockedIdx) {
+        if (!QualityScope.isEligible(stack)) {
+            AffixData.set(stack, List.of());
+            return;
+        }
+        GearClass gc = gearClass(stack);
+        int cap = AffixData.capacity(stack);
+        if (gc == GearClass.NONE || cap <= 0) {
+            AffixData.set(stack, List.of());
+            return;
+        }
+        List<AffixInstance> current = AffixData.get(stack);
+        List<AffixInstance> kept = new ArrayList<>();
+        java.util.Set<String> keptIds = new java.util.HashSet<>();
+        for (int i : lockedIdx) {
+            if (i >= 0 && i < current.size() && keptIds.add(current.get(i).id())) {
+                kept.add(current.get(i));
+            }
+        }
+        List<Affix> pool = new ArrayList<>(poolFor(gc));
+        pool.removeIf(a -> keptIds.contains(a.id()));
+        Collections.shuffle(pool, RAND);
+
+        List<AffixInstance> result = new ArrayList<>(kept);
+        for (int i = 0; result.size() < cap && i < pool.size(); i++) {
+            Affix a = pool.get(i);
+            float roll = a.min() + RAND.nextFloat() * (a.max() - a.min());
+            result.add(new AffixInstance(a.id(), roll));
+        }
+        AffixData.set(stack, result);
+    }
+
     public static List<Affix> poolFor(GearClass gc) {
         return switch (gc) {
             case WEAPON -> Affix.forCategories(AffixCategory.OFFENSIVE, AffixCategory.ON_HIT);

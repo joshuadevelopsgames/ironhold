@@ -45,6 +45,12 @@ public final class GearComponents {
                     .persistent(AffixInstance.CODEC.listOf())
                     .networkSynchronized(AffixInstance.STREAM_CODEC.apply(ByteBufCodecs.list())));
 
+    /** Times this item has been reforged at the blacksmith — drives the escalating reroll cost. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> REFORGE_COUNT =
+            COMPONENTS.registerComponentType("reforge_count", builder -> builder
+                    .persistent(Codec.INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT));
+
     public static void register(IEventBus modBus) {
         COMPONENTS.register(modBus);
     }
@@ -73,5 +79,13 @@ public final class GearComponents {
         } else {
             stack.remove(PRISTINE.get());
         }
+    }
+
+    public static int reforgeCount(ItemStack stack) {
+        return stack.getOrDefault(REFORGE_COUNT.get(), 0);
+    }
+
+    public static void bumpReforgeCount(ItemStack stack) {
+        stack.set(REFORGE_COUNT.get(), reforgeCount(stack) + 1);
     }
 }

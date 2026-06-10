@@ -59,6 +59,9 @@ public final class ModNetworking {
         registrar.playToClient(WaxOverlayPayload.TYPE, WaxOverlayPayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> kingdom.smp.client.WaxOverlayRenderer.add(payload.pos())));
 
+        registrar.playToClient(OpenReforgePayload.TYPE, OpenReforgePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> ClientRpgData.openReforge(payload)));
+
         registrar.playToServer(ClassChoicePayload.TYPE, ClassChoicePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp) {
@@ -98,6 +101,13 @@ public final class ModNetworking {
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp) {
                     kingdom.smp.item.BattleHammerCombatHandler.onSwingMiss(sp);
+                }
+            }));
+
+        registrar.playToServer(ReforgeActionPayload.TYPE, ReforgeActionPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.gear.AffixReforge.applyReroll(sp, payload.lockMask());
                 }
             }));
 

@@ -63,6 +63,10 @@ public final class ClientRpgData {
         Minecraft.getInstance().setScreen(new ForgeMinigameScreen(
                 p.itemPreview(), p.rankOrdinal()));
     }
+    public static void openReforge(OpenReforgePayload p) {
+        Minecraft.getInstance().setScreen(
+                new kingdom.smp.client.screen.ReforgeScreen(p.locksAllowed(), p.cost()));
+    }
 
     // ── RPG data getters ──────────────────────────────────────────────────────
     public static int         kingdomIndex()   { return kingdomIndex; }
