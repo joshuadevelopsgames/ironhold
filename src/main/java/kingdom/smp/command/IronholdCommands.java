@@ -3,6 +3,7 @@ package kingdom.smp.command;
 import java.util.Collection;
 import java.util.List;
 
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -391,12 +392,20 @@ public final class IronholdCommands {
                                     .executes(ctx -> structBuild(
                                         ctx.getSource(),
                                         StringArgumentType.getString(ctx, "name"),
-                                        null))
+                                        null, false))
                                     .then(Commands.argument("at", BlockPosArgument.blockPos())
                                         .executes(ctx -> structBuild(
                                             ctx.getSource(),
                                             StringArgumentType.getString(ctx, "name"),
-                                            BlockPosArgument.getBlockPos(ctx, "at"))))))
+                                            BlockPosArgument.getBlockPos(ctx, "at"), false))
+                                        // clear=true also places the structure's air, excavating
+                                        // terrain inside rooms (needed for crypts / sunken pastes)
+                                        .then(Commands.argument("clear", BoolArgumentType.bool())
+                                            .executes(ctx -> structBuild(
+                                                ctx.getSource(),
+                                                StringArgumentType.getString(ctx, "name"),
+                                                BlockPosArgument.getBlockPos(ctx, "at"),
+                                                BoolArgumentType.getBool(ctx, "clear")))))))
                             .then(Commands.literal("list").executes(ctx -> structList(ctx.getSource())))
                             .then(Commands.literal("delete")
                                 .then(Commands.argument("name", StringArgumentType.word())
@@ -1281,7 +1290,7 @@ public final class IronholdCommands {
         return 1;
     }
 
-    private static int structBuild(CommandSourceStack src, String name, BlockPos at) {
+    private static int structBuild(CommandSourceStack src, String name, BlockPos at, boolean clear) {
         IscStructure structure;
         try {
             structure = IscStorage.load(src.getServer(), name);
@@ -1297,7 +1306,7 @@ public final class IronholdCommands {
             }
             origin = player.blockPosition();
         }
-        int placed = IscScanner.build(src.getLevel(), structure, origin, false);
+        int placed = IscScanner.build(src.getLevel(), structure, origin, clear);
         final BlockPos finalOrigin = origin;
         src.sendSuccess(() -> Component.literal(
             "Built '" + name + "' at " + finalOrigin.getX() + " " + finalOrigin.getY() + " " + finalOrigin.getZ()
