@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "ironhold:item/dyed_water_bucket_magenta"
+  }
+}
