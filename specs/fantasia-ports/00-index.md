@@ -18,10 +18,10 @@ Implementation specs for the features green-lit in the Fantasia walkthrough.
 | P2 | ⑦ | Coin purse | [05-coin-purse.md](05-coin-purse.md) | S | ✅ **built v1.167.0** |
 | P3 | ① | Boss-dropped accessories | [02-boss-accessories.md](02-boss-accessories.md) | S | ✅ **built v1.168.0** |
 | P4 | ⑧ | Rank-gated crafting tree | [06-rank-gated-crafting.md](06-rank-gated-crafting.md) | M | 🟡 **reforge rank-gate built v1.170.0** (5-station gate deferred to runtime-verify) |
-| P4 | ⑨ | Gear affix system + reroll | [07-gear-affixes.md](07-gear-affixes.md) | L | 🟢 **built v1.170.0** — 18/21 affixes + blacksmith reforge (lock-GUI + 3 affixes pending) |
+| P4 | ⑨ | Gear affix system + reroll | [07-gear-affixes.md](07-gear-affixes.md) | L | ✅ **built v1.174.0** — all 21 affixes + lock-and-reroll GUI (rank-gated locks, escalating cost) |
 | P5 | ④ | Healer abilities + campfire heal | [08-healer-abilities.md](08-healer-abilities.md) | M | ✅ **built v1.171.0** (Mend/Sanctuary/Cleanse + rest) |
-| P5 | ⑭ | Class promotion kits | [09-class-promotion-kits.md](09-class-promotion-kits.md) | S | ✅ **built v1.171.0** (8 class kits; Divine = follow-up) |
-| P5 | ⑪ | Diet (reward) | [10-diet.md](10-diet.md) | M | ✅ **built v1.171.0** (cooking-rank scaling = follow-up) |
+| P5 | ⑭ | Class promotion kits | [09-class-promotion-kits.md](09-class-promotion-kits.md) | S | ✅ **built v1.171.0** (8 class kits; tier 3/4 + Divine kits skipped by decision 2026-06-10) |
+| P5 | ⑪ | Diet (reward) | [10-diet.md](10-diet.md) | M | ✅ **built v1.173.0** (cooked tag + Cooking-rank scaling shipped) |
 | P6 | ⑲ | Villager lifecycle (hire/recruit/marry) | [14-villager-lifecycle.md](14-villager-lifecycle.md) | L | ⏸️ deferred — NPC-identity + AI + lock design; needs runtime |
 | P6 | ⑱ | Boss-gated End + arenas + story dimension | [13-end-arenas-dimension.md](13-end-arenas-dimension.md) | L | 🟡 **End gate built v1.172.0** (arenas + story dimension deferred — content) |
 | P7 | ⑯ | Bard instruments | [11-bard-instruments.md](11-bard-instruments.md) | S | ⏸️ deferred — needs .ogg audio assets |
