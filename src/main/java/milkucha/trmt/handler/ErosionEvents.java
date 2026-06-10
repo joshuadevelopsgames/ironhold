@@ -6,10 +6,10 @@ import milkucha.trmt.block.ErodedSandBlock;
 import milkucha.trmt.erosion.ErosionMapManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.EventPriority;
@@ -69,23 +69,27 @@ public final class ErosionEvents {
     }
 
     /**
-     * Block placement above sunken eroded sand (stages 1–4) is rejected because the
-     * resulting AO darkening looks wrong. Upstream returns {@code InteractionResult.FAIL}
-     * from a {@code UseBlockCallback}; on NeoForge we cancel the event and set the
-     * cancellation result.
+     * Lets players build above sunken eroded sand (stages 1–4). Upstream rejected the
+     * placement outright (the block floated over the sunken top and the AO darkening
+     * looked wrong); instead we snap the support back to full-height vanilla sand and
+     * let the placement proceed flush. Doing it before the item resolves also restores
+     * a sturdy top face, so support-requiring blocks (torches, rails, doors, cactus)
+     * can be placed at all. Non-player paths (falling blocks, pistons) are still
+     * handled by {@link ErodedSandBlock#neighborChanged}.
      */
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        Player player = event.getEntity();
         Level world = event.getLevel();
+        if (world.isClientSide()) return;
+        if (!(event.getEntity().getItemInHand(event.getHand()).getItem() instanceof BlockItem)) return;
+
         BlockHitResult hit = event.getHitVec();
         BlockPos placePos = hit.getBlockPos().relative(hit.getDirection());
-        BlockState below = world.getBlockState(placePos.below());
-        if (below.is(TRMTBlocks.ERODED_SAND)
-                && below.getValue(ErodedSandBlock.STAGE) > 0
-                && player.getItemInHand(event.getHand()).getItem() instanceof BlockItem) {
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.FAIL);
+        BlockPos supportPos = placePos.below();
+        BlockState support = world.getBlockState(supportPos);
+        if (support.is(TRMTBlocks.ERODED_SAND) && support.getValue(ErodedSandBlock.STAGE) > 0) {
+            world.setBlock(supportPos, Blocks.SAND.defaultBlockState(), Block.UPDATE_ALL);
+            ErosionMapManager.getInstance().removeEntry(supportPos);
         }
     }
 }
