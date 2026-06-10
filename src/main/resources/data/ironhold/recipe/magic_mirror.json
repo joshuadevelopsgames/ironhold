@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ironhold:mirror",
+    "minecraft:amethyst_shard",
+    "minecraft:glowstone_dust"
+  ],
+  "result": {
+    "id": "ironhold:magic_mirror",
+    "count": 1
+  }
+}

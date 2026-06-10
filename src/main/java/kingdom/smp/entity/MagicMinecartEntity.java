@@ -1,5 +1,9 @@
 package kingdom.smp.entity;
 
+import com.geckolib.animatable.GeoAnimatable;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.util.GeckoLibUtil;
 import kingdom.smp.Ironhold;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,7 +35,9 @@ import org.jspecify.annotations.Nullable;
  * Rideable cart that moves from rider input packets, lays {@link Blocks#RAIL},
  * and uses powered rails for slopes (high max speed + low friction).
  */
-public class MagicMinecartEntity extends AbstractMinecart {
+public class MagicMinecartEntity extends AbstractMinecart implements GeoAnimatable {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
     private static final double ACCEL = 0.08;
     private static final double MAX_SPEED = 0.55;
     private static final double SPRINT_MAX = 0.80;
@@ -321,5 +327,17 @@ public class MagicMinecartEntity extends AbstractMinecart {
         if (incoming == Direction.EAST && to == Direction.NORTH) return RailShape.NORTH_EAST;
         if (incoming == Direction.EAST && to == Direction.SOUTH) return RailShape.SOUTH_EAST;
         return RailShape.NORTH_SOUTH;
+    }
+
+    // ── GeckoLib ─────────────────────────────────────────────────────────────
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // Static model — the "magic" comes from the emissive glow layer, not animation.
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }

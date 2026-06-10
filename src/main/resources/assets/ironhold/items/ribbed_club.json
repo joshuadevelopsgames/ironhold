@@ -1,0 +1,7 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "ironhold:item/ribbed_club",
+    "model": { "type": "geckolib:geckolib" }
+  }
+}

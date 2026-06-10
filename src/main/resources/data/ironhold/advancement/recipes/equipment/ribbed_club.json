@@ -1,0 +1,16 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_club": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [ { "items": "ironhold:club" } ] }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": { "recipe": "ironhold:ribbed_club" }
+    }
+  },
+  "requirements": [ [ "has_club", "has_the_recipe" ] ],
+  "rewards": { "recipes": [ "ironhold:ribbed_club" ] },
+  "sends_telemetry_event": false
+}

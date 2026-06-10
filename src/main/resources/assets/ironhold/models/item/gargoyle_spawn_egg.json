@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "ironhold:item/master_of_disguise_tome"
+    "layer0": "ironhold:item/gargoyle_spawn_egg"
   }
 }
