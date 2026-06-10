@@ -8,6 +8,7 @@ import kingdom.smp.item.DisguiseTomeItem;
 import kingdom.smp.item.EnhancedPickaxeItem;
 import kingdom.smp.item.HermesBootsItem;
 import kingdom.smp.item.MagicMinecartItem;
+import kingdom.smp.item.MagicMirrorItem;
 import kingdom.smp.item.MimicKeyItem;
 import kingdom.smp.item.MirrorItem;
 import kingdom.smp.item.LockKeyItem;
@@ -39,6 +40,13 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import java.util.EnumMap;
+import kingdom.smp.entity.ButterflySpecies;
+import kingdom.smp.item.ButterflyEncyclopediaItem;
+import kingdom.smp.item.ButterflyItem;
+import kingdom.smp.item.ButterflyNetItem;
+import kingdom.smp.fishing.BaitProfile;
+import kingdom.smp.fishing.BaitRegistry;
 
 /** Item registrations (incl. spawn eggs, gear, knight equipment, block items)
  *  and the creative tab, split out of {@link Ironhold}. References ModEntities
@@ -50,6 +58,30 @@ public final class ModItems {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Ironhold.MODID);
 
     // Status effects → ModEffects; sound events → ModSounds; worldgen feature + biome keys → ModWorldgen.
+
+    // ── Butterflies (ambient mob + Terraria-style fishing bait) ───────────────
+    public static final DeferredItem<Item> BUTTERFLY_NET =
+        ITEMS.registerItem("butterfly_net",
+            props -> new ButterflyNetItem(props.durability(120)));
+
+    public static final DeferredItem<Item> BUTTERFLY_ENCYCLOPEDIA =
+        ITEMS.registerItem("butterfly_encyclopedia",
+            props -> new ButterflyEncyclopediaItem(props.stacksTo(1)));
+
+    public static final DeferredItem<Item> BUTTERFLY_SPAWN_EGG =
+        ITEMS.registerItem("butterfly_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.BUTTERFLY.get()).stacksTo(64)));
+
+    /** One captured item per butterfly species — both the fishing bait and what you
+     *  place into a Butterfly Jar block. */
+    public static final EnumMap<ButterflySpecies, DeferredItem<Item>> BUTTERFLIES =
+        new EnumMap<>(ButterflySpecies.class);
+    static {
+        for (ButterflySpecies species : ButterflySpecies.values()) {
+            BUTTERFLIES.put(species, ITEMS.registerItem("butterfly_" + species.id(),
+                props -> new ButterflyItem(props.stacksTo(64), species)));
+        }
+    }
 
 
 
@@ -116,6 +148,11 @@ public final class ModItems {
             "moonshroom_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.MOONSHROOM.get()).stacksTo(64)));
 
+    public static final DeferredItem<Item> GARGOYLE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "gargoyle_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.GARGOYLE.get()).stacksTo(64)));
+
     public static final DeferredItem<Item> PURPLE_ALLAY_SPAWN_EGG =
         ITEMS.registerItem(
             "purple_allay_spawn_egg",
@@ -132,12 +169,6 @@ public final class ModItems {
         ITEMS.registerItem(
             "will_o_wisp_2_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.WILL_O_WISP_2.get()).stacksTo(64)));
-
-
-    public static final DeferredItem<Item> KINGDOM_VILLAGER_SPAWN_EGG =
-        ITEMS.registerItem(
-            "kingdom_villager_spawn_egg",
-            props -> new SpawnEggItem(props.spawnEgg(ModEntities.KINGDOM_VILLAGER.get()).stacksTo(64)));
 
 
     public static final DeferredItem<Item> KANGARUDE_SPAWN_EGG =
@@ -228,6 +259,42 @@ public final class ModItems {
         ITEMS.registerItem(
             "captain_roselind_spawn_egg",
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.CAPTAIN_ROSELIND.get()).stacksTo(64)));
+
+
+    public static final DeferredItem<Item> KANGARUDE_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "kangarude_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.KANGARUDE_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> HAALINA_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "haalina_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.HAALINA_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> FACELACES_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "facelaces_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.FACELACES_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> RED_RAICHU_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "red_raichu_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.RED_RAICHU_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> TWOHRD_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "twohrd_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.TWOHRD_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> ARCATHEONE_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "arcatheone_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.ARCATHEONE_STATUE.get()).stacksTo(64)));
+
+    public static final DeferredItem<Item> CHEAKIE_STATUE_SPAWN_EGG =
+        ITEMS.registerItem(
+            "cheakie_statue_spawn_egg",
+            props -> new SpawnEggItem(props.spawnEgg(ModEntities.CHEAKIE_STATUE.get()).stacksTo(64)));
 
 
     public static final DeferredItem<Item> LOREMASTER_EILAN_SPAWN_EGG =
@@ -456,12 +523,6 @@ public final class ModItems {
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.SLIME_PET_CHEAKIE.get()).stacksTo(64)));
 
 
-    public static final DeferredItem<Item> KINGDOM_DRAGON_SPAWN_EGG =
-        ITEMS.registerItem(
-            "kingdom_dragon_spawn_egg",
-            props -> new SpawnEggItem(props.spawnEgg(ModEntities.KINGDOM_DRAGON.get()).stacksTo(64)));
-
-
     public static final DeferredItem<TempestArrowItem> TEMPEST_ARROW =
         ITEMS.registerItem("tempest_arrow", TempestArrowItem::new, props -> props.stacksTo(64));
 
@@ -629,6 +690,84 @@ public final class ModItems {
                     net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
                 .build()));
 
+    // Club family — crude bludgeons (plain / spiked / ribbed). Same slow, knock-'em-back feel;
+    // each tier hits harder and is a bit sturdier. One ClubItem class drives all three (the
+    // string picks the GeckoLib model `geometry.<name>` + texture `textures/item/<name>.png`).
+
+    // Club — crude wooden bludgeon; hits like a stone sword but swings slow and knocks foes back
+    public static final DeferredItem<Item> CLUB = ITEMS.registerItem(
+        "club",
+        props -> new kingdom.smp.item.ClubItem(props, "club", "Slow, heavy, and knocks 'em flying"),
+        props -> props
+            .durability(180)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "club_damage"),
+                        4.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "club_speed"),
+                        -2.7, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_KNOCKBACK,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "club_knockback"),
+                        1.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Spiked Club — iron spikes driven into the head; hits harder than the plain club
+    public static final DeferredItem<Item> SPIKED_CLUB = ITEMS.registerItem(
+        "spiked_club",
+        props -> new kingdom.smp.item.ClubItem(props, "spiked_club", "Iron spikes bite where wood would only bruise"),
+        props -> props
+            .durability(240)
+            .rarity(net.minecraft.world.item.Rarity.UNCOMMON)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "spiked_club_damage"),
+                        5.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "spiked_club_speed"),
+                        -2.7, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_KNOCKBACK,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "spiked_club_knockback"),
+                        1.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
+    // Ribbed Club — banded in iron ribs; the heaviest-hitting club
+    public static final DeferredItem<Item> RIBBED_CLUB = ITEMS.registerItem(
+        "ribbed_club",
+        props -> new kingdom.smp.item.ClubItem(props, "ribbed_club", "Iron ribs land like a falling anvil"),
+        props -> props
+            .durability(320)
+            .rarity(net.minecraft.world.item.Rarity.RARE)
+            .attributes(net.minecraft.world.item.component.ItemAttributeModifiers.builder()
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "ribbed_club_damage"),
+                        6.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "ribbed_club_speed"),
+                        -2.7, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .add(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_KNOCKBACK,
+                    new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        Identifier.fromNamespaceAndPath(Ironhold.MODID, "ribbed_club_knockback"),
+                        1.0, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE),
+                    net.minecraft.world.entity.EquipmentSlotGroup.MAINHAND)
+                .build()));
+
     // ── Possessed Armor drops ──────────────────────────────────────────────
 
     // Vengeful Halberd — legendary long-reach weapon, more damage at low HP
@@ -689,6 +828,13 @@ public final class ModItems {
         props -> props.stacksTo(16)
     );
 
+    // Glowing-text variant of the mirror — fades the player's stats in around their reflection.
+    public static final DeferredItem<Item> MAGIC_MIRROR = ITEMS.registerItem(
+        "magic_mirror",
+        MagicMirrorItem::new,
+        props -> props.stacksTo(16).rarity(net.minecraft.world.item.Rarity.RARE)
+    );
+
     /** Consumable ownership lock for vanilla chests, shelves, and armor stands. */
     public static final DeferredItem<Item> LOCK = ITEMS.registerSimpleItem(
         "lock",
@@ -727,6 +873,14 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> DEEPSLATE_FOOLS_GOLD_ORE_ITEM =
         ITEMS.registerSimpleBlockItem("deepslate_fools_gold_ore", ModBlocks.DEEPSLATE_FOOLS_GOLD_ORE);
 
+    /** Placeable butterfly jar block (holds up to 3 butterflies). */
+    public static final DeferredItem<BlockItem> BUTTERFLY_TERRARIUM_ITEM =
+        ITEMS.registerSimpleBlockItem("butterfly_terrarium", ModBlocks.BUTTERFLY_TERRARIUM);
+
+    /** Placeable golden goblet you can pour any liquid into (renders inside the cup). */
+    public static final DeferredItem<BlockItem> CHALICE_ITEM =
+        ITEMS.registerSimpleBlockItem("chalice", ModBlocks.CHALICE);
+
     // ── Moon Dimension ────────────────────────────────────────────────────────
     public static final DeferredItem<BlockItem> MOON_STONE_ITEM =
         ITEMS.registerSimpleBlockItem("moon_stone", ModBlocks.MOON_STONE);
@@ -739,8 +893,34 @@ public final class ModItems {
 
     public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem(
         "gold_coin",
-        props -> props.stacksTo(64)
+        props -> props.stacksTo(100)
     );
+
+    /** Coin Purse — banks loose gold coins into a stored balance (right-click deposit, sneak withdraw). */
+    public static final DeferredItem<Item> COIN_PURSE = ITEMS.registerItem(
+        "coin_purse",
+        props -> new kingdom.smp.item.CoinPurseItem(props.stacksTo(1))
+    );
+
+    /** Ender Totem (Totem of Undying + Ender Pearl) — used on an Ender Shrine to add a revive charge. */
+    public static final DeferredItem<Item> ENDER_TOTEM = ITEMS.registerItem(
+        "ender_totem",
+        props -> new kingdom.smp.item.EnderTotemItem(props.stacksTo(16))
+    );
+
+    /** Ender Shrine block item. */
+    public static final DeferredItem<BlockItem> ENDER_SHRINE_ITEM =
+        ITEMS.registerSimpleBlockItem("ender_shrine", ModBlocks.ENDER_SHRINE_BLOCK);
+
+    /** Boss accessory — King Enderman drop. Endermen ignore/can't harm you + blink active. */
+    public static final DeferredItem<Item> ENDER_REGALIA = ITEMS.registerItem(
+        "ender_regalia",
+        props -> new kingdom.smp.item.EnderRegaliaItem(props));
+
+    /** Boss accessory — Stone Golem drop. Damage reduction + knockback & slowness immunity. */
+    public static final DeferredItem<Item> STONEBLOOD_AMULET = ITEMS.registerItem(
+        "stoneblood_amulet",
+        props -> new kingdom.smp.item.StonebloodAmuletItem(props));
 
     public static final DeferredItem<Item> RAW_TANZANITE = ITEMS.registerSimpleItem(
         "raw_tanzanite",
@@ -1011,19 +1191,25 @@ public final class ModItems {
             props -> new kingdom.smp.item.PlagueTonicItem(
                 props.rarity(net.minecraft.world.item.Rarity.RARE)));
 
-    /** Drop from the White Shulker — used in magical warding items. */
-    public static final DeferredItem<Item> PURIFIED_SHELL =
-        ITEMS.registerSimpleItem("purified_shell",
-            props -> props.rarity(net.minecraft.world.item.Rarity.UNCOMMON));
+    public static final DeferredItem<kingdom.smp.alcohol.AlcoholicDrinkItem> SMALL_ALE =
+        ITEMS.registerItem("small_ale",
+            props -> new kingdom.smp.alcohol.AlcoholicDrinkItem(
+                props, kingdom.smp.alcohol.AlcoholicDrinkItem.Drink.SMALL_ALE));
 
-    /** Drop from the Black Shulker — used for teleport daggers / stealth gear. */
-    public static final DeferredItem<Item> VOID_CORE =
-        ITEMS.registerSimpleItem("void_core",
-            props -> props.rarity(net.minecraft.world.item.Rarity.RARE));
+    public static final DeferredItem<kingdom.smp.alcohol.AlcoholicDrinkItem> HONEY_MEAD =
+        ITEMS.registerItem("honey_mead",
+            props -> new kingdom.smp.alcohol.AlcoholicDrinkItem(
+                props, kingdom.smp.alcohol.AlcoholicDrinkItem.Drink.HONEY_MEAD));
 
-    /** Common Shroomling drop — a faintly glowing blue cave mushroom. */
-    public static final DeferredItem<Item> GLOWSHROOM =
-        ITEMS.registerSimpleItem("glowshroom");
+    public static final DeferredItem<kingdom.smp.alcohol.AlcoholicDrinkItem> APPLE_CIDER =
+        ITEMS.registerItem("apple_cider",
+            props -> new kingdom.smp.alcohol.AlcoholicDrinkItem(
+                props, kingdom.smp.alcohol.AlcoholicDrinkItem.Drink.APPLE_CIDER));
+
+    public static final DeferredItem<kingdom.smp.alcohol.AlcoholicDrinkItem> BERRY_WINE =
+        ITEMS.registerItem("berry_wine",
+            props -> new kingdom.smp.alcohol.AlcoholicDrinkItem(
+                props, kingdom.smp.alcohol.AlcoholicDrinkItem.Drink.BERRY_WINE));
 
     /** Moonshroom Stew — the moon's take on mushroom stew. Eating it steeps you in the lunar pull:
      *  3 minutes of {@link kingdom.smp.effect.LunarLevityEffect Lunar Levity} (~1/6 g). Restores the
@@ -1170,7 +1356,6 @@ public final class ModItems {
             .icon(() -> new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.NETHERITE_SWORD))
             .displayItems((params, output) -> {
                 output.accept(MASTER_OF_DISGUISE_TOME.get());
-                output.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
                 output.accept(WARDEN_HALRIC_SPAWN_EGG.get());
                 output.accept(TALLYKEEPER_SPAWN_EGG.get());
                 output.accept(CEMETERY_WATCHER_SPAWN_EGG.get());
@@ -1181,6 +1366,13 @@ public final class ModItems {
                 output.accept(OLD_HESTA_SPAWN_EGG.get());
                 output.accept(OLD_BEREN_SPAWN_EGG.get());
                 output.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
+                output.accept(KANGARUDE_STATUE_SPAWN_EGG.get());
+                output.accept(HAALINA_STATUE_SPAWN_EGG.get());
+                output.accept(FACELACES_STATUE_SPAWN_EGG.get());
+                output.accept(RED_RAICHU_STATUE_SPAWN_EGG.get());
+                output.accept(TWOHRD_STATUE_SPAWN_EGG.get());
+                output.accept(ARCATHEONE_STATUE_SPAWN_EGG.get());
+                output.accept(CHEAKIE_STATUE_SPAWN_EGG.get());
                 output.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
                 output.accept(SISTER_WREN_SPAWN_EGG.get());
                 output.accept(BRAM_BARD_SPAWN_EGG.get());
@@ -1200,7 +1392,6 @@ public final class ModItems {
                 output.accept(BABY_MIMIC_SPAWN_EGG.get());
                 output.accept(SLIME_PET_JE11IE_SPAWN_EGG.get());
                 output.accept(SLIME_PET_CHEAKIE_SPAWN_EGG.get());
-                output.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
                 output.accept(RARE_PINK_DEER_SPAWN_EGG.get());
                 output.accept(KNIGHT_RECRUIT_SPAWN_EGG.get());
                 output.accept(KNIGHT_MAN_AT_ARMS_SPAWN_EGG.get());
@@ -1215,12 +1406,10 @@ public final class ModItems {
                 output.accept(RAT_SPAWN_EGG.get());
                 output.accept(SHROOMLING_SPAWN_EGG.get());
                 output.accept(MOONSHROOM_SPAWN_EGG.get());
+                output.accept(GARGOYLE_SPAWN_EGG.get());
                 output.accept(SHULKER_HERDER_SPAWN_EGG.get());
                 output.accept(WHITE_SHULKER_SPAWN_EGG.get());
                 output.accept(BLACK_SHULKER_SPAWN_EGG.get());
-                output.accept(PURIFIED_SHELL.get());
-                output.accept(VOID_CORE.get());
-                output.accept(GLOWSHROOM.get());
                 output.accept(MOONSHROOM_STEW.get());
                 output.accept(SHROOMCAP.get());
                 output.accept(SHROOMCAP_ORANGE.get());
@@ -1246,9 +1435,14 @@ public final class ModItems {
                 output.accept(CHEESE_WEDGE.get());
                 output.accept(PLAGUE_BUBO.get());
                 output.accept(PLAGUE_TONIC.get());
+                output.accept(SMALL_ALE.get());
+                output.accept(HONEY_MEAD.get());
+                output.accept(APPLE_CIDER.get());
+                output.accept(BERRY_WINE.get());
                 output.accept(BANDAGE.get());
                 output.accept(MAGIC_MINECART_ITEM.get());
                 output.accept(MIRROR.get());
+                output.accept(MAGIC_MIRROR.get());
                 output.accept(LOCK.get());
                 output.accept(KEY.get());
                 output.accept(INVISIBLE_ITEM_FRAME.get());
@@ -1264,6 +1458,9 @@ public final class ModItems {
                 output.accept(HALRIC_STAFF.get());
                 output.accept(CLASS_STONE_ITEM.get());
                 output.accept(PITCHFORK.get());
+                output.accept(CLUB.get());
+                output.accept(SPIKED_CLUB.get());
+                output.accept(RIBBED_CLUB.get());
                 output.accept(MAGMA_BOOTS.get());
                 output.accept(HERMES_BOOTS.get());
                 output.accept(PLAYER_COMPASS.get());
@@ -1275,6 +1472,11 @@ public final class ModItems {
                 output.accept(VENGEFUL_HALBERD.get());
                 output.accept(ARMOR_POLISH.get());
                 output.accept(GOLD_COIN.get());
+                output.accept(COIN_PURSE.get());
+                output.accept(ENDER_TOTEM.get());
+                output.accept(ENDER_SHRINE_ITEM.get());
+                output.accept(ENDER_REGALIA.get());
+                output.accept(STONEBLOOD_AMULET.get());
                 output.accept(RAW_TANZANITE.get());
                 output.accept(TANZANITE_GEM.get());
                 output.accept(STEEL_INGOT.get());
@@ -1328,13 +1530,34 @@ public final class ModItems {
         modEventBus.addListener(ModItems::addCreativeTabContents);
     }
 
+    public static net.minecraft.world.item.ItemStack butterflyFor(ButterflySpecies species) {
+        return new net.minecraft.world.item.ItemStack(BUTTERFLIES.get(species).get());
+    }
+
+    /** Register each captured butterfly's bait power/theme into {@link BaitRegistry}.
+     *  Called from common setup (after item registration resolves). */
+    public static void registerBaitProfiles() {
+        for (ButterflySpecies species : ButterflySpecies.values()) {
+            BaitRegistry.register(BUTTERFLIES.get(species).get(),
+                new BaitProfile(species.baitPower(), species.themeId()));
+        }
+    }
+
     private static void addCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             event.accept(MAGIC_MINECART_ITEM.get());
             event.accept(LOCK.get());
             event.accept(KEY.get());
+            event.accept(BUTTERFLY_NET.get());
+            event.accept(BUTTERFLY_TERRARIUM_ITEM.get());
+            event.accept(CHALICE_ITEM.get());
+            event.accept(BUTTERFLY_ENCYCLOPEDIA.get());
+            for (ButterflySpecies species : ButterflySpecies.values()) {
+                event.accept(BUTTERFLIES.get(species).get());
+            }
         }
         if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            event.accept(BUTTERFLY_SPAWN_EGG.get());
             event.accept(ARCANE_MAGE_SPAWN_EGG.get());
             event.accept(FILCHER_SPAWN_EGG.get());
             event.accept(VOID_INVOKER_SPAWN_EGG.get());
@@ -1348,7 +1571,6 @@ public final class ModItems {
             event.accept(KNIGHT_GOLD_SPAWN_EGG.get());
             event.accept(KNIGHT_JOUSTER_SPAWN_EGG.get());
             event.accept(KNIGHT_VETERAN_SPAWN_EGG.get());
-            event.accept(KINGDOM_VILLAGER_SPAWN_EGG.get());
             event.accept(KANGARUDE_SPAWN_EGG.get());
             event.accept(WARDEN_HALRIC_SPAWN_EGG.get());
             event.accept(TALLYKEEPER_SPAWN_EGG.get());
@@ -1360,6 +1582,13 @@ public final class ModItems {
             event.accept(OLD_HESTA_SPAWN_EGG.get());
             event.accept(OLD_BEREN_SPAWN_EGG.get());
             event.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
+            event.accept(KANGARUDE_STATUE_SPAWN_EGG.get());
+            event.accept(HAALINA_STATUE_SPAWN_EGG.get());
+            event.accept(FACELACES_STATUE_SPAWN_EGG.get());
+            event.accept(RED_RAICHU_STATUE_SPAWN_EGG.get());
+            event.accept(TWOHRD_STATUE_SPAWN_EGG.get());
+            event.accept(ARCATHEONE_STATUE_SPAWN_EGG.get());
+            event.accept(CHEAKIE_STATUE_SPAWN_EGG.get());
             event.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
             event.accept(SISTER_WREN_SPAWN_EGG.get());
             event.accept(BRAM_BARD_SPAWN_EGG.get());
@@ -1373,11 +1602,11 @@ public final class ModItems {
             event.accept(RAT_SPAWN_EGG.get());
             event.accept(SHROOMLING_SPAWN_EGG.get());
             event.accept(MOONSHROOM_SPAWN_EGG.get());
+            event.accept(GARGOYLE_SPAWN_EGG.get());
             event.accept(MIMIC_SPAWN_EGG.get());
             event.accept(BABY_MIMIC_SPAWN_EGG.get());
             event.accept(SLIME_PET_JE11IE_SPAWN_EGG.get());
             event.accept(SLIME_PET_CHEAKIE_SPAWN_EGG.get());
-            event.accept(KINGDOM_DRAGON_SPAWN_EGG.get());
             event.accept(POSSESSED_ARMOR_SPAWN_EGG.get());
             event.accept(SIREN_SPAWN_EGG.get());
             event.accept(SHIPWRECK_MIMIC_SPAWN_EGG.get());
@@ -1397,6 +1626,9 @@ public final class ModItems {
             event.accept(WIZARD_STICK.get());
             event.accept(HALRIC_STAFF.get());
             event.accept(PITCHFORK.get());
+            event.accept(CLUB.get());
+            event.accept(SPIKED_CLUB.get());
+            event.accept(RIBBED_CLUB.get());
             event.accept(VENGEFUL_HALBERD.get());
             event.accept(MAGMA_BOOTS.get());
             // Accessories
@@ -1439,7 +1671,6 @@ public final class ModItems {
             event.accept(FOOLS_GOLD_ORE_ITEM.get());
             event.accept(DEEPSLATE_FOOLS_GOLD_ORE_ITEM.get());
             event.accept(FILCHER_CROWN.get());
-            event.accept(GLOWSHROOM.get());
             event.accept(SHROOMCAP.get());
             event.accept(SHROOMCAP_ORANGE.get());
             event.accept(CAT_EARS.get());
@@ -1461,6 +1692,12 @@ public final class ModItems {
             event.accept(FOX_TAIL.get());
             event.accept(DRAGON_TAIL.get());
             event.accept(DEVIL_TAIL.get());
+        }
+        if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
+            event.accept(SMALL_ALE.get());
+            event.accept(HONEY_MEAD.get());
+            event.accept(APPLE_CIDER.get());
+            event.accept(BERRY_WINE.get());
         }
     }
 }

@@ -1,6 +1,7 @@
 package kingdom.smp;
 
 import kingdom.smp.accessory.AccessoryInventory;
+import kingdom.smp.alcohol.AlcoholState;
 import kingdom.smp.disguise.DisguiseState;
 import kingdom.smp.food.KnownRecipes;
 import kingdom.smp.game.ActivePromotionStone;
@@ -194,6 +195,20 @@ public final class ModAttachments {
                 .serialize(com.mojang.serialization.Codec.INT.fieldOf("ticks"))
                 .build());
 
+    /**
+     * Per-player Butterfly Encyclopedia progress — the set of species ids the player has
+     * caught at least once. Persisted across logout, kept on death, and synced so the
+     * client-side encyclopedia screen knows which entries to reveal.
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<kingdom.smp.entity.ButterflyDex>> BUTTERFLY_DEX =
+        ATTACHMENT_TYPES.register(
+            "butterfly_dex",
+            () -> AttachmentType.builder(() -> kingdom.smp.entity.ButterflyDex.EMPTY)
+                .serialize(kingdom.smp.entity.ButterflyDex.CODEC)
+                .copyOnDeath()
+                .sync(kingdom.smp.entity.ButterflyDex.STREAM_CODEC)
+                .build());
+
     /** UUID string of the player who owns a locked chest, shelf, or armor stand. */
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<String>> LOCK_OWNER =
         ATTACHMENT_TYPES.register(
@@ -208,6 +223,47 @@ public final class ModAttachments {
             "lock_key_id",
             () -> AttachmentType.builder(() -> "")
                 .serialize(com.mojang.serialization.Codec.STRING.fieldOf("key_id"))
+                .build());
+
+    /**
+     * The player's bound Ender Shrine sanctuary (dimension + pos), or {@link kingdom.smp.block.BoundShrine#NONE}.
+     * copyOnDeath so the binding survives the death it's meant to rescue. Server-only (not synced).
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<kingdom.smp.block.BoundShrine>> BOUND_SHRINE =
+        ATTACHMENT_TYPES.register(
+            "bound_shrine",
+            () -> AttachmentType.builder(() -> kingdom.smp.block.BoundShrine.NONE)
+                .serialize(kingdom.smp.block.BoundShrine.CODEC)
+                .copyOnDeath()
+                .build());
+
+    /** Intoxication and in-progress blackout state. Death clears it; logout does not. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<AlcoholState>> ALCOHOL =
+        ATTACHMENT_TYPES.register(
+            "alcohol",
+            () -> AttachmentType.builder(() -> AlcoholState.SOBER)
+                .serialize(AlcoholState.CODEC)
+                .build());
+
+    /**
+     * Set of boss ids whose signature artifact the player has already earned, so guaranteed first-kill
+     * drops never repeat. copyOnDeath (you keep your earned-status through death).
+     */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<kingdom.smp.game.EarnedArtifacts>> BOSS_ARTIFACTS_EARNED =
+        ATTACHMENT_TYPES.register(
+            "boss_artifacts_earned",
+            () -> AttachmentType.builder(() -> kingdom.smp.game.EarnedArtifacts.EMPTY)
+                .serialize(kingdom.smp.game.EarnedArtifacts.CODEC)
+                .copyOnDeath()
+                .build());
+
+    /** Per-player diet state (food-group → satisfied-until tick) for the reward-only diet buffs. */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<kingdom.smp.food.DietState>> DIET =
+        ATTACHMENT_TYPES.register(
+            "diet",
+            () -> AttachmentType.builder(() -> kingdom.smp.food.DietState.EMPTY)
+                .serialize(kingdom.smp.food.DietState.CODEC)
+                .copyOnDeath()
                 .build());
 
     public static void register(IEventBus modBus) {

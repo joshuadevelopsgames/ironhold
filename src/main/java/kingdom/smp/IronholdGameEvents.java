@@ -76,6 +76,7 @@ public final class IronholdGameEvents {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         IronholdCommands.register(event);
+        kingdom.smp.command.AdminModeCommand.register(event);
         kingdom.smp.command.SkillsCommand.register(event);
         kingdom.smp.seasons.SeasonsCommand.register(event);
         kingdom.smp.lobby.LobbyCommand.register(event);

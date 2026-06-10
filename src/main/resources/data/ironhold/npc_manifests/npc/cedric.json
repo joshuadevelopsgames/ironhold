@@ -21,7 +21,6 @@
   "disdains": [
     { "item": "minecraft:gunpowder",  "rapport_delta": -5,  "reaction": "Cedric flinches. \"Please. Not in the chapel.\"" },
     { "item": "minecraft:iron_sword", "rapport_delta": -3,  "reaction": "\"No swords. Some hands lay them down here.\"" },
-    { "item": "minecraft:wither_skull","rapport_delta": -12, "reaction": "\"Out. Out, child. Some things will not be blessed.\"" },
-    { "item": "ironhold:void_core",   "rapport_delta": -8,  "reaction": "Cedric does not touch it. \"The old light does not reach into that. Take it away.\"" }
+    { "item": "minecraft:wither_skull","rapport_delta": -12, "reaction": "\"Out. Out, child. Some things will not be blessed.\"" }
   ]
 }

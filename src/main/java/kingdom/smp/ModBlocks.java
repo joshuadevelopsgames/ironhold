@@ -632,6 +632,28 @@ public final class ModBlocks {
                 kingdom.smp.block.ClassStoneBlockEntity::new,
                 CLASS_STONE_BLOCK.get()));
 
+    // ── Ender Shrine (totem-fueled sanctuary revive) ──────────────────────────
+    public static final DeferredBlock<kingdom.smp.block.EnderShrineBlock> ENDER_SHRINE_BLOCK =
+        BLOCKS.register("ender_shrine",
+            id -> new kingdom.smp.block.EnderShrineBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_BLACK)
+                    .strength(5.0f, 1200.0f)   // tough, blast-resistant base
+                    .sound(SoundType.STONE)
+                    .lightLevel(s -> 7)
+                    .noOcclusion()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.EnderShrineBlockEntity>>
+            ENDER_SHRINE_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("ender_shrine",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.EnderShrineBlockEntity::new,
+                ENDER_SHRINE_BLOCK.get()));
+
     // ── Tripwire rack ─────────────────────────────────────────────────────────
     // Vanilla tripwire hooks double as a wall rack that can hold a single tool /
     // item. The EntityBlock interface is grafted onto TripWireHookBlock by
@@ -661,6 +683,58 @@ public final class ModBlocks {
                     .noLootTable()
                     .setId(ResourceKey.create(Registries.BLOCK, id))
             ));
+
+    // ── Butterfly Terrarium ───────────────────────────────────────────────────
+    // Placeable glass jar that displays up to 3 captured butterflies. Right-click
+    // with a butterfly to add, empty-hand to take one back; breaking keeps the
+    // butterflies inside (BUTTERFLY_JAR_CONTENTS component). See ButterflyJarBlock.
+    public static final DeferredBlock<kingdom.smp.block.ButterflyJarBlock> BUTTERFLY_TERRARIUM =
+        BLOCKS.register("butterfly_terrarium",
+            id -> new kingdom.smp.block.ButterflyJarBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.COLOR_LIGHT_BLUE)
+                    .strength(0.3f)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()
+                    .isViewBlocking((s, l, p) -> false)
+                    .isRedstoneConductor((s, l, p) -> false)
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.ButterflyJarBlockEntity>>
+            BUTTERFLY_TERRARIUM_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("butterfly_terrarium",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.ButterflyJarBlockEntity::new,
+                BUTTERFLY_TERRARIUM.get()));
+
+    // ── Chalice ───────────────────────────────────────────────────────────────
+    // Placeable golden goblet you can pour any liquid into (water/lava/milk/powder
+    // snow buckets, honey bottles, any potion). The held liquid renders inside the
+    // cup via ChaliceRenderer; right-click empty-hand tips it out. See ChaliceBlock.
+    public static final DeferredBlock<kingdom.smp.block.ChaliceBlock> CHALICE =
+        BLOCKS.register("chalice",
+            id -> new kingdom.smp.block.ChaliceBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.GOLD)
+                    .strength(1.0f, 6.0f)
+                    .sound(SoundType.METAL)
+                    .noOcclusion()
+                    .isViewBlocking((s, l, p) -> false)
+                    .isRedstoneConductor((s, l, p) -> false)
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            ));
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>,
+            net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.ChaliceBlockEntity>>
+            CHALICE_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("chalice",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.ChaliceBlockEntity::new,
+                CHALICE.get()));
 
     public static void register(IEventBus modEventBus) {
         BLOCKS.register(modEventBus);

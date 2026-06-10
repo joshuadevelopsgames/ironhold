@@ -1,4 +1,5 @@
 {
+  "parent": "minecraft:adventure/root",
   "display": {
     "icon": {
       "id": "ironhold:moon_stone"

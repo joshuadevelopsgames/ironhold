@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "/admin build-mode toggle (op only). Run /function admin:toggle.",
+    "pack_format": 101,
+    "supported_formats": { "min_inclusive": 26, "max_inclusive": 9999 }
+  }
+}

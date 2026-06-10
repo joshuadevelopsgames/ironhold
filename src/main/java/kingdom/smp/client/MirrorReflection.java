@@ -38,6 +38,17 @@ public final class MirrorReflection {
     private static final int MAX_DIM = 1024;
 
     /**
+     * Terrain cap for the reflection pass: while capturing, {@code MirrorTerrainCullMixin} draws every
+     * loaded section the mirror's view cone touches within this many chunks (sections) of the player —
+     * sourced straight from {@code ViewArea}, with no occlusion BFS, so no holes and no stale-graph snap.
+     * Bounds the cost and matches "show the N chunks behind you". 3–5 is the useful range. REVERTABLE: a
+     * large value widens the box back toward full render distance.
+     */
+    private static final int CAP_CHUNKS = 5;
+    /** The player's real eye for this capture; the cull box is centred on this section. */
+    private static Vec3 captureCenter = Vec3.ZERO;
+
+    /**
      * Temporal staggering: when several mirrors are live, refresh just one per frame (round-robin)
      * instead of re-rendering all of them every frame — a wall mirror updating at a fraction of the
      * frame rate is imperceptible. REVERTABLE: set to {@code false} to restore capturing every assigned
@@ -78,6 +89,16 @@ public final class MirrorReflection {
 
     public static boolean isCapturing() {
         return capturing;
+    }
+
+    /** Center of the reflection terrain cap (the player's real eye for the active capture). */
+    public static Vec3 captureCenter() {
+        return captureCenter;
+    }
+
+    /** Half-extent of the reflection cull box, in chunks/sections. */
+    public static int capChunks() {
+        return CAP_CHUNKS;
     }
 
     /**
@@ -204,6 +225,7 @@ public final class MirrorReflection {
             slot.index, near, far, l, r, b, t, reflectedEye.x, reflectedEye.y, reflectedEye.z);
 
         activeTarget = slot.target;
+        captureCenter = savedPos; // measure the terrain cap from the real eye, not the reflected one
         capturing = true;
         try {
             mc.gameRenderer.renderLevel(delta);

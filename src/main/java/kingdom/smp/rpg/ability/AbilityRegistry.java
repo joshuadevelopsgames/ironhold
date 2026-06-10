@@ -21,6 +21,9 @@ public final class AbilityRegistry {
 
     public static final Ability IRON_WARD = new IronWard();
     public static final Ability GUARDIANS_VOW = new GuardiansVow();
+    public static final Ability MEND = new Mend();
+    public static final Ability SANCTUARY = new Sanctuary();
+    public static final Ability CLEANSE = new Cleanse();
 
     private static final Map<Identifier, Ability> BY_ID = new HashMap<>();
     private static final Map<PlayerClass, Ability[]> BY_CLASS = new HashMap<>();
@@ -28,6 +31,13 @@ public final class AbilityRegistry {
     static {
         registerSlot(PlayerClass.KNIGHT, 2, IRON_WARD);
         registerSlot(PlayerClass.KNIGHT, 3, GUARDIANS_VOW);
+        // Healer kits (Phase 5 ④): give the support classes a real party role.
+        registerSlot(PlayerClass.MEDIC, 0, MEND);
+        registerSlot(PlayerClass.CLERIC, 0, MEND);
+        registerSlot(PlayerClass.CLERIC, 2, CLEANSE);
+        registerSlot(PlayerClass.SAINT, 1, SANCTUARY);
+        registerSlot(PlayerClass.BISHOP, 1, SANCTUARY);
+        registerSlot(PlayerClass.BISHOP, 2, CLEANSE);
     }
 
     private AbilityRegistry() {}

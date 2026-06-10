@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "ironhold:glowshroom",
+          "name": "ironhold:blue_glowshrooms",
           "functions": [
             {
               "function": "minecraft:set_count",

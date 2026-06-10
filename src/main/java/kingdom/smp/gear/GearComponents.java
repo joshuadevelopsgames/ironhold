@@ -39,6 +39,12 @@ public final class GearComponents {
                     .persistent(Codec.BOOL)
                     .networkSynchronized(ByteBufCodecs.BOOL));
 
+    /** Rolled affixes on this gear item (count gated by {@link ItemQuality} tier — see {@link AffixData}). */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.List<AffixInstance>>> AFFIXES =
+            COMPONENTS.registerComponentType("affixes", builder -> builder
+                    .persistent(AffixInstance.CODEC.listOf())
+                    .networkSynchronized(AffixInstance.STREAM_CODEC.apply(ByteBufCodecs.list())));
+
     public static void register(IEventBus modBus) {
         COMPONENTS.register(modBus);
     }

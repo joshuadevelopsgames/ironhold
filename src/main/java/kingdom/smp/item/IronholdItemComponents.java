@@ -32,6 +32,20 @@ public final class IronholdItemComponents {
                     .persistent(com.mojang.serialization.Codec.STRING)
                     .networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.STRING_UTF8));
 
+    /** Butterfly species ids stored in a placed-then-broken butterfly terrarium (block),
+     *  so breaking the jar drops an item that still holds its butterflies. Max 3. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.List<String>>> BUTTERFLY_JAR_CONTENTS =
+            COMPONENTS.registerComponentType("butterfly_jar_contents", b -> b
+                    .persistent(com.mojang.serialization.Codec.STRING.listOf())
+                    .networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.STRING_UTF8
+                            .apply(net.minecraft.network.codec.ByteBufCodecs.list())));
+
+    /** Coin Purse stored balance (loose gold coins banked into the purse item). */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> COIN_BALANCE =
+            COMPONENTS.registerComponentType("coin_balance", b -> b
+                    .persistent(com.mojang.serialization.Codec.INT)
+                    .networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.INT));
+
     public static void register(IEventBus modBus) {
         COMPONENTS.register(modBus);
     }

@@ -15,6 +15,9 @@ public class TempestArrowItem extends ArrowItem {
 
     @Override
     public AbstractArrow createArrow(Level level, ItemStack stack, LivingEntity shooter, ItemStack weapon) {
-        return new TempestArrowEntity(shooter, level, stack, weapon, true, false);
+        // Lightning is guaranteed only when fired from the Tempest Bow; from any other bow this
+        // behaves like a normal arrow (but keeps its electric look).
+        boolean fromTempestBow = weapon.getItem() instanceof TempestBowItem;
+        return new TempestArrowEntity(shooter, level, stack, weapon, fromTempestBow);
     }
 }

@@ -47,6 +47,18 @@ public final class IronholdKeys {
     public static final KeyMapping EMOTE_POINT = new KeyMapping(
         "key.ironhold.emote_point", GLFW.GLFW_KEY_B, CATEGORY);
 
+    /** Parry — tap-key active stance, discrete press via {@code consumeClick()}, default R. */
+    public static final KeyMapping PARRY = new KeyMapping(
+        "key.ironhold.parry", GLFW.GLFW_KEY_R, CATEGORY);
+
+    /** Dodge — short directional hop, discrete press via {@code consumeClick()}, default Left Alt. */
+    public static final KeyMapping DODGE = new KeyMapping(
+        "key.ironhold.dodge", GLFW.GLFW_KEY_LEFT_ALT, CATEGORY);
+
+    /** Accessory active — triggers an equipped artifact's active (e.g. Ender Regalia blink), default G. */
+    public static final KeyMapping ACCESSORY_ACTIVE = new KeyMapping(
+        "key.ironhold.accessory_active", GLFW.GLFW_KEY_G, CATEGORY);
+
     // ── Dev: stone golem hammer-grip tuner (see StoneGolemHammerTuning) ──
     /** Cycle which grip field the -/= keys nudge (posX..scale). */
     public static final KeyMapping GOLEM_HAMMER_CYCLE = new KeyMapping(

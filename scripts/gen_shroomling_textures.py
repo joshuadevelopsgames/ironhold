@@ -6,7 +6,7 @@ Entity UV layout (64x64) matches ShroomlingModel box-UV offsets:
   stem w6  h4 d6   texOffs(0,18)
   leg  w2  h2 d2   texOffs(28,18)   (shared by both legs)
 
-Item art (16x16): glowshroom, shroomcap, shroomling_spawn_egg.
+Item art (16x16): shroomcap, shroomling_spawn_egg.
 """
 import os
 import random
@@ -137,27 +137,6 @@ def gen_entity():
     bright.save(os.path.join(ENTITY_DIR, "shroomling_bright.png"))
 
 
-def gen_glowshroom():
-    img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
-    px = img.load()
-    # stem (pale) bottom-center
-    fill(px, 6, 9, 4, 5, STEM)
-    fill(px, 6, 9, 1, 5, STEM_BOT)
-    fill(px, 9, 9, 1, 5, STEM_BOT)
-    # cap dome
-    fill(px, 3, 5, 10, 4, CAP_FRONT)
-    fill(px, 4, 3, 8, 2, CAP_TOP)
-    fill(px, 3, 8, 10, 1, CAP_BOTTOM)
-    fill(px, 3, 5, 1, 4, CAP_SIDE)
-    fill(px, 12, 5, 1, 4, CAP_SIDE)
-    # glow spots
-    for (x, y) in [(5, 5), (9, 4), (11, 6), (7, 7), (4, 7)]:
-        px[x, y] = GLOW
-    px[9, 4] = GLOW_HI
-    px[6, 6] = GLOW_HI
-    img.save(os.path.join(ITEM_DIR, "glowshroom.png"))
-
-
 def gen_shroomcap():
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
@@ -174,27 +153,54 @@ def gen_shroomcap():
 
 
 def gen_spawn_egg():
-    # vanilla-style egg silhouette, periwinkle base + pale spots
+    # Front-facing mob silhouette based on ShroomlingModel: a stepped,
+    # three-tier cap, six-wide stem, and two stubby feet.
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
-    base = (74, 108, 170, 255)
-    spot = (190, 216, 232, 255)
-    egg_rows = {
-        4: (6, 9), 5: (5, 10), 6: (5, 10), 7: (4, 11),
-        8: (4, 11), 9: (4, 11), 10: (5, 10), 11: (5, 10), 12: (6, 9),
+
+    palette = {
+        "O": EYE,
+        "H": CAP_TOP,
+        "M": CAP_FRONT,
+        "D": CAP_BOTTOM,
+        "U": (44, 68, 112, 255),
+        "S": SPOT,
+        "P": SPOT_HI,
+        "B": STEM,
+        "L": STEM_TOP,
+        "Q": STEM_BOT,
+        "E": EYE,
+        "F": LEG,
+        "X": LEG_BOT,
     }
-    for y, (x0, x1) in egg_rows.items():
-        for x in range(x0, x1 + 1):
-            px[x, y] = base
-    for (x, y) in [(6, 5), (9, 6), (5, 8), (8, 8), (10, 9), (6, 10), (8, 11)]:
-        if px[x, y][3]:
-            px[x, y] = spot
+    rows = [
+        "................",
+        "......OOOO......",
+        ".....OHHHDO.....",
+        "....OHHHHDDO....",
+        "...OHHPSHHDDO...",
+        "..OHHHMHHMDDDO..",
+        ".OHHMHHHMHHDDDO.",
+        ".OMMSSMMMSSDDDO.",
+        "..OOOUUUUUUOOO..",
+        "....OBLLLLBO....",
+        "....OBEBBEBO....",
+        "....OBBBBBBO....",
+        "....OQQQQQQO....",
+        "....OFO..OXO....",
+        "....OOO..OOO....",
+        "................",
+    ]
+    for y, row in enumerate(rows):
+        for x, symbol in enumerate(row):
+            if symbol != ".":
+                px[x, y] = palette[symbol]
+
     img.save(os.path.join(ITEM_DIR, "shroomling_spawn_egg.png"))
 
 
 if __name__ == "__main__":
     gen_entity()
-    gen_glowshroom()
     gen_shroomcap()
     gen_spawn_egg()
     print("wrote shroomling textures ->", ENTITY_DIR, "and", ITEM_DIR)

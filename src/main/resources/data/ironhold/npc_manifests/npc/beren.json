@@ -23,6 +23,7 @@
     { "item": "minecraft:flint_and_steel",          "rapport_delta": 10, "reaction": "\"My old one's dead. Kid, you're a saint.\"" },
     { "item": "minecraft:warped_fungus_on_a_stick", "rapport_delta": 10, "reaction": "Beren cackles. \"What in the kingdom — yes. I'm keeping this.\"" },
     { "item": "ironhold:cheese_wedge",              "rapport_delta": 10, "reaction": "\"With the ale? Mmh. I owe you.\"" },
+    { "item": "ironhold:small_ale",                  "rapport_delta": 12, "reaction": "Beren raises the bottle. \"Now you're speaking my language, kid.\"" },
     { "item": "ironhold:gold_coin",                 "rapport_delta": 8,  "reaction": "Beren weighs it. \"…you tipping me, kid? I'll take it.\"" },
     { "item": "minecraft:bread",                    "rapport_delta": 3,  "reaction": "\"Mira's loaves are better, but. Thanks.\"" },
     { "item": "minecraft:wheat_seeds",              "rapport_delta": 3,  "reaction": "\"For whittling pots. Heh. Thanks, kid.\"" },

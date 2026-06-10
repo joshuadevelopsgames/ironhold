@@ -86,7 +86,7 @@ file="META-INF/accesstransformer.cfg"
     ordering="NONE"
     side="BOTH"
 
-# GeckoLib — required for animated entity / item models (KingdomDragon, ArcaneScepter, WizardStaff, Guillotine).
+# GeckoLib — required for animated entity / item models (ArcaneScepter, WizardStaff, Guillotine).
 # Without this the loader will fail Ironhold construction with a clear missing-dependency message instead of
 # a NoClassDefFoundError on com.geckolib.*.
 [[dependencies.${mod_id}]]

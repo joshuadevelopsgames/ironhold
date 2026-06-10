@@ -20,10 +20,11 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-# Auto-discover the built jar so we don't have to update this when mod_version bumps.
-# Picks the most recently modified ironhold-*.jar — works regardless of version suffix.
+# Resolve the exact current version. Picking the newest mtime is unsafe because an old
+# jar can become "newest" after copying, touching, or restoring build outputs.
 if [[ -z "${JAR_PATH:-}" ]]; then
-  JAR_PATH="$(ls -t "$REPO_DIR/build/libs/"ironhold-*.jar 2>/dev/null | head -n1 || true)"
+  MOD_VERSION="$(sed -n 's/^mod_version=//p' "$REPO_DIR/gradle.properties" | tail -n1)"
+  JAR_PATH="$REPO_DIR/build/libs/ironhold-$MOD_VERSION.jar"
 fi
 
 SFTP_HOST="${SFTP_HOST:-n-cal-3.folium.host}"
@@ -35,6 +36,24 @@ if [[ ! -f "$JAR_PATH" ]]; then
   echo "error: jar not found at $JAR_PATH — run ./gradlew build first" >&2
   exit 1
 fi
+
+# Fail before deployment if the archive is corrupt or lacks the declared mod entrypoint.
+if ! unzip -tq "$JAR_PATH" >/dev/null; then
+  echo "error: invalid or corrupt jar: $JAR_PATH" >&2
+  exit 1
+fi
+# Capture the entry listing once, then match against it. Piping `unzip -Z1`
+# straight into `grep -Fxq` lets grep close the pipe on its first match, which
+# can hand unzip a SIGPIPE (exit 141); under `set -o pipefail` that spuriously
+# fails the check even though the entry is present (Ironhold.class is entry ~6
+# of several thousand, so the match — and the pipe close — happen immediately).
+jar_entries="$(unzip -Z1 "$JAR_PATH")"
+for required_entry in kingdom/smp/Ironhold.class META-INF/neoforge.mods.toml; do
+  if ! grep -Fxq "$required_entry" <<<"$jar_entries"; then
+    echo "error: jar is missing $required_entry: $JAR_PATH" >&2
+    exit 1
+  fi
+done
 
 echo "==> Removing old ironhold-*.jar and uploading $(basename "$JAR_PATH") to $SFTP_USER@$SFTP_HOST:$REMOTE_DIR/"
 
@@ -84,6 +103,10 @@ LOCAL_MODS_DIR="${LOCAL_MODS_DIR:-$HOME/Library/Application Support/ModrinthApp/
 if [[ -d "$LOCAL_MODS_DIR" ]]; then
   find "$LOCAL_MODS_DIR" -maxdepth 1 -name 'ironhold-*.jar' -delete
   cp "$JAR_PATH" "$LOCAL_MODS_DIR/"
+  cmp -s "$JAR_PATH" "$LOCAL_MODS_DIR/$(basename "$JAR_PATH")" || {
+    echo "error: local installed jar does not match build output" >&2
+    exit 1
+  }
   echo "    copied to $LOCAL_MODS_DIR/$(basename "$JAR_PATH")"
 fi
 

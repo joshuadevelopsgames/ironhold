@@ -255,6 +255,10 @@ public final class IronholdCommands {
                                                             LongArgumentType.getLong(ctx, "amount")))))))
                     .then(Commands.literal("gates").executes(ctx -> gates(ctx.getSource())))
                     .then(Commands.literal("weight").executes(ctx -> weight(ctx.getSource())))
+                    .then(
+                        Commands.literal("butterflydex")
+                            .then(Commands.literal("fill").executes(ctx -> butterflyDex(ctx.getSource(), true)))
+                            .then(Commands.literal("clear").executes(ctx -> butterflyDex(ctx.getSource(), false))))
                     .then(Commands.literal("classgui").executes(ctx -> openClassGui(ctx.getSource())))
                     .then(Commands.literal("kingdomgui").executes(ctx -> openKingdomGui(ctx.getSource())))
                     .then(Commands.literal("profile").executes(ctx -> openProfile(ctx.getSource())))
@@ -409,6 +413,70 @@ public final class IronholdCommands {
         event.getDispatcher()
             .register(Commands.literal("console").executes(ctx -> openConsole(ctx.getSource())));
 
+        // /wishingwell — admin setup for the wishing well box (stand at a corner, then run setcorner1/2)
+        event.getDispatcher().register(
+            Commands.literal("wishingwell")
+                .requires(s -> kingdom.smp.perms.Perms.check(s, kingdom.smp.perms.ModPermissions.COMMAND_ADMIN))
+                .then(Commands.literal("setcorner1").executes(ctx -> setWishingWellCorner(ctx.getSource(), true)))
+                .then(Commands.literal("setcorner2").executes(ctx -> setWishingWellCorner(ctx.getSource(), false)))
+                .then(Commands.literal("enable").executes(ctx -> toggleWishingWell(ctx.getSource(), true)))
+                .then(Commands.literal("disable").executes(ctx -> toggleWishingWell(ctx.getSource(), false)))
+                .then(Commands.literal("status").executes(ctx -> showWishingWellStatus(ctx.getSource()))));
+    }
+
+    // ── Wishing well ─────────────────────────────────────────────────────────
+
+    private static int setWishingWellCorner(CommandSourceStack source, boolean first) {
+        if (!(source.getEntity() instanceof ServerPlayer player)) {
+            source.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        var state = kingdom.smp.wishing.WishingWellState.get(source.getServer());
+        BlockPos pos = player.blockPosition();
+        var dim = player.level().dimension();
+        if (first) {
+            state.setCornerOne(pos, dim);
+            source.sendSuccess(() -> Component.literal(
+                "§6[Wishing Well] §aSet corner #1 at §e" + formatPos(pos) + "§a. Now set corner #2."), true);
+            return 1;
+        }
+        if (state.getCornerOne().isEmpty()) {
+            source.sendFailure(Component.literal("§6[Wishing Well] §cSet corner #1 before setting corner #2."));
+            return 0;
+        }
+        if (state.getDimensionKey().isPresent() && !dim.equals(state.getDimensionKey().get())) {
+            source.sendFailure(Component.literal("§6[Wishing Well] §cCorner #2 must be in the same dimension as corner #1."));
+            return 0;
+        }
+        state.setCornerTwo(pos, dim);
+        source.sendSuccess(() -> Component.literal(
+            "§6[Wishing Well] §aSet corner #2 at §e" + formatPos(pos) + "§a. Toss a gold coin in to test it!"), true);
+        return 1;
+    }
+
+    private static int toggleWishingWell(CommandSourceStack source, boolean enable) {
+        var state = kingdom.smp.wishing.WishingWellState.get(source.getServer());
+        state.setEnabled(enable);
+        if (enable && !state.hasDefinedArea()) {
+            source.sendSuccess(() -> Component.literal("§6[Wishing Well] §eEnabled, but corners aren't set yet."), false);
+        } else {
+            source.sendSuccess(() -> Component.literal("§6[Wishing Well] §a" + (enable ? "Enabled" : "Disabled") + "."), true);
+        }
+        return 1;
+    }
+
+    private static int showWishingWellStatus(CommandSourceStack source) {
+        var state = kingdom.smp.wishing.WishingWellState.get(source.getServer());
+        source.sendSuccess(() -> Component.literal(
+            "§6[Wishing Well] §7Status: " + (state.isEnabled() ? "§aENABLED" : "§cDISABLED")), false);
+        state.getCornerOne().ifPresent(p -> source.sendSuccess(() -> Component.literal("§6[Wishing Well] §7Corner #1: §e" + formatPos(p)), false));
+        state.getCornerTwo().ifPresent(p -> source.sendSuccess(() -> Component.literal("§6[Wishing Well] §7Corner #2: §e" + formatPos(p)), false));
+        state.getDimensionKey().ifPresent(k -> source.sendSuccess(() -> Component.literal("§6[Wishing Well] §7Dimension: §e" + k.identifier()), false));
+        return 1;
+    }
+
+    private static String formatPos(BlockPos pos) {
+        return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
     private static int kangaJoin(CommandSourceStack src) {
@@ -705,6 +773,21 @@ public final class IronholdCommands {
     private static KingdomWorldData overworldData(ServerLevel any) {
         ServerLevel ow = any.getServer().getLevel(Level.OVERWORLD);
         return ow.getDataStorage().computeIfAbsent(KingdomWorldData.TYPE);
+    }
+
+    private static int butterflyDex(CommandSourceStack src, boolean fill) {
+        if (!(src.getEntity() instanceof ServerPlayer player)) {
+            src.sendFailure(Component.literal("Players only."));
+            return 0;
+        }
+        if (fill) {
+            kingdom.smp.entity.ButterflyDex.discoverAll(player);
+            src.sendSuccess(() -> Component.literal("Butterfly Encyclopedia filled (all species discovered)."), false);
+        } else {
+            kingdom.smp.entity.ButterflyDex.clear(player);
+            src.sendSuccess(() -> Component.literal("Butterfly Encyclopedia cleared."), false);
+        }
+        return 1;
     }
 
     private static int weight(CommandSourceStack src) {

@@ -94,8 +94,9 @@ public final class IronholdLore {
         - Tempest Bow looses Tempest Arrows that ride the storm.
         - Mage's Sceptre, Arcane Scepter, Soluna Staff — wizard's tools,
           each tuned to a different art. The Soluna alternates sun and moon.
-        - Wraith's Sigil binds the dead. Filcher Crown is loot from the
-          little thieves. Vengeful Halberd is heavy and unforgiving.
+        - Zephyr Charm catches the wind for a sudden step. Filcher Crown
+          is loot from the little thieves. Vengeful Halberd is heavy and
+          unforgiving.
         - The humble Pitchfork can be thrown — and often is.
 
         ── MATERIALS & COIN ─────────────────────────────────────────────
@@ -109,9 +110,7 @@ public final class IronholdLore {
         - End Crystal Shards and the Chorus Charge fuel a Chorus
           Wardheart — tiers Dormant, Micro, Weak, Stable, Royal,
           Overcharged. A Royal one holds a town through a long night.
-        - The Void Core is a sliver of nothing, bound. Dangerous to carry.
-        - Purified Shells come from white shulkers. Armor Polish keeps a
-          knight's plate bright.
+        - Armor Polish keeps a knight's plate bright.
 
         ── PLACES ───────────────────────────────────────────────────────
         - Wayfarer's Hollow: the gate town where every traveler arrives.

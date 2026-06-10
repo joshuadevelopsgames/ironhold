@@ -18,13 +18,17 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Wraith's Sigil — an accessory that grants a spectral dash ability.
- * When the player is sprinting and sneaks, they lunge forward with a burst
- * of soul particles. 4-second cooldown.
+ * Zephyr Charm — an accessory that grants a gale-step dash ability.
+ * When the player is sprinting and sneaks, a sudden gust hurls them
+ * forward in a burst of wind. 3-second cooldown.
+ *
+ * <p>(The class name, registry id {@code wraiths_sigil}, and texture are
+ * kept for save/loot/tag compatibility; the player-facing name is the
+ * "Zephyr Charm".)
  */
 public class WraithsSigilItem extends AccessoryItem {
 
-    private static final int COOLDOWN_TICKS = 80; // 4 seconds
+    private static final int COOLDOWN_TICKS = 60; // 3 seconds
     private static final double DASH_POWER = 2.0;
     private static final double DASH_Y = 0.25;
 
@@ -63,15 +67,22 @@ public class WraithsSigilItem extends AccessoryItem {
         player.hurtMarked = true;
 
         player.level().playSound(null, player.blockPosition(),
-            SoundEvents.PHANTOM_FLAP, SoundSource.PLAYERS, 0.8F, 1.3F);
+            SoundEvents.WIND_CHARGE_THROW, SoundSource.PLAYERS, 0.8F, 1.1F);
+        player.level().playSound(null, player.blockPosition(),
+            SoundEvents.BREEZE_JUMP, SoundSource.PLAYERS, 0.5F, 1.3F);
 
         if (player.level() instanceof ServerLevel sl) {
-            sl.sendParticles(ParticleTypes.SOUL_FIRE_FLAME,
+            // A single gust poof at the launch point...
+            sl.sendParticles(ParticleTypes.GUST_EMITTER_LARGE,
+                player.getX(), player.getY() + 0.4, player.getZ(),
+                1, 0, 0, 0, 0);
+            // ...wreathed in swirling wind and a wispy slipstream.
+            sl.sendParticles(ParticleTypes.GUST,
                 player.getX(), player.getY() + 0.5, player.getZ(),
-                15, 0.3, 0.2, 0.3, 0.05);
-            sl.sendParticles(ParticleTypes.SOUL,
+                10, 0.3, 0.2, 0.3, 0.0);
+            sl.sendParticles(ParticleTypes.CLOUD,
                 player.getX(), player.getY() + 0.2, player.getZ(),
-                8, 0.4, 0.1, 0.4, 0.02);
+                12, 0.4, 0.1, 0.4, 0.02);
         }
     }
 
@@ -84,9 +95,9 @@ public class WraithsSigilItem extends AccessoryItem {
     @Override
     public List<Component> getAccessoryTooltip() {
         return List.of(
-            Component.literal("Wraith Dash").withStyle(ChatFormatting.DARK_PURPLE),
-            Component.literal("Sprint + Sneak to dash forward").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
-            Component.literal("4s cooldown").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
+            Component.literal("Gale Step").withStyle(ChatFormatting.AQUA),
+            Component.literal("Sprint + Sneak to ride the gale forward").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC),
+            Component.literal("3s cooldown").withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
         );
     }
 }

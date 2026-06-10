@@ -94,6 +94,13 @@ public final class ModNetworking {
                 }
             }));
 
+        registrar.playToServer(BattleHammerMissPayload.TYPE, BattleHammerMissPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.item.BattleHammerCombatHandler.onSwingMiss(sp);
+                }
+            }));
+
         registrar.playToServer(SirensRingActivatePayload.TYPE, SirensRingActivatePayload.STREAM_CODEC,
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp && SirensRingItem.isEquipped(sp)) {
@@ -112,6 +119,38 @@ public final class ModNetworking {
             (payload, ctx) -> ctx.enqueueWork(() -> {
                 if (ctx.player() instanceof ServerPlayer sp) {
                     AbilityDispatch.tryCast(sp, payload.slot());
+                }
+            }));
+
+        // ── Combat footwork: parry + dodge (tap-key defensive actions) ────────
+        registrar.playToServer(ParryPayload.TYPE, ParryPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.combat.FootworkHandler.tryParry(sp);
+                }
+            }));
+
+        registrar.playToServer(DodgePayload.TYPE, DodgePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.combat.FootworkHandler.tryDodge(
+                        sp, payload.forward(), payload.back(), payload.left(), payload.right());
+                }
+            }));
+
+        // Accessory active (boss-artifact actives, e.g. Ender Regalia blink).
+        registrar.playToServer(AccessoryActivatePayload.TYPE, AccessoryActivatePayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.game.BossArtifactHandler.tryAccessoryActive(sp);
+                }
+            }));
+
+        // Coin Purse held-right-click withdraw (amount ramps with hold duration, client-driven).
+        registrar.playToServer(CoinPurseWithdrawPayload.TYPE, CoinPurseWithdrawPayload.STREAM_CODEC,
+            (payload, ctx) -> ctx.enqueueWork(() -> {
+                if (ctx.player() instanceof ServerPlayer sp) {
+                    kingdom.smp.item.CoinPurseItem.withdraw(sp, payload.slotIndex(), payload.amount());
                 }
             }));
 
@@ -428,6 +467,9 @@ public final class ModNetworking {
         ClassStatHandler.apply(player, next);
         RpgXpBarSync.sync(player, next);
         syncToClient(player);
+
+        // Promotion kit (Phase 5 ⑭): hand the new class its signature starter gear.
+        kingdom.smp.rpg.ClassKit.grant(player, chosen);
 
         // Consume the summoned Class Stone they promoted at (no-op if none).
         PromotionStoneSummoner.removeFor(player);

@@ -14,8 +14,6 @@ import net.minecraft.resources.Identifier;
  * {@code piglin_villager.geo.json} model + animation file. The bbmodel's
  * bone hierarchy (head with ear+nose subparts, body with the 43°-tilted
  * "arms" praying-villager bone, separate legs) is preserved exactly.
- *
- * <p>Pattern mirrors {@link kingdom.smp.client.entity.dragon.KingdomDragonRenderer}.
  */
 public class PiglinVillagerRenderer extends GeoEntityRenderer<PiglinVillagerEntity, LivingEntityRenderState> {
 

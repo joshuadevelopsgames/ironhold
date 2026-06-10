@@ -40,8 +40,8 @@ public class BattleHammerItem extends Item implements GeoItem {
 
     /** Forge-power crit-combo: each consecutive critical hit adds one level (1..MAX),
      *  the glow stage tracks the level, and the level scales the ground-slam power.
-     *  The charge is held indefinitely (across weapon swaps, downtime, etc.) and only
-     *  resets when the hammer lands a hit that ISN'T a crit (combo broken). */
+     *  The charge is held indefinitely (across weapon swaps, downtime, plain non-crit
+     *  hits, etc.) and only resets when a swing fully misses — whiffing into the air. */
     public static final int MAX_FORGE_CHARGE = 8;
 
     private static final RawAnimation IDLE =
@@ -136,8 +136,9 @@ public class BattleHammerItem extends Item implements GeoItem {
     /**
      * Bumps the forge-power crit combo by one (capped at {@link #MAX_FORGE_CHARGE}). Called
      * from {@link BattleHammerCombatHandler} when the holder lands a critical hit on a living
-     * target. The combo never times out — it only resets via {@link #resetCharge} when a
-     * non-crit hit lands. Returns the new level so the caller can play scaled feedback.
+     * target. The combo never times out and survives plain non-crit hits — it only resets via
+     * {@link #resetCharge} when a swing fully misses. Returns the new level so the caller can
+     * play scaled feedback.
      */
     public static int addCritCharge(ItemStack stack, ServerLevel level) {
         ForgeCharge cur = stack.getOrDefault(IronholdItemComponents.FORGE_CHARGE.get(), ForgeCharge.NONE);
@@ -146,11 +147,19 @@ public class BattleHammerItem extends Item implements GeoItem {
         return next;
     }
 
-    /** Breaks the combo (back to level 0). Called when the hammer lands a non-crit hit. */
+    /** Breaks the combo (back to level 0). Called when a swing fully misses (whiffs into the
+     *  air). No-ops on stacks that aren't a charged hammer, so it's safe to call on any held
+     *  item. */
     public static void resetCharge(ItemStack stack) {
         if (stack.getOrDefault(IronholdItemComponents.FORGE_CHARGE.get(), ForgeCharge.NONE).level() > 0) {
             stack.set(IronholdItemComponents.FORGE_CHARGE.get(), ForgeCharge.NONE);
         }
+    }
+
+    /** True if this stack is a Battle Hammer currently carrying forge charge (level &gt; 0). */
+    public static boolean hasForgeCharge(ItemStack stack) {
+        return stack.getItem() instanceof BattleHammerItem
+            && stack.getOrDefault(IronholdItemComponents.FORGE_CHARGE.get(), ForgeCharge.NONE).level() > 0;
     }
 
     private static void groundSlam(Player player, ServerLevel level, float frac) {

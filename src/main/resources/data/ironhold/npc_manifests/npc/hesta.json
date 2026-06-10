@@ -11,7 +11,6 @@
     { "item": "minecraft:fire_charge",        "rapport_delta": 10, "reaction": "\"A spark with a temper. The hearth has been sulking.\"" },
     { "item": "minecraft:blaze_powder",       "rapport_delta": 10, "reaction": "\"For the smoke that talks back. Bless.\"" },
     { "item": "ironhold:bat_flower",          "rapport_delta": 12, "reaction": "Hesta smiles, slow. \"You went WHERE for this? You will live a long time, child.\"" },
-    { "item": "ironhold:purified_shell",      "rapport_delta": 10, "reaction": "\"Shell-bone. The sea remembers. So will I.\"" },
     { "item": "minecraft:ender_pearl",        "rapport_delta": 10, "reaction": "Hesta nods at the wall. \"For the lattice. The shadows lean differently around it.\"" },
     { "item": "minecraft:torchflower",        "rapport_delta": 6,  "reaction": "\"A flower that drinks the dark. The shrine has a corner for it.\"" },
     { "item": "minecraft:cocoa_beans",        "rapport_delta": 4,  "reaction": "\"For the second tea. Bless.\"" },

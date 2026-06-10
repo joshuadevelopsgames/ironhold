@@ -35,6 +35,8 @@ public class Ironhold {
 
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
+        kingdom.smp.dyewater.DyedWater.register(modEventBus);
+        kingdom.smp.dyewater.DyedWaterlog.register(modEventBus);
         ModEntities.register(modEventBus);
         ModWorldgen.register(modEventBus);
         ModSounds.register(modEventBus);
@@ -57,8 +59,23 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(IronholdGameEvents.class);
         NeoForge.EVENT_BUS.register(AnkhShieldHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.item.BattleHammerCombatHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.combat.FootworkHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.enchant.SoulboundDeathHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.EnderShrineDeathHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.BossArtifactHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixAttributeHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixCombatHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.gear.AffixTooltipHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.command.AffixCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.CampfireRestHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.food.DietHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.EndGateHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.command.TestBookCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.block.wardheart.EndCrystalShieldHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.block.TripwireRackHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.block.ButterflyJarBlock.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.game.ButterflyCollectionRewards.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.wishing.WishingWellManager.class);
         NeoForge.EVENT_BUS.register(ClassXpKillRewards.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.effect.PlagueHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.effect.BleedingHandler.class);
@@ -72,6 +89,7 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.moon.MoonAnimalConversionHandler.class);
         NeoForge.EVENT_BUS.register(TanzaniteWorldgenFluidHandler.class);
         NeoForge.EVENT_BUS.register(EncumbranceHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.dyewater.DyedWaterInteractions.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearTooltipHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.gear.GearAttributeHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.skill.SkillEventHandlers.class);
@@ -89,6 +107,7 @@ public class Ironhold {
         NeoForge.EVENT_BUS.register(kingdom.smp.game.EnhancedPickaxeSmeltHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.game.LockProtectionHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.trade.GoldCoinTradeHandler.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.alcohol.AlcoholService.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.rpg.ability.AbilityEffects.class);
         // Seasons: cycle advance + client sync, crop-growth gating, and seasonal snow/melt.
         NeoForge.EVENT_BUS.register(kingdom.smp.seasons.SeasonTickHandler.class);
@@ -102,6 +121,7 @@ public class Ironhold {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(ModItems::registerBaitProfiles);
         LOGGER.info("Kingdom SMP 2.0 common setup complete.");
     }
 

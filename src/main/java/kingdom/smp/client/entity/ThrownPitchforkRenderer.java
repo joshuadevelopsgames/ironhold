@@ -9,13 +9,20 @@ import com.geckolib.renderer.base.RenderPassInfo;
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.ThrownPitchforkEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.resources.Identifier;
 
 /**
  * Renders the thrown pitchfork using the same GeckoLib 3D model as the held item.
  * Rotates the model tip-first in the direction of travel.
+ *
+ * <p>Uses the base {@link EntityRenderState} as its render-state type: GeckoLib's
+ * {@code GeoEntityRenderer.createRenderState()} hard-codes {@code new EntityRenderState()}
+ * for non-living entities (this one extends {@code AbstractArrow}), so a custom
+ * render-state subclass would be {@code checkcast}-ed to and throw a
+ * {@link ClassCastException} the moment the thrown pitchfork is rendered.
  */
-public class ThrownPitchforkRenderer extends GeoEntityRenderer<ThrownPitchforkEntity, ThrownPitchforkRenderState> {
+public class ThrownPitchforkRenderer extends GeoEntityRenderer<ThrownPitchforkEntity, EntityRenderState> {
 
     private static final Identifier PITCHFORK_TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/item/pitchfork.png");
@@ -25,10 +32,10 @@ public class ThrownPitchforkRenderer extends GeoEntityRenderer<ThrownPitchforkEn
     }
 
     @Override
-    public void adjustRenderPose(RenderPassInfo<ThrownPitchforkRenderState> renderPassInfo) {
-        ThrownPitchforkRenderState state = renderPassInfo.renderState();
+    public void adjustRenderPose(RenderPassInfo<EntityRenderState> renderPassInfo) {
+        EntityRenderState state = renderPassInfo.renderState();
         float yaw   = state.getOrDefaultGeckolibData(DataTickets.ENTITY_YAW,   0f);
-        float pitch = state.getOrDefaultGeckolibData(DataTickets.ENTITY_PITCH,  0f);
+        float pitch = state.getOrDefaultGeckolibData(DataTickets.ENTITY_PITCH, 0f);
 
         var ps = renderPassInfo.poseStack();
 

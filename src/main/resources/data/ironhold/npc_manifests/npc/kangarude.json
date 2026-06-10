@@ -9,7 +9,6 @@
     { "item": "minecraft:ender_pearl",              "rapport_delta": 10, "reaction": "Kanga rolls it between his fingers. \"The void left this warm. I like that.\"" },
     { "item": "minecraft:music_disc_5",             "rapport_delta": 12, "reaction": "Kanga goes still. \"…you found this. You found THIS. Sit down. We're listening to it together.\"" },
     { "item": "ironhold:king_ender_eye",            "rapport_delta": 12, "reaction": "\"You shouldn't have brought this here. I'm keeping it.\"" },
-    { "item": "ironhold:void_core",                 "rapport_delta": 12, "reaction": "Kanga's grin sharpens. \"Oh. Oh that's interesting. Very interesting.\"" },
     { "item": "ironhold:gold_coin",                 "rapport_delta": 8,  "reaction": "Kanga flicks it, catches it. \"A coin. The universal hello. Cheers.\"" },
     { "item": "minecraft:cake",                     "rapport_delta": 10, "reaction": "\"You're trying to make me weep. It's working a little.\"" },
     { "item": "minecraft:bread",                    "rapport_delta": 3,  "reaction": "\"A simple thing. A good thing. Thanks.\"" },

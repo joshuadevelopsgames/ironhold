@@ -48,7 +48,8 @@ import kingdom.smp.entity.BabyMimicEntity;
 import kingdom.smp.entity.MimicEntity;
 import kingdom.smp.entity.NullStalkerEntity;
 import kingdom.smp.entity.StoneGolemEntity;
-import kingdom.smp.entity.dragon.KingdomDragonEntity;
+import kingdom.smp.entity.GargoyleEntity;
+import kingdom.smp.entity.ButterflyEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.SpawnPlacementTypes;
@@ -193,6 +194,14 @@ public final class ModEntities {
             MobCategory.MONSTER,
             b -> b.sized(1.6F, 3.9F).clientTrackingRange(10).updateInterval(3));
 
+    /** Gargoyle — hostile winged stone flyer; swoops like a Vex but collides with walls. */
+    public static final DeferredHolder<EntityType<?>, EntityType<GargoyleEntity>> GARGOYLE =
+        ENTITY_TYPES.registerEntityType(
+            "gargoyle",
+            GargoyleEntity::new,
+            MobCategory.MONSTER,
+            b -> b.sized(0.7F, 1.2F).clientTrackingRange(10).updateInterval(3));
+
     public static final DeferredHolder<EntityType<?>, EntityType<PinkDeerEntity>> PINK_DEER =
         ENTITY_TYPES.registerEntityType(
             "pink_deer",
@@ -263,6 +272,14 @@ public final class ModEntities {
             kingdom.smp.entity.VampireBatEntity::new,
             MobCategory.AMBIENT,
             b -> b.sized(0.5F, 0.9F).clientTrackingRange(8).updateInterval(2));
+
+    /** Butterfly — fragile ambient flyer; 23 species via variant, captured for fishing bait. */
+    public static final DeferredHolder<EntityType<?>, EntityType<ButterflyEntity>> BUTTERFLY =
+        ENTITY_TYPES.registerEntityType(
+            "butterfly",
+            ButterflyEntity::new,
+            MobCategory.AMBIENT,
+            b -> b.sized(0.4F, 0.4F).clientTrackingRange(8).updateInterval(2));
 
     public static final DeferredHolder<EntityType<?>, EntityType<WillOWispEntity>> WILL_O_WISP =
         ENTITY_TYPES.registerEntityType(
@@ -400,6 +417,62 @@ public final class ModEntities {
             "captain_roselind",
             kingdom.smp.entity.CaptainRoselindEntity::new,
             MobCategory.CREATURE,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** Kangarude statue — a frozen humanoid carved from rock; pure decoration, no AI. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> KANGARUDE_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "kangarude_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** Haalina statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> HAALINA_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "haalina_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** facelaces statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> FACELACES_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "facelaces_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** red raichu statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> RED_RAICHU_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "red_raichu_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** twohrd statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> TWOHRD_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "twohrd_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** arcatheone statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> ARCATHEONE_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "arcatheone_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
+
+    /** cheakie statue — same carved-stone humanoid, different stonified skin. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.StoneStatueEntity>> CHEAKIE_STATUE =
+        ENTITY_TYPES.registerEntityType(
+            "cheakie_statue",
+            kingdom.smp.entity.StoneStatueEntity::new,
+            MobCategory.MISC,
             b -> b.sized(0.6F, 1.95F).clientTrackingRange(10).updateInterval(3));
 
     /** Loremaster Eilan — village scribe at the Library. Peaceful, voiced. */
@@ -547,14 +620,6 @@ public final class ModEntities {
             MobCategory.CREATURE,
             b -> b.sized(0.45F, 0.55F).eyeHeight(0.4F).clientTrackingRange(8).updateInterval(3));
 
-    // Kingdom Dragon — dimensional dragon family (Ender / Nether / Overworld / Deep Dark)
-    public static final DeferredHolder<EntityType<?>, EntityType<KingdomDragonEntity>> KINGDOM_DRAGON =
-        ENTITY_TYPES.registerEntityType(
-            "kingdom_dragon",
-            KingdomDragonEntity::new,
-            MobCategory.CREATURE,
-            b -> b.sized(2.5F, 2.0F).eyeHeight(1.6F).clientTrackingRange(10).updateInterval(2));
-
     public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.GuillotineSeatEntity>> GUILLOTINE_SEAT_ENTITY =
         ENTITY_TYPES.registerEntityType(
             "guillotine_seat",
@@ -576,6 +641,17 @@ public final class ModEntities {
         ENTITY_TYPES.registerEntityType(
             "mirror",
             kingdom.smp.entity.MirrorEntity::new,
+            MobCategory.MISC,
+            b -> b.sized(kingdom.smp.entity.MirrorEntity.DEFAULT_WIDTH, kingdom.smp.entity.MirrorEntity.DEFAULT_HEIGHT)
+                  .eyeHeight(0.0F)
+                  .clientTrackingRange(10)
+                  .updateInterval(Integer.MAX_VALUE));
+
+    /** Glowing-text variant of the mirror; see {@link kingdom.smp.entity.MagicMirrorEntity}. */
+    public static final DeferredHolder<EntityType<?>, EntityType<kingdom.smp.entity.MagicMirrorEntity>> MAGIC_MIRROR =
+        ENTITY_TYPES.registerEntityType(
+            "magic_mirror",
+            kingdom.smp.entity.MagicMirrorEntity::new,
             MobCategory.MISC,
             b -> b.sized(kingdom.smp.entity.MirrorEntity.DEFAULT_WIDTH, kingdom.smp.entity.MirrorEntity.DEFAULT_HEIGHT)
                   .eyeHeight(0.0F)
@@ -614,6 +690,7 @@ public final class ModEntities {
                 .build());
         event.put(NULL_STALKER.get(), NullStalkerEntity.createAttributes().build());
         event.put(STONE_GOLEM.get(), StoneGolemEntity.createAttributes().build());
+        event.put(GARGOYLE.get(), GargoyleEntity.createAttributes().build());
         event.put(ARCANE_MAGE.get(), ArcaneMageEntity.createAttributes().build());
         event.put(FILCHER.get(), FilcherEntity.createAttributes().build());
         event.put(POSSESSED_ARMOR.get(), PossessedArmorEntity.createAttributes().build());
@@ -633,7 +710,6 @@ public final class ModEntities {
         event.put(BABY_MIMIC.get(), BabyMimicEntity.createAttributes().build());
         event.put(SLIME_PET_JE11IE.get(), kingdom.smp.entity.SlimePetEntity.createAttributes().build());
         event.put(SLIME_PET_CHEAKIE.get(), kingdom.smp.entity.SlimePetEntity.createAttributes().build());
-        event.put(KINGDOM_DRAGON.get(), KingdomDragonEntity.createAttributes().build());
         event.put(KINGDOM_VILLAGER.get(), KingdomVillagerEntity.createAttributes().build());
         event.put(KANGARUDE.get(), KangarudeEntity.createAttributes().build());
         event.put(ENDER_VILLAGER.get(), EnderVillagerEntity.createAttributes().build());
@@ -650,6 +726,13 @@ public final class ModEntities {
         event.put(OLD_HESTA.get(), kingdom.smp.entity.OldHestaEntity.createAttributes().build());
         event.put(OLD_BEREN.get(), kingdom.smp.entity.OldBerenEntity.createAttributes().build());
         event.put(CAPTAIN_ROSELIND.get(), kingdom.smp.entity.CaptainRoselindEntity.createAttributes().build());
+        event.put(KANGARUDE_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(HAALINA_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(FACELACES_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(RED_RAICHU_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(TWOHRD_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(ARCATHEONE_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
+        event.put(CHEAKIE_STATUE.get(), kingdom.smp.entity.StoneStatueEntity.createAttributes().build());
         event.put(LOREMASTER_EILAN.get(), kingdom.smp.entity.LoremasterEilanEntity.createAttributes().build());
         event.put(SISTER_WREN.get(), kingdom.smp.entity.SisterWrenEntity.createAttributes().build());
         event.put(BRAM_BARD.get(), kingdom.smp.entity.BramBardEntity.createAttributes().build());
@@ -668,6 +751,7 @@ public final class ModEntities {
         event.put(MOONSHROOM.get(), net.minecraft.world.entity.animal.cow.Cow.createAttributes().build());
         event.put(RAT.get(), kingdom.smp.entity.RatEntity.createAttributes().build());
         event.put(VAMPIRE_BAT.get(), kingdom.smp.entity.VampireBatEntity.createAttributes().build());
+        event.put(BUTTERFLY.get(), ButterflyEntity.createAttributes().build());
     }
 
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
@@ -713,6 +797,13 @@ public final class ModEntities {
             net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
             kingdom.smp.entity.VampireBatEntity::checkVampireBatSpawnRules,
             net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent.Operation.REPLACE);
+        // Butterfly — surface ambient flyer, daytime light
+        event.register(
+            BUTTERFLY.get(),
+            SpawnPlacementTypes.NO_RESTRICTIONS,
+            Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+            ButterflyEntity::checkButterflySpawnRules,
+            RegisterSpawnPlacementsEvent.Operation.REPLACE);
         // Pink Deer — passive animal, spawns on grass in daylight
         event.register(
             PINK_DEER.get(),

@@ -28,7 +28,6 @@ import kingdom.smp.client.entity.RatRenderer;
 import kingdom.smp.client.entity.SpellBeamRenderer;
 import kingdom.smp.client.entity.BabyMimicModel;
 import kingdom.smp.client.entity.BabyMimicRenderer;
-import kingdom.smp.client.entity.dragon.KingdomDragonRenderer;
 import kingdom.smp.client.entity.MimicModel;
 import kingdom.smp.client.entity.MimicRenderer;
 import kingdom.smp.client.entity.ArcaneMageRenderer;
@@ -51,8 +50,6 @@ import kingdom.smp.client.entity.WillOWisp2Renderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.client.renderer.entity.IllusionerRenderer;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.entity.MinecartRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -89,6 +86,9 @@ public class IronholdClient {
         // Magma Boots: custom 3D worn model (obsidian shaft + lava sole) swapped in
         // for the FEET/HUMANOID armor layer via the same getHumanoidArmorModel hook.
         kingdom.smp.client.entity.MagmaBootsClientExtensions.register(modEventBus);
+        // Dyed water: per-colour fluid models (vanilla water sprites + constant tint) and the
+        // colour-reading block tint for the dyed cauldron.
+        kingdom.smp.dyewater.DyedWaterClientEvents.register(modEventBus);
         // Battle Hammer: custom third-person charge arm pose (arm cocks up/back as the
         // hammer winds up). Registers an IClientItemExtensions returning the enum-extended
         // ArmPose while the hammer is in use.
@@ -105,6 +105,7 @@ public class IronholdClient {
         NeoForge.EVENT_BUS.register(kingdom.smp.seasons.client.CropSeasonTooltipHandler.class);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         NeoForge.EVENT_BUS.register(ClientNeoForgeEvents.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.CoinPurseHoldHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.DisguiseClient.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.entity.DiamondScepterFieldWorldRenderer.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.WaxOverlayRenderer.class);
@@ -113,6 +114,9 @@ public class IronholdClient {
         NeoForge.EVENT_BUS.register(kingdom.smp.dynlight.DynamicLightsClientEvents.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ScepterDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.BattleHammerDebugCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.ClubDebugCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.ButterflyDebugCommand.class);
+        NeoForge.EVENT_BUS.register(kingdom.smp.client.ButterflyJarDebugCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ForgeButtonCommand.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.ForgeButtonDebugHandler.class);
         NeoForge.EVENT_BUS.register(kingdom.smp.client.SneakEyeDebugCommand.class);
@@ -216,6 +220,9 @@ public class IronholdClient {
             kingdom.smp.client.entity.HeadAppendageLayer.LAYER_LOCATION,
             kingdom.smp.client.entity.HeadAppendageLayer::createLayer);
         event.registerLayerDefinition(
+            kingdom.smp.client.entity.StatueBaseLayer.LAYER_LOCATION,
+            kingdom.smp.client.entity.StatueBaseLayer::createLayer);
+        event.registerLayerDefinition(
             kingdom.smp.client.entity.BackCosmeticLayer.LAYER_LOCATION,
             kingdom.smp.client.entity.BackCosmeticLayer::createLayer);
         // MoonHopling is now rendered via GeckoLib — no LayerDefinition needed.
@@ -240,14 +247,26 @@ public class IronholdClient {
         event.registerBlockEntityRenderer(
             kingdom.smp.ModBlocks.TRIPWIRE_RACK_BLOCK_ENTITY.get(),
             kingdom.smp.client.block.TripwireRackRenderer::new);
+        event.registerBlockEntityRenderer(
+            kingdom.smp.ModBlocks.BUTTERFLY_TERRARIUM_BLOCK_ENTITY.get(),
+            kingdom.smp.client.block.ButterflyJarRenderer::new);
+        event.registerBlockEntityRenderer(
+            kingdom.smp.ModBlocks.CHALICE_BLOCK_ENTITY.get(),
+            kingdom.smp.client.block.ChaliceRenderer::new);
 
         // Entity renderers
+        event.registerEntityRenderer(
+            kingdom.smp.ModEntities.BUTTERFLY.get(),
+            kingdom.smp.client.entity.ButterflyRenderer::new);
         event.registerEntityRenderer(
             kingdom.smp.ModEntities.MIRROR.get(),
             kingdom.smp.client.entity.MirrorRenderer::new);
         event.registerEntityRenderer(
+            kingdom.smp.ModEntities.MAGIC_MIRROR.get(),
+            kingdom.smp.client.entity.MagicMirrorRenderer::new);
+        event.registerEntityRenderer(
             kingdom.smp.ModEntities.MAGIC_MINECART_ENTITY.get(),
-            ctx -> new MinecartRenderer(ctx, ModelLayers.MINECART));
+            kingdom.smp.client.entity.MagicMinecartRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_WIZARD.get(), IllusionerRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_INVOKER.get(), ArcaneInvokerRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.ARCANE_ORB.get(), ArcaneOrbRenderer::new);
@@ -331,6 +350,27 @@ public class IronholdClient {
             ctx -> new kingdom.smp.client.entity.OldBerenRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.CAPTAIN_ROSELIND.get(),
             ctx -> new kingdom.smp.client.entity.CaptainRoselindRenderer(ctx));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.KANGARUDE_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.KANGARUDE_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.HAALINA_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.HAALINA_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.FACELACES_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.FACELACES_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.RED_RAICHU_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.RED_RAICHU_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.TWOHRD_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.TWOHRD_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.ARCATHEONE_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.ARCATHEONE_TEXTURE));
+        event.registerEntityRenderer(kingdom.smp.ModEntities.CHEAKIE_STATUE.get(),
+            ctx -> new kingdom.smp.client.entity.StoneStatueRenderer(ctx,
+                kingdom.smp.client.entity.StoneStatueRenderer.CHEAKIE_TEXTURE));
         event.registerEntityRenderer(kingdom.smp.ModEntities.LOREMASTER_EILAN.get(),
             ctx -> new kingdom.smp.client.entity.LoremasterEilanRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.SISTER_WREN.get(),
@@ -342,6 +382,8 @@ public class IronholdClient {
         event.registerEntityRenderer(kingdom.smp.ModEntities.PIGLIN_VILLAGER.get(), PiglinVillagerRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.STONE_GOLEM.get(),
             kingdom.smp.client.entity.StoneGolemRenderer::new);
+        event.registerEntityRenderer(kingdom.smp.ModEntities.GARGOYLE.get(),
+            kingdom.smp.client.entity.GargoyleRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.PURPLE_ALLAY.get(), ctx -> new PurpleAllayRenderer(ctx));
         event.registerEntityRenderer(kingdom.smp.ModEntities.HOPLING.get(), HoplingRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.SHROOMLING.get(),
@@ -363,7 +405,6 @@ public class IronholdClient {
             kingdom.smp.client.entity.SlimePetRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.SLIME_PET_CHEAKIE.get(),
             kingdom.smp.client.entity.SlimePetRenderer::new);
-        event.registerEntityRenderer(kingdom.smp.ModEntities.KINGDOM_DRAGON.get(), KingdomDragonRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.GUILLOTINE_SEAT_ENTITY.get(),
             net.minecraft.client.renderer.entity.NoopRenderer::new);
         event.registerEntityRenderer(kingdom.smp.ModEntities.STAFF_ZONE.get(),
@@ -415,6 +456,9 @@ public class IronholdClient {
         event.register(kingdom.smp.client.IronholdKeys.KANGARUDE_PTT);
         event.register(kingdom.smp.client.IronholdKeys.SEASHELL_DASH);
         event.register(kingdom.smp.client.IronholdKeys.EMOTE_POINT);
+        event.register(kingdom.smp.client.IronholdKeys.PARRY);
+        event.register(kingdom.smp.client.IronholdKeys.DODGE);
+        event.register(kingdom.smp.client.IronholdKeys.ACCESSORY_ACTIVE);
         event.register(kingdom.smp.client.IronholdKeys.GOLEM_HAMMER_CYCLE);
         event.register(kingdom.smp.client.IronholdKeys.GOLEM_HAMMER_DEC);
         event.register(kingdom.smp.client.IronholdKeys.GOLEM_HAMMER_INC);

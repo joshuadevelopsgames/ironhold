@@ -3,7 +3,9 @@ package kingdom.smp.client;
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.MagicMinecartEntity;
 import kingdom.smp.item.AnkhShieldItem;
+import kingdom.smp.item.BattleHammerItem;
 import kingdom.smp.net.SirensRingActivatePayload;
+import kingdom.smp.net.BattleHammerMissPayload;
 import kingdom.smp.net.CloudDoubleJumpPayload;
 import kingdom.smp.net.MagicMinecartInputPayload;
 import kingdom.smp.net.AbilityCastPayload;
@@ -20,6 +22,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -53,6 +56,21 @@ public final class ClientNeoForgeEvents {
         AbilityHud.render(event.getGuiGraphics(), event.getPartialTick());
         SneakEyeHud.render(event.getGuiGraphics(), event.getPartialTick());
         StoneGolemHammerHud.render(event.getGuiGraphics());
+    }
+
+    /**
+     * Battle Hammer "full miss": a swing that whiffs into the air (nothing in reach) only
+     * surfaces client-side as {@link PlayerInteractEvent.LeftClickEmpty}. If the local player
+     * is carrying a charged hammer in either hand, tell the server to break the forge combo —
+     * landed hits (crit or not) keep it; only a clean miss clears it.
+     */
+    @SubscribeEvent
+    public static void onLeftClickEmpty(PlayerInteractEvent.LeftClickEmpty event) {
+        Player player = event.getEntity();
+        if (BattleHammerItem.hasForgeCharge(player.getMainHandItem())
+                || BattleHammerItem.hasForgeCharge(player.getOffhandItem())) {
+            ClientPayloads.sendToServer(new BattleHammerMissPayload());
+        }
     }
 
     @SubscribeEvent
@@ -259,6 +277,37 @@ public final class ClientNeoForgeEvents {
             if (mc.player != null) {
                 ClientPayloads.sendToServer(new kingdom.smp.net.SeashellDashPayload());
             }
+        }
+
+        // Parry — drain queued clicks to ONE send per tick so mashing/holding can't flood the server
+        // (the server also enforces the whiff cooldown). consumeClick() never fires on hold.
+        boolean parryPressed = false;
+        while (IronholdKeys.PARRY.consumeClick()) {
+            parryPressed = true;
+        }
+        if (parryPressed && mc.player != null) {
+            ClientPayloads.sendToServer(new kingdom.smp.net.ParryPayload());
+        }
+
+        // Dodge — same drain-to-one; send current movement input so the server hops the right way.
+        boolean dodgePressed = false;
+        while (IronholdKeys.DODGE.consumeClick()) {
+            dodgePressed = true;
+        }
+        if (dodgePressed && mc.player != null) {
+            var dopts = mc.options;
+            ClientPayloads.sendToServer(new kingdom.smp.net.DodgePayload(
+                dopts.keyUp.isDown(), dopts.keyDown.isDown(),
+                dopts.keyLeft.isDown(), dopts.keyRight.isDown()));
+        }
+
+        // Accessory active (e.g. Ender Regalia blink) — drain to one send/tick.
+        boolean accessoryActive = false;
+        while (IronholdKeys.ACCESSORY_ACTIVE.consumeClick()) {
+            accessoryActive = true;
+        }
+        if (accessoryActive && mc.player != null) {
+            ClientPayloads.sendToServer(new kingdom.smp.net.AccessoryActivatePayload());
         }
 
         // Point emote — start the pose locally at once for responsiveness, then

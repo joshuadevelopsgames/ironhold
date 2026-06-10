@@ -9,6 +9,9 @@ visual traits, darker outline, highlight top-left, shadow bottom-right.
 from PIL import Image
 import os
 
+from paint_filcher_spawn_egg import paint as paint_filcher_texture
+from paint_pink_deer_spawn_egg import paint as paint_pink_deer_texture
+
 OUT = os.path.join(os.path.dirname(__file__),
     "..", "src", "main", "resources", "assets", "ironhold", "textures", "item")
 
@@ -140,33 +143,10 @@ def null_stalker():
 
 # Pink Deer - soft pink body, small antlers on top
 def pink_deer():
-    _ = T
-    o = c(0x8a, 0x5a, 0x62)  # dark pink outline
-    d = c(0xc0, 0x7a, 0x85)  # darker pink
-    m = c(0xd8, 0x90, 0x9c)  # mid pink
-    h = c(0xf0, 0xb0, 0xb8)  # light pink
-    b = c(0xf8, 0xc8, 0xce)  # highlight pink
-    a = c(0x9a, 0x6e, 0x5c)  # antler brown
-    e = c(0x30, 0x18, 0x18)  # eye
-    n = c(0xe8, 0xa0, 0xa8)  # nose
-    w = c(0x70, 0x48, 0x50)  # shadow
+    image = paint_pink_deer_texture()
     return [
-        [_,_,_,a,_,_,_,_,_,_,_,_,a,_,_,_],
-        [_,_,a,a,a,_,_,_,_,_,_,a,a,a,_,_],
-        [_,_,_,a,_,_,o,o,o,o,_,_,a,_,_,_],
-        [_,_,_,_,_,o,m,h,h,m,o,_,_,_,_,_],
-        [_,_,_,_,o,m,b,b,b,h,m,o,_,_,_,_],
-        [_,_,_,o,m,b,b,b,b,h,h,d,o,_,_,_],
-        [_,_,o,m,h,e,h,b,h,e,h,d,d,w,_,_],
-        [_,_,o,m,h,h,h,n,n,h,h,d,d,w,_,_],
-        [_,_,o,d,m,h,h,h,h,h,m,d,d,w,_,_],
-        [_,_,o,d,d,m,h,h,h,m,d,d,d,w,_,_],
-        [_,_,o,d,d,d,m,m,m,d,d,d,d,w,_,_],
-        [_,_,o,w,d,d,d,d,d,d,d,d,w,w,_,_],
-        [_,_,_,o,w,d,o,d,d,o,d,w,w,_,_,_],
-        [_,_,_,_,w,o,o,w,w,o,o,w,_,_,_,_],
-        [_,_,_,_,_,w,w,_,_,w,w,_,_,_,_,_],
-        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+        [image.getpixel((x, y)) for x in range(image.width)]
+        for y in range(image.height)
     ]
 
 
@@ -299,35 +279,12 @@ def kingdom_villager():
     ]
 
 
-# Filcher - small goblin-like, big yellow eyes, dark green/brown body
+# Filcher - blocky purple head, glowing yellow eyes, and gold crown
 def filcher():
-    _ = T
-    o = c(0x12, 0x18, 0x0c)  # dark outline
-    d = c(0x24, 0x30, 0x18)  # dark green-brown
-    m = c(0x38, 0x48, 0x28)  # mid green
-    h = c(0x50, 0x60, 0x38)  # lighter green
-    b = c(0x68, 0x78, 0x48)  # highlight
-    e = c(0xff, 0xee, 0x22)  # bright yellow eyes
-    p = c(0xd0, 0xb8, 0x10)  # pupil/darker eye
-    w = c(0x0a, 0x0e, 0x06)  # shadow
-    t = c(0x44, 0x3a, 0x20)  # teeth/mouth
+    image = paint_filcher_texture()
     return [
-        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
-        [_,_,_,_,_,_,o,o,o,o,_,_,_,_,_,_],
-        [_,_,_,_,o,o,m,h,h,m,o,o,_,_,_,_],
-        [_,_,_,o,m,h,h,b,b,h,h,m,o,_,_,_],
-        [_,_,o,m,h,b,b,b,b,b,h,m,d,o,_,_],
-        [_,o,m,h,e,p,h,b,h,e,p,h,d,o,_,_],
-        [_,o,d,h,p,e,b,h,h,p,e,d,d,w,_,_],
-        [_,_,o,m,h,h,t,t,t,h,h,d,w,_,_,_],
-        [_,_,o,d,m,h,h,h,h,h,m,d,w,_,_,_],
-        [_,_,o,d,d,m,m,m,m,m,d,d,w,_,_,_],
-        [_,_,o,d,d,d,d,d,d,d,d,d,w,_,_,_],
-        [_,_,_,o,w,d,d,d,d,d,d,w,_,_,_,_],
-        [_,_,_,_,o,w,o,d,d,o,w,w,_,_,_,_],
-        [_,_,_,_,_,w,w,w,w,w,w,_,_,_,_,_],
-        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
-        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+        [image.getpixel((x, y)) for x in range(image.width)]
+        for y in range(image.height)
     ]
 
 
@@ -496,6 +453,36 @@ def baby_mimic():
     ]
 
 
+# Gargoyle - winged stone creature: horns, glowing amber eyes, spread wings
+def gargoyle():
+    _ = T
+    o = c(0x26, 0x26, 0x2c)  # outline / horn dark
+    d = c(0x45, 0x45, 0x4d)  # dark stone
+    m = c(0x5f, 0x5f, 0x69)  # mid stone
+    h = c(0x79, 0x79, 0x84)  # light stone
+    b = c(0x95, 0x95, 0xa0)  # highlight
+    e = c(0xe0, 0x6a, 0x20)  # glowing amber eye
+    w = c(0x33, 0x33, 0x39)  # wing membrane / shadow
+    return [
+        [_,_,_,_,_,_,o,_,_,o,_,_,_,_,_,_],
+        [_,_,_,_,o,_,o,h,h,o,_,o,_,_,_,_],
+        [_,_,o,o,o,_,o,h,h,o,_,o,o,o,_,_],
+        [_,o,w,m,o,o,m,h,h,m,o,o,m,w,o,_],
+        [o,w,w,d,m,m,h,b,b,h,m,m,d,w,w,o],
+        [o,w,d,o,m,e,h,b,b,h,e,m,o,d,w,o],
+        [_,o,w,d,m,m,h,h,h,h,m,m,d,w,o,_],
+        [_,_,o,d,m,h,m,d,d,m,h,m,d,o,_,_],
+        [_,_,_,o,d,d,d,d,d,d,d,d,o,_,_,_],
+        [_,_,_,o,d,m,d,d,d,d,m,d,o,_,_,_],
+        [_,_,_,o,d,d,d,d,d,d,d,d,o,_,_,_],
+        [_,_,_,_,o,d,d,d,d,d,d,o,_,_,_,_],
+        [_,_,_,_,o,d,o,d,d,o,d,o,_,_,_,_],
+        [_,_,_,_,_,o,o,_,_,o,o,_,_,_,_,_],
+        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+        [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+    ]
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     print("Generating spawn egg textures...")
@@ -513,4 +500,5 @@ if __name__ == "__main__":
     save("shipwreck_mimic", shipwreck_mimic())
     save("mimic", mimic())
     save("baby_mimic", baby_mimic())
-    print("Done! 14 spawn egg textures generated.")
+    save("gargoyle", gargoyle())
+    print("Done! 15 spawn egg textures generated.")

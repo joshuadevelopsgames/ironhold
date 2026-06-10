@@ -4,6 +4,10 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "AttachmentHolderInvoker",
+    "FlowingFluidColorSpreadMixin",
+    "LevelChunkWaterlogColorMixin",
+    "LiquidBlockDyedPickupMixin",
+    "SimpleWaterloggedBlockDyedPickupMixin",
     "EntityGravityEyeMixin",
     "EntityGravityBoundingBoxMixin",
     "MoonCollisionMixin",
@@ -42,6 +46,9 @@
     "VanillaRegistriesMixin"
   ],
   "client": [
+    "AttachmentAsFieldInvoker",
+    "AttachmentSyncRemeshMixin",
+    "RegisterFluidModelsEventAccessor",
     "LevelRendererMixin",
     "CameraGravityMixin",
     "LivingEntityRendererGravityMixin",
@@ -53,6 +60,8 @@
     "CameraInvoker",
     "GameRendererMirrorHandMixin",
     "GameRendererPortalRendererMixin",
+    "MirrorTerrainCullMixin",
+    "ViewAreaInvoker",
     "PlayerInfoSkinMixin",
     "CompassEbonwoodMixin",
     "MusicManagerMixin",

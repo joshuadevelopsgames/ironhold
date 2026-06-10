@@ -20,9 +20,11 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
  * Builds the Battle Hammer's forge-power charge from a critical-hit combo. Each consecutive
  * crit on a living target (while holding the hammer) bumps the stack's {@link ForgeCharge}
  * level via {@link BattleHammerItem#addCritCharge}; the level drives the inner-ring glow and
- * the ground-slam power. Server-authoritative — the synced component carries the level to the
- * client for rendering. Also grants knockback resistance while a charged hammer is held —
- * forge power roots the wielder like an anvil.
+ * the ground-slam power. A non-crit hit that still lands keeps the charge — only a full miss
+ * (whiffing a swing into the air, reported from the client via {@code BattleHammerMissPayload}
+ * → {@link #onSwingMiss}) breaks the combo. Server-authoritative — the synced component
+ * carries the level to the client for rendering. Also grants knockback resistance while a
+ * charged hammer is held — forge power roots the wielder like an anvil.
  */
 public final class BattleHammerCombatHandler {
 
@@ -50,12 +52,10 @@ public final class BattleHammerCombatHandler {
 
         ServerLevel level = (ServerLevel) player.level();
 
-        // A non-crit hit breaks the combo (drops the charge to 0). The combo otherwise
-        // persists indefinitely — switching weapons or waiting never clears it.
-        if (!event.isCriticalHit()) {
-            BattleHammerItem.resetCharge(stack);
-            return;
-        }
+        // A non-crit hit still landed, so the combo holds — only a full miss (handled in
+        // {@link #onSwingMiss}) clears it. The combo otherwise persists indefinitely:
+        // switching weapons, waiting, or landing plain hits never drops it.
+        if (!event.isCriticalHit()) return;
 
         int newLevel = BattleHammerItem.addCritCharge(stack, level);
         if (newLevel <= 0) return;
@@ -90,12 +90,21 @@ public final class BattleHammerCombatHandler {
         }
     }
 
-    private static boolean isHoldingChargedHammer(Player player) {
-        return isChargedHammer(player.getMainHandItem()) || isChargedHammer(player.getOffhandItem());
+    /**
+     * Breaks the forge combo when the wielder whiffs a swing into the air (a "full miss").
+     * Resets a Battle Hammer held in either hand — mirroring {@link #onCriticalHit}, which
+     * builds the combo whether the hammer is the swung weapon or just carried off-hand.
+     * Invoked from the network layer when the client reports a {@code BattleHammerMissPayload}
+     * (misses fire only client-side, so they round-trip through the server to clear the
+     * server-authoritative charge component).
+     */
+    public static void onSwingMiss(Player player) {
+        BattleHammerItem.resetCharge(player.getMainHandItem());
+        BattleHammerItem.resetCharge(player.getOffhandItem());
     }
 
-    private static boolean isChargedHammer(ItemStack stack) {
-        return stack.getItem() instanceof BattleHammerItem
-            && stack.getOrDefault(IronholdItemComponents.FORGE_CHARGE.get(), ForgeCharge.NONE).level() > 0;
+    private static boolean isHoldingChargedHammer(Player player) {
+        return BattleHammerItem.hasForgeCharge(player.getMainHandItem())
+            || BattleHammerItem.hasForgeCharge(player.getOffhandItem());
     }
 }

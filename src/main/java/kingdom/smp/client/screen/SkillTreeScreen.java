@@ -297,28 +297,41 @@ public class SkillTreeScreen extends Screen {
         int rowLeft = px + 6;
         int rowRight = px + PANEL_WIDTH - 6;
 
-        List<Component> tip = null;
+        // ── Pass 1: row backgrounds + connecting rails ──
+        // Drawn first so the rail lines sit *behind* the rung nodes that follow.
         int prevCenterY = -1;
-
         for (int i = 0; i < tiers.size(); i++) {
             MiningGating.GateTier tier = tiers.get(i);
             int y = top + 2 + i * rowH;
-            int nodeY = y + 9;
-            int centerY = nodeY + 5;
+            int centerY = y + 14;
 
             boolean unlocked = tier.isFree() || (mining != null && miningOrder >= tier.rank().order());
             boolean isCurrent = tier.isFree() ? mining == null : mining == tier.rank();
+            boolean rowHovered = mouseY >= y && mouseY < y + rowH - 1
+                    && mouseX >= rowLeft && mouseX < rowRight;
+
+            if (isCurrent)        gfx.fill(rowLeft, y, rowRight, y + rowH - 1, GATE_ROW_CURRENT);
+            else if (rowHovered)  gfx.fill(rowLeft, y, rowRight, y + rowH - 1, COLOR_ROW_ALT);
 
             // Rail segment leading up from the previous rung — gold once this rung is reached.
             if (prevCenterY >= 0) {
                 gfx.fill(railX + 4, prevCenterY, railX + 6, centerY,
                         unlocked ? GATE_RAIL_DONE : GATE_RAIL_LOCKED);
             }
+            prevCenterY = centerY;
+        }
 
+        // ── Pass 2: rung nodes, labels, ore icons (drawn on top of the rails) ──
+        List<Component> tip = null;
+        for (int i = 0; i < tiers.size(); i++) {
+            MiningGating.GateTier tier = tiers.get(i);
+            int y = top + 2 + i * rowH;
+            int nodeY = y + 9;
+
+            boolean unlocked = tier.isFree() || (mining != null && miningOrder >= tier.rank().order());
+            boolean isCurrent = tier.isFree() ? mining == null : mining == tier.rank();
             boolean rowHovered = mouseY >= y && mouseY < y + rowH - 1
                     && mouseX >= rowLeft && mouseX < rowRight;
-            if (isCurrent)        gfx.fill(rowLeft, y, rowRight, y + rowH - 1, GATE_ROW_CURRENT);
-            else if (rowHovered)  gfx.fill(rowLeft, y, rowRight, y + rowH - 1, COLOR_ROW_ALT);
 
             if (unlocked) drawBeveledNode(gfx, railX, nodeY, 11, NODE_UNLOCK_FILL, NODE_UNLOCK_HI, NODE_UNLOCK_LO);
             else          drawBeveledNode(gfx, railX, nodeY, 11, NODE_LOCKED_FILL, NODE_LOCKED_HI, NODE_LOCKED_LO);
@@ -342,7 +355,6 @@ public class SkillTreeScreen extends Screen {
             }
 
             if (rowHovered) tip = gateTooltip(tier, unlocked);
-            prevCenterY = centerY;
         }
         return tip;
     }

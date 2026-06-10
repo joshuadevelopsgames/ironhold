@@ -10,12 +10,12 @@ import net.minecraft.network.codec.StreamCodec;
  * Forge-power state stored on a {@link BattleHammerItem} stack as a data component.
  *
  * <p>The Battle Hammer charges by landing consecutive critical hits: each crit bumps
- * {@link #level} (capped at {@link BattleHammerItem#MAX_FORGE_CHARGE}); if too long
- * passes since the last crit ({@link BattleHammerItem#COMBO_TIMEOUT_TICKS}) the combo
- * resets. {@link #lastCritTick} is the game time of the most recent crit, used to detect
- * an expired combo. The level drives both the inner-ring glow stage (rendered client-side
- * from this synced component) and the ground-slam power on release, and is reset to 0 when
- * a slam is performed (the charge is "spent").</p>
+ * {@link #level} (capped at {@link BattleHammerItem#MAX_FORGE_CHARGE}). The combo never
+ * times out and survives plain non-crit hits — it only resets to 0 when a swing fully
+ * misses (whiffs into the air) or when a ground slam spends the charge. {@link #lastCritTick}
+ * records the game time of the most recent crit. The level drives both the inner-ring glow
+ * stage (rendered client-side from this synced component) and the ground-slam power on
+ * release.</p>
  */
 public record ForgeCharge(int level, long lastCritTick) {
 

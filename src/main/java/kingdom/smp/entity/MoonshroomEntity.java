@@ -64,14 +64,14 @@ public class MoonshroomEntity extends MushroomCow {
         return super.mobInteract(player, hand);
     }
 
-    /** Number of glowshrooms harvested when a moonshroom is sheared (matches the vanilla mooshroom yield of 5). */
+    /** Number of blue glowshroom clusters harvested when sheared (matches the vanilla mooshroom yield of 5). */
     private static final int GLOWSHROOM_SHEAR_DROPS = 5;
 
     /**
      * Lunar shearing: like a mooshroom, shearing converts the moonshroom into a cow, but instead of
-     * dropping the vanilla red/brown mushrooms it harvests {@link ModItems#GLOWSHROOM}. Mirrors the
-     * vanilla {@code MushroomCow#shear} flow (conversion event hooks + explosion particle) so other
-     * behaviour stays identical.
+     * dropping vanilla red/brown mushrooms it harvests
+     * {@link ModItems#BLUE_GLOWSHROOMS_ITEM}. Mirrors the vanilla {@code MushroomCow#shear} flow
+     * (conversion event hooks + explosion particle) so other behaviour stays identical.
      */
     @Override
     public void shear(ServerLevel level, SoundSource soundSource, ItemStack tool) {
@@ -83,7 +83,10 @@ public class MoonshroomEntity extends MushroomCow {
             net.neoforged.neoforge.event.EventHooks.onLivingConvert(this, cow);
             level.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY(0.5), this.getZ(), 1, 0.0, 0.0, 0.0, 0.0);
             for (int i = 0; i < GLOWSHROOM_SHEAR_DROPS; i++) {
-                ItemEntity item = this.spawnAtLocation(level, new ItemStack(ModItems.GLOWSHROOM.get()), this.getBbHeight());
+                ItemEntity item = this.spawnAtLocation(
+                    level,
+                    new ItemStack(ModItems.BLUE_GLOWSHROOMS_ITEM.get()),
+                    this.getBbHeight());
                 if (item != null) {
                     item.setNoPickUpDelay();
                 }

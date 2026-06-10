@@ -45,38 +45,97 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
     public static final BooleanProperty CHOPPED = BooleanProperty.create("chopped");
 
     // ── Hitbox shapes per facing ──────────────────────────────────────────────
-    // Model coords → Block.box: add 8 to X and Z (model origin = block center).
-    // We use a simplified bounding box covering the model's footprint.
-    // The model is ~1.75 blocks wide (X), ~4.27 blocks tall (Y), ~2.5 blocks deep (Z).
+    // Box coords are derived directly from the GeckoLib model
+    // (assets/.../geckolib/models/block/guillotine.geo.json). GeckoLib's
+    // GeoBlockRenderer translates the model origin to the block centre before
+    // drawing, so model-px → block-px is simply: add 8 to X and Z, Y unchanged.
+    // The fully-rendered model (rotations on the brace bones applied) spans
+    // X[-5.25,22.75] Y[0,68.25] Z[-11.5,28.5] in block-px.
     //
-    // Rather than one massive shape (which breaks ray-trace interaction), we build
-    // a simple two-part shape: the footprint slab + the main vertical column.
-
-    // NORTH: model-X → world-X, model-Z → world-Z
+    // SHAPE_NORTH below is hand-fitted to the model's parts. GeoBlockRenderer
+    // rotates by FACING (NORTH=0°, WEST=90°, SOUTH=180°, EAST=270° about the
+    // block centre), so we derive the other three facings by rotating NORTH the
+    // same way — keeping the collision shape locked to the visual model.
     private static final VoxelShape SHAPE_NORTH = Shapes.or(
-        // Base footprint: model X[-13.25,14.75] Y[0,2] Z[-18,19] → box coords + 8
+        // Foot plates (full footprint slab)
         Block.box(-5.25, 0, -10, 22.75, 2, 27),
-        // Main vertical column (posts + headplate + crossbars): simplified bounding box
-        // model X[-1.5,3.5] Y[0,68.25] Z[-17,18] → box coords + 8
-        Block.box(6.5, 0, -9, 11.5, 68, 26)
+        // Posts + head clamp + blade + lower crossbars (central column)
+        Block.box(6.5, 0, -9, 11.5, 64, 26),
+        // Top crossbeam + cap (overhangs the posts front & back)
+        Block.box(6.5, 63, -11.5, 11.5, 68.25, 28.5),
+        // Lower diagonal brace-feet (splay outward +X), back & front legs
+        Block.box(11.5, 0, -9, 20.5, 13, -5),
+        Block.box(11.5, 0, 22, 20.5, 13, 26),
+        // Upper diagonal braces (splay outward -X), back & front
+        Block.box(-0.75, 30, -9, 6.5, 43, -5),
+        Block.box(-0.75, 30, 22, 6.5, 43, 26)
     );
 
-    private static final VoxelShape SHAPE_SOUTH = Shapes.or(
-        Block.box(16 - 22.75, 0, 16 - 27, 16 + 5.25, 2, 16 + 10),
-        Block.box(16 - 11.5, 0, 16 - 26, 16 - 6.5, 68, 16 + 9)
-    );
+    private static final VoxelShape SHAPE_WEST  = rotateY90(SHAPE_NORTH);
+    private static final VoxelShape SHAPE_SOUTH = rotateY90(SHAPE_WEST);
+    private static final VoxelShape SHAPE_EAST  = rotateY90(SHAPE_SOUTH);
 
-    private static final VoxelShape SHAPE_EAST = Shapes.or(
-        // Rotated 90° CW: (x,z) → (16-z, x)
-        Block.box(16 - 27, 0, -5.25, 16 + 10, 2, 22.75),
-        Block.box(16 - 26, 0, 6.5, 16 + 9, 68, 11.5)
-    );
+    /** Rotate a shape 90° clockwise (viewed from above) about the block centre:
+     *  (x,z) → (z, 1-x). Matches GeckoLib's per-facing YP rotation so the four
+     *  facing shapes stay aligned with the rendered model. */
+    private static VoxelShape rotateY90(VoxelShape src) {
+        VoxelShape out = Shapes.empty();
+        for (AABB b : src.toAabbs()) {
+            out = Shapes.or(out,
+                Shapes.box(b.minZ, b.minY, 1.0 - b.maxX, b.maxZ, b.maxY, 1.0 - b.minX));
+        }
+        return out;
+    }
 
-    private static final VoxelShape SHAPE_WEST = Shapes.or(
-        // Rotated 90° CCW: (x,z) → (z, 16-x)
-        Block.box(-10, 0, 16 - 22.75, 27, 2, 16 + 5.25),
-        Block.box(-9, 0, 16 - 11.5, 26, 68, 16 - 6.5)
-    );
+    // ── Foot-plate footprint (placement spacing) ──────────────────────────────
+    // The base slab reaches well past the 1×1 cell (NORTH: X[-0.33,1.42],
+    // Z[-0.63,1.69] blocks), so two guillotines placed within ~2 blocks can
+    // overlap foot-plates even though each sits in its own block. We reject any
+    // placement whose foot-plate would overlap a nearby guillotine's.
+    // AABB is block-relative (world = block pos + this), rotated per facing the
+    // same way the collision shape is.
+    private static final AABB FOOTPLATE_NORTH =
+        new AABB(-5.25 / 16.0, 0, -10.0 / 16.0, 22.75 / 16.0, 2.0 / 16.0, 27.0 / 16.0);
+    private static final AABB FOOTPLATE_WEST  = rotateAabbY90(FOOTPLATE_NORTH);
+    private static final AABB FOOTPLATE_SOUTH = rotateAabbY90(FOOTPLATE_WEST);
+    private static final AABB FOOTPLATE_EAST  = rotateAabbY90(FOOTPLATE_SOUTH);
+
+    /** 90° CW about the block centre — same mapping as {@link #rotateY90}. */
+    private static AABB rotateAabbY90(AABB b) {
+        return new AABB(b.minZ, b.minY, 1.0 - b.maxX, b.maxZ, b.maxY, 1.0 - b.minX);
+    }
+
+    private static AABB footplate(Direction facing) {
+        return switch (facing) {
+            case WEST  -> FOOTPLATE_WEST;
+            case SOUTH -> FOOTPLATE_SOUTH;
+            case EAST  -> FOOTPLATE_EAST;
+            default    -> FOOTPLATE_NORTH;
+        };
+    }
+
+    /** True if a guillotine placed at {@code pos}/{@code facing} would have its
+     *  foot-plate slab overlap that of an existing guillotine nearby. Touching
+     *  edge-to-edge is allowed ({@link AABB#intersects} is strict). */
+    private static boolean footplateBlocked(Level level, BlockPos pos, Direction facing) {
+        AABB mine = footplate(facing).move(pos.getX(), pos.getY(), pos.getZ());
+        // Plates reach ~1.69 blocks out, so a Δ≤2 neighbour is the farthest that
+        // can overlap; scan the 5×5 ring at this Y (plates are a thin floor slab).
+        for (BlockPos other : BlockPos.betweenClosed(pos.offset(-2, 0, -2), pos.offset(2, 0, 2))) {
+            if (other.equals(pos)) {
+                continue;
+            }
+            BlockState st = level.getBlockState(other);
+            if (!(st.getBlock() instanceof GuillotineBlock)) {
+                continue;
+            }
+            AABB theirs = footplate(st.getValue(FACING)).move(other.getX(), other.getY(), other.getZ());
+            if (mine.intersects(theirs)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public GuillotineBlock(Properties props) {
         super(props);
@@ -100,7 +159,12 @@ public class GuillotineBlock extends HorizontalDirectionalBlock implements Entit
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         // The model's head-hole opens along model-X, but GeckoLib rotates based on
         // FACING along model-Z. Rotate 90° so the head-hole faces the player.
-        return defaultBlockState().setValue(FACING, ctx.getHorizontalDirection().getOpposite().getClockWise());
+        Direction facing = ctx.getHorizontalDirection().getOpposite().getClockWise();
+        // Refuse to place if our foot-plate would overlap a nearby guillotine's.
+        if (footplateBlocked(ctx.getLevel(), ctx.getClickedPos(), facing)) {
+            return null;
+        }
+        return defaultBlockState().setValue(FACING, facing);
     }
 
     @Override

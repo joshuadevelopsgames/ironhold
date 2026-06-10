@@ -11,12 +11,16 @@ import com.geckolib.animation.object.PlayState;
 import com.geckolib.animation.state.AnimationTest;
 import com.geckolib.util.GeckoLibUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -47,6 +51,13 @@ public class GuillotineBlockEntity extends BlockEntity implements GeoBlockEntity
 
     /** Ticks after release when the blade reaches the neck (~0.4s into the slam). */
     private static final int IMPACT_TICK = 8;
+
+    /**
+     * Number of guillotine-specific death messages registered under the
+     * {@code death.ironhold.guillotine.<i>} lang keys (0-indexed). Keep in sync
+     * with {@code en_us.json}; {@link GuillotineDamageSource} picks one at random.
+     */
+    private static final int DEATH_MESSAGE_COUNT = 12;
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -98,10 +109,13 @@ public class GuillotineBlockEntity extends BlockEntity implements GeoBlockEntity
                     beheaded = true;
                     dropHead(level, victim);
                     victim.stopRiding();
-                    // Guaranteed instant kill: kill() deals genericKill damage, which is
-                    // tagged BYPASSES_INVULNERABILITY — ignores totems, armor, invuln ticks
-                    // and creative mode. No one survives the guillotine.
-                    victim.kill(level);
+                    // Guaranteed instant kill with a guillotine-specific death message.
+                    // We reuse the genericKill damage TYPE (tagged BYPASSES_INVULNERABILITY,
+                    // so it ignores totems, armor, invuln ticks and creative mode — exactly
+                    // what vanilla kill() does), but swap in our own DamageSource that picks a
+                    // themed "lost their head" message. Float.MAX_VALUE mirrors kill()'s overkill.
+                    Holder<DamageType> killType = victim.damageSources().genericKill().typeHolder();
+                    victim.hurtServer(level, new GuillotineDamageSource(killType), Float.MAX_VALUE);
                 }
             }
             seat.ejectPassengers();
@@ -166,5 +180,25 @@ public class GuillotineBlockEntity extends BlockEntity implements GeoBlockEntity
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    /**
+     * Damage source for guillotine beheadings. Behaves exactly like vanilla's
+     * {@code genericKill} (same damage type, so the same bypass tags apply), but
+     * overrides the death message to a randomly chosen, guillotine-flavoured line
+     * from the {@code death.ironhold.guillotine.<i>} lang keys. This is what wires
+     * the themed messages specifically to guillotine deaths: only victims killed
+     * through this source ever produce them.
+     */
+    private static final class GuillotineDamageSource extends DamageSource {
+        GuillotineDamageSource(Holder<DamageType> type) {
+            super(type);
+        }
+
+        @Override
+        public Component getLocalizedDeathMessage(LivingEntity victim) {
+            int i = victim.getRandom().nextInt(DEATH_MESSAGE_COUNT);
+            return Component.translatable("death.ironhold.guillotine." + i, victim.getDisplayName());
+        }
     }
 }

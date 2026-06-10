@@ -44,7 +44,7 @@ public class MirrorItem extends Item {
         // Largest shape that fits wins (SHAPES is ordered by descending area).
         MirrorEntity chosen = null;
         for (int[] shape : SHAPES) {
-            MirrorEntity candidate = new MirrorEntity(level, placePos, clickedFace, shape[0], shape[1]);
+            MirrorEntity candidate = createMirror(level, placePos, clickedFace, shape[0], shape[1]);
             EntityType.<MirrorEntity>createDefaultStackConfig(level, itemInHand, player).accept(candidate);
             if (candidate.survives()) {
                 chosen = candidate;
@@ -62,5 +62,10 @@ public class MirrorItem extends Item {
         }
         itemInHand.shrink(1);
         return InteractionResult.SUCCESS;
+    }
+
+    /** Builds the entity this item places. Overridden by {@link MagicMirrorItem}. */
+    protected MirrorEntity createMirror(Level level, BlockPos pos, Direction face, int width, int height) {
+        return new MirrorEntity(level, pos, face, width, height);
     }
 }

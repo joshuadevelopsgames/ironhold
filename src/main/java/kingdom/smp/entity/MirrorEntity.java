@@ -46,7 +46,13 @@ public class MirrorEntity extends HangingEntity {
     }
 
     public MirrorEntity(Level level, BlockPos blockPos, Direction direction, int width, int height) {
-        super(kingdom.smp.ModEntities.MIRROR.get(), level, blockPos);
+        this(kingdom.smp.ModEntities.MIRROR.get(), level, blockPos, direction, width, height);
+    }
+
+    /** Shared by subclasses (e.g. the magic mirror) that register their own entity type. */
+    protected MirrorEntity(EntityType<? extends MirrorEntity> type, Level level, BlockPos blockPos,
+                           Direction direction, int width, int height) {
+        super(type, level, blockPos);
         this.entityData.set(DATA_WIDTH, width);
         this.entityData.set(DATA_HEIGHT, height);
         this.setDirection(direction);
@@ -117,7 +123,7 @@ public class MirrorEntity extends HangingEntity {
         if (level.getGameRules().get(GameRules.ENTITY_DROPS)) {
             this.playSound(SoundEvents.PAINTING_BREAK, 1.0F, 1.0F);
             if (!(causedBy instanceof Player player && player.hasInfiniteMaterials())) {
-                this.spawnAtLocation(level, ModItems.MIRROR.get());
+                this.spawnAtLocation(level, getDropItem());
             }
         }
     }
@@ -150,6 +156,11 @@ public class MirrorEntity extends HangingEntity {
 
     @Override
     public ItemStack getPickResult() {
-        return new ItemStack(ModItems.MIRROR.get());
+        return new ItemStack(getDropItem());
+    }
+
+    /** The item this mirror drops and is picked as. Overridden by {@link MagicMirrorEntity}. */
+    protected net.minecraft.world.item.Item getDropItem() {
+        return ModItems.MIRROR.get();
     }
 }

@@ -51,4 +51,22 @@ public record AbilityCooldowns(Map<String, Long> expirations) {
         next.put(id, expiryTick);
         return new AbilityCooldowns(Map.copyOf(next));
     }
+
+    /**
+     * Returns a copy with every cooldown's expiry pulled in by {@code ticks}. Entries that would drop
+     * to or below {@code now} are removed (i.e. become immediately ready). Used by the parry refund.
+     */
+    public AbilityCooldowns withAllReducedBy(long ticks, long now) {
+        if (expirations.isEmpty()) {
+            return this;
+        }
+        Map<String, Long> next = new HashMap<>();
+        for (Map.Entry<String, Long> e : expirations.entrySet()) {
+            long reduced = e.getValue() - ticks;
+            if (reduced > now) {
+                next.put(e.getKey(), reduced);
+            }
+        }
+        return new AbilityCooldowns(Map.copyOf(next));
+    }
 }
