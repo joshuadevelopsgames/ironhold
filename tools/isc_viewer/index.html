@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ironhold ISC Viewer</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14121a; color: #ddd;
+               font: 13px/1.4 -apple-system, sans-serif; overflow: hidden; }
+  #hud { position: fixed; top: 10px; left: 10px; background: rgba(10,8,16,.82);
+         border: 1px solid #3a3344; border-radius: 8px; padding: 10px 14px; z-index: 5;
+         max-width: 290px; }
+  #hud h1 { font-size: 14px; margin: 0 0 6px; color: #ffdd55; }
+  #hud .row { margin: 6px 0; }
+  #hud input[type=range] { width: 160px; vertical-align: middle; }
+  #hud button { background: #2a2433; color: #ddd; border: 1px solid #4a4156;
+                border-radius: 5px; padding: 3px 8px; margin: 2px 3px 2px 0; cursor: pointer; }
+  #hud button:hover { background: #3a3147; }
+  #hud button.active { background: #5a4a22; border-color: #ffdd55; }
+  #stat { color: #888; font-size: 11px; }
+  #err { position: fixed; top: 40%; width: 100%; text-align: center; color: #ff7766;
+         font-size: 16px; display: none; z-index: 9; white-space: pre; }
+</style>
+</head>
+<body>
+<div id="hud">
+  <h1 id="title">ISC Viewer</h1>
+  <div class="row">Cutaway height: <input type="range" id="clip" min="0" max="57" value="57">
+       <span id="clipval">all</span></div>
+  <div class="row" id="floors"></div>
+  <div class="row"><label><input type="checkbox" id="shell"> hide outer curtain (see courtyard)</label></div>
+  <div class="row" id="stat">loading…</div>
+  <div class="row" style="color:#777;font-size:11px">drag = orbit · wheel = zoom · right-drag = pan</div>
+</div>
+<div id="err"></div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const params = new URLSearchParams(location.search);
+const FILE = params.get('file') || './dark_castle_v3.isc';
+document.getElementById('title').textContent = FILE.split('/').pop();
+
+// ── Block id → display colour (first matching rule wins) ──────────────
+const RULES = [
+  ['soul_torch',            0x4fd8d8], ['soul_lantern', 0x4fd8d8], ['soul_fire', 0x4fd8d8],
+  ['soul_sand',             0x4a3b2e],
+  ['wall_torch',            0xffb347], ['torch', 0xffb347],
+  ['lantern',               0xffa033],
+  ['fire',                  0xff7722],
+  ['red_candle',            0xc03030], ['black_candle', 0x262626], ['candle', 0xd8d0b8],
+  ['chain',                 0x6a6a72],
+  ['gilded_blackstone',     0x8a6a22],
+  ['cracked_polished_blackstone_bricks', 0x241f29],
+  ['polished_blackstone_bricks', 0x2a242f],
+  ['polished_blackstone',   0x322b38], ['chiseled_polished_blackstone', 0x3a3342],
+  ['blackstone',            0x1f1a24],
+  ['cracked_deepslate_bricks', 0x383840],
+  ['deepslate_bricks',      0x40404a],
+  ['deepslate_tile',        0x30303a],
+  ['polished_deepslate',    0x4a4a55],
+  ['cobbled_deepslate',     0x3a3a44],
+  ['chiseled_deepslate',    0x46465a],
+  ['crying_obsidian',       0x3a1a6a],
+  ['obsidian',              0x16101f],
+  ['dark_oak_log',          0x2e1d0c], ['dark_oak_plank', 0x42301a],
+  ['dark_oak_fence',        0x42301a], ['dark_oak_stairs', 0x42301a],
+  ['dark_oak_slab',         0x42301a], ['dark_oak_door', 0x3a2812],
+  ['dark_oak_trapdoor',     0x3a2812], ['dark_oak_pressure', 0x42301a],
+  ['bookshelf',             0x6a4a24],
+  ['iron_bars',             0x9aa0a8], ['iron_block', 0xd8d8de],
+  ['gold_block',            0xeac94e],
+  ['tinted_glass',          0x241a3a],
+  ['glass_pane',            0x8a93a8],
+  ['black_banner',          0x101014], ['red_banner', 0x8a1418],
+  ['black_bed',             0x18181c],
+  ['red_carpet',            0x8a1418], ['black_carpet', 0x141418], ['gray_carpet', 0x4a4a52],
+  ['water',                 0x2f4fd0],
+  ['cobweb',                0xd8d8dc],
+  ['sculk_vein',            0x0e4a58], ['sculk', 0x0b3340],
+  ['netherrack',            0x6b2c2c], ['magma', 0x8a4422],
+  ['hay_block',             0xc8a832],
+  ['wither_skeleton_skull', 0x2a2a2e], ['skeleton_skull', 0xd8d8c8], ['skeleton_wall_skull', 0xd8d8c8],
+  ['wither_rose',           0x222018], ['dead_bush', 0x7a5a30],
+  ['coarse_dirt',           0x5a4030],
+  ['anvil',                 0x4a4a50], ['grindstone', 0x6a6a70],
+  ['smithing_table',        0x3a3026], ['fletching_table', 0xb8a37a], ['cartography_table', 0x6a4a32],
+  ['enchanting_table',      0x9a2a4a], ['brewing_stand', 0x8a8a60],
+  ['lectern',               0x7a5a30],
+  ['chest',                 0x7a5526], ['barrel', 0x5a3f22],
+  ['smoker',                0x4a4640], ['blast_furnace', 0x55555c], ['furnace', 0x55555c],
+  ['cauldron',              0x3a3a40], ['composter', 0x4a3a22],
+  ['ladder',                0x6a5232], ['tripwire_hook', 0x9a9a72],
+];
+const DEFAULT_COLOR = 0x8a8a92;
+const TRANSLUCENT = ['glass', 'water', 'cobweb'];
+
+function colorFor(id) {
+  for (const [k, c] of RULES) if (id.includes(k)) return c;
+  return DEFAULT_COLOR;
+}
+
+// ── Parse ISC v1 ───────────────────────────────────────────────────────
+function parseIsc(text) {
+  const lines = text.split('\n');
+  let i = 0;
+  if (!lines[i].startsWith('#')) throw new Error('not an ISC file');
+  i++;
+  const [, sx, sy, sz] = lines[i++].split(/\s+/).map((v, j) => j === 0 ? v : parseInt(v));
+  if (lines[i++].trim() !== 'palette') throw new Error('bad palette header');
+  const pal = {};
+  while (i < lines.length && lines[i].trim() !== 'body') {
+    const m = lines[i].trim().match(/^(\S+)\s+(\S+)$/);
+    if (m) pal[m[1]] = m[2];
+    i++;
+  }
+  i++; // skip 'body'
+  const blocks = []; // {x,y,z,id}
+  let y = -1;
+  for (; i < lines.length; i++) {
+    const ln = lines[i];
+    if (ln.startsWith('y=')) { y = parseInt(ln.slice(2)); var z = 0; continue; }
+    if (!ln.trim()) continue;
+    const codes = ln.trim().split(/\s+/);
+    for (let x = 0; x < codes.length; x++) {
+      const bs = pal[codes[x]];
+      if (!bs || bs === 'minecraft:air') continue;
+      blocks.push({ x, y, z, id: bs });
+    }
+    z++;
+  }
+  return { sx, sy, sz, blocks };
+}
+
+// ── Scene ──────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x14121a);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.5, 3000);
+const controls = new OrbitControls(camera, renderer.domElement);
+scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+const sun = new THREE.DirectionalLight(0xfff2dd, 2.2);
+sun.position.set(1.5, 2.2, 0.8);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x99aaff, 0.7);
+fill.position.set(-1.2, 0.6, -1.5);
+scene.add(fill);
+
+let DATA = null;
+let meshes = [];
+let clipY = 999;
+let hideShell = false;
+
+function isShell(b, sx, sz) {
+  // outer curtain + corner towers ring: within 11 of the footprint edge,
+  // but never hide below walkway so the ground ring stays
+  const m = 11;
+  return b.y >= 6 && (b.x < m || b.x >= sx - m || b.z < m || b.z >= sz - m);
+}
+
+function rebuild() {
+  for (const m of meshes) { scene.remove(m); m.geometry.dispose(); }
+  meshes = [];
+  const { sx, sy, sz, blocks } = DATA;
+  const groups = { opaque: [], trans: [] };
+  for (const b of blocks) {
+    if (b.y > clipY) continue;
+    if (hideShell && isShell(b, sx, sz)) continue;
+    (TRANSLUCENT.some(t => b.id.includes(t)) ? groups.trans : groups.opaque).push(b);
+  }
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  for (const [kind, list] of Object.entries(groups)) {
+    if (!list.length) continue;
+    const mat = new THREE.MeshLambertMaterial({
+      transparent: kind === 'trans', opacity: kind === 'trans' ? 0.45 : 1.0,
+    });
+    const mesh = new THREE.InstancedMesh(geo, mat, list.length);
+    const M = new THREE.Matrix4();
+    const C = new THREE.Color();
+    list.forEach((b, i) => {
+      M.makeTranslation(b.x - sx / 2, b.y, b.z - sz / 2);
+      mesh.setMatrixAt(i, M);
+      mesh.setColorAt(i, C.setHex(colorFor(b.id)));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    scene.add(mesh);
+    meshes.push(mesh);
+  }
+  document.getElementById('stat').textContent =
+    `${groups.opaque.length + groups.trans.length} / ${blocks.length} blocks shown`;
+}
+
+// ── HUD wiring ─────────────────────────────────────────────────────────
+const FLOORS = [
+  ['Crypt', 4], ['Great hall', 16], ['Library/Armory', 24],
+  ['Solar', 31], ['Chapel', 38], ['Full', 999],
+];
+const floorsDiv = document.getElementById('floors');
+const clip = document.getElementById('clip');
+for (const [label, y] of FLOORS) {
+  const btn = document.createElement('button');
+  btn.textContent = label;
+  btn.onclick = () => {
+    clipY = y;
+    clip.value = Math.min(y, parseInt(clip.max));
+    document.getElementById('clipval').textContent = y > 100 ? 'all' : 'y≤' + y;
+    [...floorsDiv.children].forEach(b => b.classList.toggle('active', b === btn));
+    rebuild();
+  };
+  floorsDiv.appendChild(btn);
+}
+clip.oninput = () => {
+  clipY = parseInt(clip.value);
+  document.getElementById('clipval').textContent =
+    clipY >= parseInt(clip.max) ? 'all' : 'y≤' + clipY;
+  [...floorsDiv.children].forEach(b => b.classList.remove('active'));
+  rebuild();
+};
+document.getElementById('shell').onchange = e => { hideShell = e.target.checked; rebuild(); };
+
+// ── Load ───────────────────────────────────────────────────────────────
+fetch(FILE).then(r => {
+  if (!r.ok) throw new Error(`HTTP ${r.status} for ${FILE}`);
+  return r.text();
+}).then(text => {
+  DATA = parseIsc(text);
+  clip.max = DATA.sy - 1;
+  clip.value = DATA.sy - 1;
+  clipY = DATA.sy - 1;
+  const d = Math.max(DATA.sx, DATA.sz);
+  camera.position.set(d * 0.95, d * 0.75, d * 0.95);
+  controls.target.set(0, DATA.sy * 0.3, 0);
+  controls.update();
+  rebuild();
+}).catch(e => {
+  const el = document.getElementById('err');
+  el.style.display = 'block';
+  el.textContent = 'Failed to load structure:\n' + e.message;
+});
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
+</body>
+</html>

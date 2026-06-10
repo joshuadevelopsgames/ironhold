@@ -50,3 +50,4 @@ scripts/preview/
 structures/
 __pycache__/
 *.pyc
+tools/isc_viewer/*.isc
