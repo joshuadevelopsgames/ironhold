@@ -43,8 +43,10 @@ import net.minecraft.world.level.block.state.BlockState;
 public record IscStructure(int sizeX, int sizeY, int sizeZ, List<BlockState> palette, int[] data) {
 
     public static final int VERSION = 1;
-    public static final int MAX_DIM = 64;
-    public static final int MAX_VOLUME = 64 * 64 * 64;
+    // Raised from 64 for full-fortress builds (dark_castle_v3 is 80x58x80).
+    // 128^3 = ~2M ints (~8 MB) in memory and a ~6 MB .isc — still safe to parse + place.
+    public static final int MAX_DIM = 128;
+    public static final int MAX_VOLUME = 128 * 128 * 128;
     public static final int MAX_PALETTE = 36 * 36;
 
     public IscStructure {
