@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "food",
+  "ingredients": [
+    "minecraft:honey_bottle",
+    "minecraft:sugar",
+    "minecraft:water_bucket",
+    "minecraft:glass_bottle"
+  ],
+  "result": {
+    "id": "ironhold:honey_mead",
+    "count": 1
+  }
+}
