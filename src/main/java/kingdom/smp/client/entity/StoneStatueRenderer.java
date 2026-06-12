@@ -40,8 +40,9 @@ public class StoneStatueRenderer
     public static final Identifier CHEAKIE_TEXTURE =
         Identifier.fromNamespaceAndPath(Ironhold.MODID, "textures/entity/statue/cheakie.png");
 
-    /** Pedestal height in model-space pixels (16 = 1 block); the figure is lifted by this. */
-    static final float PEDESTAL_HEIGHT = 8.0F;
+    /** Pedestal height in model-space pixels (16 = 1 block); the figure is lifted by this.
+     *  Public: StatueBlockRenderer applies the same lift for the block form. */
+    public static final float PEDESTAL_HEIGHT = 8.0F;
 
     private final Identifier texture;
 

@@ -4,10 +4,13 @@ import com.google.gson.Gson;
 import kingdom.smp.Config;
 import kingdom.smp.Ironhold;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -102,7 +105,8 @@ public final class ElevenLabsClient {
 
     /**
      * Synthesize {@code text} with explicit voice + model overrides so each NPC
-     * can have its own ElevenLabs voice and TTS model.
+     * can have its own ElevenLabs voice and TTS model. Buffers the whole clip —
+     * prefer {@link #speakStream} for anything played to a waiting player.
      *
      * @param text     line of dialogue to speak (don't include SSML; Flash ignores it)
      * @param voiceId  ElevenLabs voice id — falls back to global config if blank
@@ -113,6 +117,38 @@ public final class ElevenLabsClient {
      */
     public static void speak(String text, String voiceId, String model,
                              VoiceSettings settings, Consumer<byte[]> onResult) {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream(64 * 1024);
+        speakStream(text, voiceId, model, settings, null, new AudioStreamObserver() {
+            @Override public void onChunk(byte[] pcmChunk) {
+                buf.writeBytes(pcmChunk);
+            }
+            @Override public void onComplete(boolean success) {
+                onResult.accept(success && buf.size() > 0 ? buf.toByteArray() : null);
+            }
+        });
+    }
+
+    /** Receives PCM audio incrementally as ElevenLabs synthesizes it. */
+    public interface AudioStreamObserver {
+        /** Raw PCM-S16LE @ 24 kHz chunk, called on the HTTP executor thread. */
+        void onChunk(byte[] pcmChunk);
+        /** Always called exactly once after the last chunk (or on failure). */
+        void onComplete(boolean success);
+    }
+
+    /**
+     * Streaming synthesis: PCM chunks are delivered to {@code observer} as they
+     * arrive from ElevenLabs instead of waiting for the full clip. With Flash
+     * v2.5 the first chunk typically lands in ~150–300 ms, so playback can start
+     * almost immediately.
+     *
+     * @param previousText text of the line spoken just before this one (same
+     *                     reply), or null — lets ElevenLabs keep prosody
+     *                     continuous across sentence-chunked synthesis
+     */
+    public static void speakStream(String text, String voiceId, String model,
+                                   VoiceSettings settings, String previousText,
+                                   AudioStreamObserver observer) {
         String apiKey = apiKey();
         if (voiceId == null || voiceId.isBlank()) voiceId = voiceId();
         if (model == null || model.isBlank()) model = Config.ELEVENLABS_MODEL.get();
@@ -120,13 +156,16 @@ public final class ElevenLabsClient {
 
         if (apiKey.isEmpty() || voiceId.isEmpty()) {
             Ironhold.LOGGER.warn("[ElevenLabs] not configured (API key or voice id missing).");
-            onResult.accept(null);
+            observer.onComplete(false);
             return;
         }
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("text", text);
         body.put("model_id", model);
+        if (previousText != null && !previousText.isBlank()) {
+            body.put("previous_text", previousText);
+        }
 
         Map<String, Object> vs = new LinkedHashMap<>();
         if (settings.stability() != null)        vs.put("stability", settings.stability());
@@ -146,20 +185,60 @@ public final class ElevenLabsClient {
             .POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(body)))
             .build();
 
-        HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofByteArray())
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
             .thenAccept(response -> {
-                if (response.statusCode() / 100 != 2) {
-                    Ironhold.LOGGER.warn("[ElevenLabs] HTTP {}: {}",
-                        response.statusCode(), AiLog.snippet(new String(response.body(), java.nio.charset.StandardCharsets.UTF_8)));
-                    onResult.accept(null);
-                    return;
+                // We're on a cached-pool executor thread; blocking reads are fine.
+                try (InputStream in = response.body()) {
+                    if (response.statusCode() / 100 != 2) {
+                        Ironhold.LOGGER.warn("[ElevenLabs] HTTP {}: {}",
+                            response.statusCode(),
+                            AiLog.snippet(new String(in.readAllBytes(), StandardCharsets.UTF_8)));
+                        observer.onComplete(false);
+                        return;
+                    }
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = in.read(buf)) >= 0) {
+                        if (n > 0) {
+                            byte[] chunk = new byte[n];
+                            System.arraycopy(buf, 0, chunk, 0, n);
+                            observer.onChunk(chunk);
+                        }
+                    }
+                    observer.onComplete(true);
+                } catch (Exception e) {
+                    Ironhold.LOGGER.warn("[ElevenLabs] stream read failed: {}", e.getMessage());
+                    observer.onComplete(false);
                 }
-                onResult.accept(response.body());
             })
             .exceptionally(ex -> {
                 Ironhold.LOGGER.warn("[ElevenLabs] request failed: {}", ex.getMessage());
-                onResult.accept(null);
+                observer.onComplete(false);
                 return null;
             });
+    }
+
+    // ── Connection pre-warming ───────────────────────────────────────────────
+
+    private static volatile long lastPrewarmMillis;
+
+    /**
+     * Fire a tiny request through the shared {@link HttpClient} so the TLS
+     * handshake is already done when the first real TTS call goes out. Throttled
+     * to once a minute; result is ignored.
+     */
+    public static void prewarm() {
+        if (!isConfigured()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastPrewarmMillis < 60_000L) return;
+        lastPrewarmMillis = now;
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.elevenlabs.io/v1/user"))
+            .header("xi-api-key", apiKey())
+            .timeout(Duration.ofSeconds(10))
+            .GET()
+            .build();
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+            .exceptionally(ex -> null);
     }
 }

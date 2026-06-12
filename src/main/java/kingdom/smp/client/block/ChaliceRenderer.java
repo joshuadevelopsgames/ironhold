@@ -25,8 +25,8 @@ import org.jspecify.annotations.Nullable;
  * poured in (water/honey/potion are translucent, lava glows full-bright).
  *
  * <p>A single near-white {@code chalice_liquid} sprite is multiplied by the liquid
- * tint, so one texture serves every liquid. Every face is emitted in both windings
- * so the pool is visible whether you peer in from above or from the side.
+ * tint, so one texture serves every liquid. The entity-translucent pipeline is
+ * no-cull, so each face is emitted once and still reads from every angle.
  */
 public class ChaliceRenderer
         implements BlockEntityRenderer<ChaliceBlockEntity, ChaliceRenderer.RenderState> {
@@ -37,12 +37,14 @@ public class ChaliceRenderer
     // Inner well of the goblet, in block-local units (model px / 16). The cup's
     // rim ring leaves a 2×2 opening at x/z 7–9, solid below y6, open to y7; we
     // pool the liquid a touch inside the rim and just shy of the brim.
-    private static final float X0 = 7.1f  / 16f;
-    private static final float X1 = 8.9f  / 16f;
-    private static final float Z0 = 7.1f  / 16f;
-    private static final float Z1 = 8.9f  / 16f;
-    private static final float Y_FLOOR   = 6.05f / 16f;
-    private static final float Y_SURFACE = 6.60f / 16f;
+    // Clearances are a full 0.2px from every model face (bowl top y6, rim inner
+    // walls x/z 7 & 9) — anything closer shimmers against the cup at distance.
+    private static final float X0 = 7.2f  / 16f;
+    private static final float X1 = 8.8f  / 16f;
+    private static final float Z0 = 7.2f  / 16f;
+    private static final float Z1 = 8.8f  / 16f;
+    private static final float Y_FLOOR   = 6.20f / 16f;
+    private static final float Y_SURFACE = 6.85f / 16f;
 
     public ChaliceRenderer(BlockEntityRendererProvider.Context ctx) {}
 
@@ -82,21 +84,27 @@ public class ChaliceRenderer
     private static void drawPool(PoseStack.Pose pose, VertexConsumer v,
                                  int r, int g, int b, int a, int light) {
         // Top surface (faces up).
-        quad2(pose, v, r, g, b, a, light, 0f, 1f, 0f,
+        quad(pose, v, r, g, b, a, light, 0f, 1f, 0f,
             X0, Y_SURFACE, Z1,  X1, Y_SURFACE, Z1,  X1, Y_SURFACE, Z0,  X0, Y_SURFACE, Z0);
         // Four thin walls floor→surface so the pool has a little body from any angle.
-        quad2(pose, v, r, g, b, a, light, 0f, 0f, -1f,
+        quad(pose, v, r, g, b, a, light, 0f, 0f, -1f,
             X1, Y_SURFACE, Z0,  X0, Y_SURFACE, Z0,  X0, Y_FLOOR, Z0,  X1, Y_FLOOR, Z0);   // north (-Z)
-        quad2(pose, v, r, g, b, a, light, 0f, 0f, 1f,
+        quad(pose, v, r, g, b, a, light, 0f, 0f, 1f,
             X0, Y_SURFACE, Z1,  X1, Y_SURFACE, Z1,  X1, Y_FLOOR, Z1,  X0, Y_FLOOR, Z1);   // south (+Z)
-        quad2(pose, v, r, g, b, a, light, -1f, 0f, 0f,
+        quad(pose, v, r, g, b, a, light, -1f, 0f, 0f,
             X0, Y_SURFACE, Z0,  X0, Y_SURFACE, Z1,  X0, Y_FLOOR, Z1,  X0, Y_FLOOR, Z0);   // west (-X)
-        quad2(pose, v, r, g, b, a, light, 1f, 0f, 0f,
+        quad(pose, v, r, g, b, a, light, 1f, 0f, 0f,
             X1, Y_SURFACE, Z1,  X1, Y_SURFACE, Z0,  X1, Y_FLOOR, Z0,  X1, Y_FLOOR, Z1);   // east (+X)
     }
 
-    /** Emit a quad in both winding orders (the translucent pipeline backface-culls). */
-    private static void quad2(PoseStack.Pose pose, VertexConsumer v,
+    /**
+     * Emit a quad ONCE. The entity-translucent pipeline does NOT backface-cull
+     * (26.1 made no-cull the entity default), so a single winding is already
+     * visible from both sides — and the old double emission put two identical
+     * coplanar quads in the buffer, which z-fought each other (visible flicker
+     * on the liquid) and double-blended the alpha.
+     */
+    private static void quad(PoseStack.Pose pose, VertexConsumer v,
                               int r, int g, int b, int a, int light,
                               float nx, float ny, float nz,
                               float x1, float y1, float z1, float x2, float y2, float z2,
@@ -105,11 +113,6 @@ public class ChaliceRenderer
         vert(pose, v, x2, y2, z2, 1f, 0f, r, g, b, a, light, nx, ny, nz);
         vert(pose, v, x3, y3, z3, 1f, 1f, r, g, b, a, light, nx, ny, nz);
         vert(pose, v, x4, y4, z4, 0f, 1f, r, g, b, a, light, nx, ny, nz);
-        // Reverse winding (flipped normal) so it's lit/visible from the other side too.
-        vert(pose, v, x4, y4, z4, 0f, 1f, r, g, b, a, light, -nx, -ny, -nz);
-        vert(pose, v, x3, y3, z3, 1f, 1f, r, g, b, a, light, -nx, -ny, -nz);
-        vert(pose, v, x2, y2, z2, 1f, 0f, r, g, b, a, light, -nx, -ny, -nz);
-        vert(pose, v, x1, y1, z1, 0f, 0f, r, g, b, a, light, -nx, -ny, -nz);
     }
 
     private static void vert(PoseStack.Pose pose, VertexConsumer v,

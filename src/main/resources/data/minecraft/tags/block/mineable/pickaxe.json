@@ -1,6 +1,13 @@
 {
   "replace": false,
   "values": [
-    "ironhold:tanzanite_ore"
+    "ironhold:tanzanite_ore",
+    "ironhold:kangarude_statue",
+    "ironhold:haalina_statue",
+    "ironhold:facelaces_statue",
+    "ironhold:red_raichu_statue",
+    "ironhold:twohrd_statue",
+    "ironhold:arcatheone_statue",
+    "ironhold:cheakie_statue"
   ]
 }

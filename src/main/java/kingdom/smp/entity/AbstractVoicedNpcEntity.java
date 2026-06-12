@@ -8,8 +8,10 @@ import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
 import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
+import kingdom.smp.ai.OpenAiWhisperClient;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
+import kingdom.smp.ai.SentenceChunker;
 import kingdom.smp.entity.goal.AlwaysLookNearestPlayerGoal;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
@@ -162,6 +164,11 @@ public abstract class AbstractVoicedNpcEntity extends PathfinderMob implements N
         lastTurnGameTime = level().getGameTime();
         replyInFlight = false;
         replyChannel = ReplyChannel.SCREEN;
+        // Warm the TLS connections now so the first real turn doesn't pay
+        // three fresh handshakes on top of model latency.
+        OpenRouterClient.prewarm();
+        ElevenLabsClient.prewarm();
+        OpenAiWhisperClient.prewarm();
     }
 
     @Override
@@ -215,7 +222,7 @@ public abstract class AbstractVoicedNpcEntity extends PathfinderMob implements N
         List<OpenRouterClient.Message> snapshot = List.copyOf(history);
         UUID expectedPartner = partnerId;
         MinecraftServer server = level().getServer();
-        MicGate.muteFor(expectedPartner, 4_000L);
+        MicGate.muteFor(expectedPartner, 2_000L);
 
         if (replyChannel == ReplyChannel.SCREEN) {
             PacketDistributor.sendToPlayer(player,
@@ -224,12 +231,33 @@ public abstract class AbstractVoicedNpcEntity extends PathfinderMob implements N
         }
 
         replyInFlight = true;
-        OpenRouterClient.chatWithCache(
+
+        // Voice rides the LLM stream: as each sentence completes, it goes to
+        // ElevenLabs immediately, so the NPC starts talking while the model is
+        // still writing. Text channels still get the full reply at the end.
+        NpcSpeech.Session speech = canSpeakTo(player)
+            ? NpcSpeech.beginSession(this, expectedPartner) : null;
+        SentenceChunker chunker = speech == null ? null
+            : new SentenceChunker(30, sentence -> {
+                // If the conversation moved on mid-stream, stop queueing audio.
+                if (NpcChatRegistry.getActive(expectedPartner) != this) return;
+                String spoken = sanitizeForSpeech(sentence);
+                if (!spoken.isBlank()) {
+                    speech.speakSentence(spoken, voiceId(), elevenLabsModel(), voiceSettings());
+                }
+            });
+
+        OpenRouterClient.chatWithCacheStreaming(
             openRouterModel(), maxReplyTokens(), samplingTemperature(),
             systemPrompt(),
             IronholdLore.runtimeContext(player.getUUID()) + NpcRapport.onConversationTurn(player, tag()),
             snapshot, userMessage, tag(),
+            delta -> {
+                if (chunker != null) chunker.accept(delta);
+            },
             reply -> {
+                if (chunker != null) chunker.finish();
+                if (speech != null) speech.finish();
                 if (server == null) return;
                 server.execute(() -> {
                     replyInFlight = false;
@@ -255,26 +283,25 @@ public abstract class AbstractVoicedNpcEntity extends PathfinderMob implements N
                 new UpdateWardenScreenPayload(getId(),
                     UpdateWardenScreenPayload.STATUS_REPLY, line));
         }
-        speakLine(line, player);
+        // No speakLine here — the voice already streamed sentence-by-sentence
+        // alongside the LLM in generateReply.
         Ironhold.LOGGER.info("[{}] -> {}: \"{}\"", tag(), player.getName().getString(), line);
     }
 
-    private void speakLine(String line, ServerPlayer partnerPlayer) {
-        if (!ElevenLabsClient.isConfigured()) return;
+    /** Voice gate shared by the opener and streamed replies. */
+    private boolean canSpeakTo(@Nullable ServerPlayer partnerPlayer) {
+        if (!ElevenLabsClient.isConfigured()) return false;
+        if (voiceId().startsWith("REPLACE_ME")) return false; // no voice id assigned yet
         if (partnerPlayer != null && level() instanceof ServerLevel sl
             && NpcMuteRegistry.get(sl).isMuted(partnerPlayer.getUUID(), tag())) {
-            return;
+            return false;
         }
-        if (voiceId().startsWith("REPLACE_ME")) return; // no voice id assigned yet
-        UUID partner = partnerId;
-        ElevenLabsClient.speak(line, voiceId(), elevenLabsModel(), voiceSettings(), pcm -> {
-            if (pcm == null) return;
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        return true;
+    }
+
+    private void speakLine(String line, ServerPlayer partnerPlayer) {
+        if (!canSpeakTo(partnerPlayer)) return;
+        NpcSpeech.speak(this, partnerId, line, voiceId(), elevenLabsModel(), voiceSettings());
     }
 
     protected static String sanitizeForSpeech(String s) {

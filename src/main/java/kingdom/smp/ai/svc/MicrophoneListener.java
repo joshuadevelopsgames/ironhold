@@ -74,16 +74,13 @@ public final class MicrophoneListener {
         // utterance starts and ends.
         if (!RECORDING.contains(playerId)) return;
 
-        // Drop incoming audio while Kangarude is speaking through the player's
-        // speakers — otherwise the open mic picks up his voice, Whisper
-        // transcribes it, and we get a feedback loop.
+        // PAUSE buffering while the NPC is speaking through the player's
+        // speakers — frames arriving now would contain the NPC's own voice,
+        // which Whisper would transcribe into a feedback loop. Only the gated
+        // frames are dropped; whatever the player said before the gate engaged
+        // stays buffered, so talking slightly over the NPC costs a word or two,
+        // not the whole utterance (the old behavior wiped the buffer here).
         if (MicGate.isMuted(playerId)) {
-            BufferState s = STATES.get(playerId);
-            if (s != null) {
-                synchronized (s.lock) {
-                    s.samples = new short[0];
-                }
-            }
             return;
         }
 
@@ -152,6 +149,9 @@ public final class MicrophoneListener {
                 state.samples = new short[0];
             }
             RECORDING.add(playerId);
+            // Warm the STT connection while the player is still talking, so
+            // the flush on tap-off doesn't pay a TLS handshake first.
+            OpenAiWhisperClient.prewarm();
             player.sendSystemMessage(Component.literal("§e🎤 Recording…"));
         }
     }

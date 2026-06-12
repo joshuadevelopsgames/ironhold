@@ -1,19 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "tag": "minecraft:wool"
-    },
+    "#minecraft:wool",
     [
-      {
-        "item": "minecraft:slime_ball"
-      },
-      {
-        "item": "minecraft:cobweb"
-      },
-      {
-        "item": "minecraft:honeycomb"
-      }
+      "minecraft:slime_ball",
+      "minecraft:cobweb",
+      "minecraft:honeycomb"
     ]
   ],
   "result": {

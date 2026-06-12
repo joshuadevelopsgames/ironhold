@@ -187,6 +187,9 @@ public class IronholdClient {
         event.registerLayerDefinition(
             kingdom.smp.client.entity.PlagueDoctorModel.LAYER_LOCATION,
             kingdom.smp.client.entity.PlagueDoctorModel::createBodyLayer);
+        event.registerLayerDefinition(
+            kingdom.smp.client.entity.MinerDunstanModel.LAYER_LOCATION,
+            kingdom.smp.client.entity.MinerDunstanModel::createBodyLayer);
         event.registerLayerDefinition(MimicModel.LAYER_LOCATION, MimicModel::createBodyLayer);
         event.registerLayerDefinition(BabyMimicModel.LAYER_LOCATION, BabyMimicModel::createBodyLayer);
         event.registerLayerDefinition(
@@ -253,6 +256,9 @@ public class IronholdClient {
         event.registerBlockEntityRenderer(
             kingdom.smp.ModBlocks.CHALICE_BLOCK_ENTITY.get(),
             kingdom.smp.client.block.ChaliceRenderer::new);
+        event.registerBlockEntityRenderer(
+            kingdom.smp.ModBlocks.STATUE_BLOCK_ENTITY.get(),
+            kingdom.smp.client.block.StatueBlockRenderer::new);
 
         // Entity renderers
         event.registerEntityRenderer(

@@ -83,9 +83,7 @@ public class OldHestaEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Mmm. A new shadow at my door, and walking on its own two feet. " +
-        "I am Hesta. The shrine is small, the tea is older than the kettle, " +
-        "and I hear more than I see. Sit, if you like.";
+        "Mmm — welcome, child.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Ah, %s.",

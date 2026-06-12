@@ -12,6 +12,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,9 +131,46 @@ public final class OpenRouterClient {
             String userMessage,
             String tag,
             Consumer<String> onResult) {
+        List<Map<String, Object>> messages =
+            buildCachedMessages(cacheableSystem, dynamicSystem, history, userMessage);
+        dispatch(model, maxTokens, temperature, messages, tag, onResult);
+    }
 
-        // Build a structured-content system message with cache_control on the
-        // static part. OpenRouter passes this through to Anthropic verbatim.
+    /**
+     * Like {@link #chatWithCache} but streams the reply token-by-token over
+     * SSE. {@code onDelta} fires on the HTTP executor thread with each raw
+     * content fragment as it arrives; {@code onComplete} fires exactly once
+     * with the full assembled text — or whatever partial text arrived before a
+     * mid-stream failure, or {@code null} if nothing was received.
+     *
+     * <p>This is what makes sentence-chunked TTS possible: the first sentence
+     * can be speaking while the model is still writing the rest.
+     */
+    public static void chatWithCacheStreaming(
+            String model,
+            int maxTokens,
+            double temperature,
+            String cacheableSystem,
+            String dynamicSystem,
+            List<Message> history,
+            String userMessage,
+            String tag,
+            Consumer<String> onDelta,
+            Consumer<String> onComplete) {
+        List<Map<String, Object>> messages =
+            buildCachedMessages(cacheableSystem, dynamicSystem, history, userMessage);
+        dispatchStreaming(model, maxTokens, temperature, messages, tag, onDelta, onComplete);
+    }
+
+    /**
+     * Build the message list with cache_control on the static system part.
+     * OpenRouter passes the structured content through to Anthropic verbatim.
+     */
+    private static List<Map<String, Object>> buildCachedMessages(
+            String cacheableSystem,
+            String dynamicSystem,
+            List<Message> history,
+            String userMessage) {
         List<Map<String, Object>> systemContent = new ArrayList<>();
         Map<String, Object> staticPart = new LinkedHashMap<>();
         staticPart.put("type", "text");
@@ -150,7 +188,7 @@ public final class OpenRouterClient {
         List<Map<String, Object>> messages = new ArrayList<>();
         messages.add(Map.of("role", "system", "content", systemContent));
         appendHistoryAndUser(messages, history, userMessage);
-        dispatch(model, maxTokens, temperature, messages, tag, onResult);
+        return messages;
     }
 
     private static void appendHistoryAndUser(
@@ -231,6 +269,119 @@ public final class OpenRouterClient {
                 onResult.accept(null);
                 return null;
             });
+    }
+
+    /** SSE variant of {@link #dispatch}: parses {@code data:} lines as they arrive. */
+    private static void dispatchStreaming(
+            String model,
+            int maxTokens,
+            double temperature,
+            List<Map<String, Object>> messages,
+            String tag,
+            Consumer<String> onDelta,
+            Consumer<String> onComplete) {
+
+        String apiKey = resolveApiKey();
+        if (apiKey.isEmpty()) {
+            Ironhold.LOGGER.warn("[{}] OpenRouter API key not configured.", tag);
+            onComplete.accept(null);
+            return;
+        }
+        if (model == null || model.isBlank()) {
+            Ironhold.LOGGER.warn("[{}] OpenRouter model not configured.", tag);
+            onComplete.accept(null);
+            return;
+        }
+
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("model", model);
+        payload.put("messages", messages);
+        payload.put("temperature", temperature);
+        payload.put("max_tokens", maxTokens);
+        payload.put("stream", true);
+
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(ENDPOINT))
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + apiKey)
+            .header("HTTP-Referer", "https://kingdomsmp.local/ironhold")
+            .header("X-Title", "Ironhold / " + tag)
+            .timeout(Duration.ofSeconds(20))
+            .POST(HttpRequest.BodyPublishers.ofString(GSON.toJson(payload)))
+            .build();
+
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.ofLines())
+            .thenAccept(response -> {
+                // On a cached-pool executor thread — blocking on the line stream is fine.
+                if (response.statusCode() / 100 != 2) {
+                    String body = response.body().limit(20)
+                        .collect(java.util.stream.Collectors.joining("\n"));
+                    Ironhold.LOGGER.warn("[{}] OpenRouter HTTP {}: {}",
+                        tag, response.statusCode(), AiLog.snippet(body));
+                    onComplete.accept(null);
+                    return;
+                }
+                StringBuilder full = new StringBuilder();
+                try {
+                    Iterator<String> lines = response.body().iterator();
+                    while (lines.hasNext()) {
+                        String line = lines.next();
+                        // SSE framing: blank keep-alives and ": comment" lines are noise.
+                        if (line.isEmpty() || line.startsWith(":")) continue;
+                        if (!line.startsWith("data:")) continue;
+                        String data = line.substring(5).trim();
+                        if (data.equals("[DONE]")) break;
+
+                        JsonObject chunk = JsonParser.parseString(data).getAsJsonObject();
+                        logCacheUsage(tag, chunk); // usage rides the final chunk
+                        if (!chunk.has("choices") || chunk.getAsJsonArray("choices").isEmpty()) continue;
+                        JsonObject choice = chunk.getAsJsonArray("choices").get(0).getAsJsonObject();
+                        if (!choice.has("delta") || !choice.get("delta").isJsonObject()) continue;
+                        JsonObject delta = choice.getAsJsonObject("delta");
+                        if (!delta.has("content") || delta.get("content").isJsonNull()) continue;
+                        String piece = delta.get("content").getAsString();
+                        if (piece.isEmpty()) continue;
+                        full.append(piece);
+                        onDelta.accept(piece);
+                    }
+                } catch (Exception e) {
+                    // Mid-stream death: report what we have — audio for the
+                    // already-emitted sentences may be playing, so the partial
+                    // text must still land in history/screen.
+                    Ironhold.LOGGER.warn("[{}] OpenRouter stream broke: {}", tag, e.getMessage());
+                }
+                String result = full.toString().trim();
+                onComplete.accept(result.isEmpty() ? null : result);
+            })
+            .exceptionally(ex -> {
+                Ironhold.LOGGER.warn("[{}] OpenRouter request failed: {}", tag, ex.getMessage());
+                onComplete.accept(null);
+                return null;
+            });
+    }
+
+    // ── Connection pre-warming ───────────────────────────────────────────────
+
+    private static volatile long lastPrewarmMillis;
+
+    /**
+     * Fire a tiny authenticated request through the shared {@link HttpClient}
+     * so TLS is already negotiated when the first real chat call goes out.
+     * Throttled to once a minute; result is ignored.
+     */
+    public static void prewarm() {
+        if (resolveApiKey().isEmpty()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastPrewarmMillis < 60_000L) return;
+        lastPrewarmMillis = now;
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("https://openrouter.ai/api/v1/auth/key"))
+            .header("Authorization", "Bearer " + resolveApiKey())
+            .timeout(Duration.ofSeconds(10))
+            .GET()
+            .build();
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+            .exceptionally(ex -> null);
     }
 
     /** Debug-level log of cache write / hit token counts when the provider reports them. */

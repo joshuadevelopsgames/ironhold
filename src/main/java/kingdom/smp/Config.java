@@ -56,8 +56,10 @@ public class Config {
             .define("openaiApiKey", "");
 
     public static final ModConfigSpec.ConfigValue<String> OPENAI_WHISPER_MODEL = BUILDER
-            .comment("OpenAI Whisper model. whisper-1 is the standard transcription model.")
-            .define("openaiWhisperModel", "whisper-1");
+            .comment("OpenAI transcription model. gpt-4o-mini-transcribe is ~2x faster and "
+                + "cheaper than whisper-1 at equal-or-better accuracy. NOTE: a toml saved "
+                + "before this default changed still pins whisper-1 — edit it by hand.")
+            .define("openaiWhisperModel", "gpt-4o-mini-transcribe");
 
     /** How long (ms) of mic silence ends a player's utterance and triggers STT. */
     public static final ModConfigSpec.IntValue STT_SILENCE_MS = BUILDER

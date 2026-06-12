@@ -76,9 +76,7 @@ public class CaptainRoselindEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Halt. State your business. — At ease. I am Captain Roselind; this " +
-        "is the barracks of Wayfarer's Hollow. The watch keeps these " +
-        "streets. Mind that, and we will get on fine.";
+        "Halt — at ease, traveler.";
 
     private static final String[] RETURN_DIALOGUES = {
         "%s.",

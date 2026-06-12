@@ -37,6 +37,14 @@ public final class SvcVoiceBridgeImpl {
     private static final int OUTPUT_RATE_HZ = 48_000;
     /** SVC requires 20ms frames at 48kHz mono → 960 samples. */
     private static final int FRAME_SAMPLES  = 960;
+    /** One output frame consumes 480 input samples (24kHz) = 960 bytes of PCM-S16LE. */
+    private static final int FRAME_INPUT_BYTES = 960;
+    /**
+     * Don't spin up an AudioPlayer for a still-open stream until this much
+     * audio is queued (10 frames = 200ms). Cushions against an instant
+     * underrun-stop-restart cycle when the first network chunk is tiny.
+     */
+    private static final int MIN_START_FRAMES = 10;
 
     /**
      * Stable source UUID for ALL voiced NPC audio. SVC's per-player volume
@@ -72,6 +80,27 @@ public final class SvcVoiceBridgeImpl {
         /** Currently-active AudioPlayer if {@code playing}, else null. */
         AudioPlayer activePlayer;
         boolean playing;
+        /** Streams begun via {@link #beginStream} but not yet ended. */
+        int openStreams;
+    }
+
+    /**
+     * Handle for one incremental playback stream, returned by {@link #beginStream}
+     * and passed back (as Object, through the reflective facade) to
+     * {@link #feedStream}/{@link #endStream}. Carries the sub-frame byte
+     * remainder between chunks so frames are only zero-padded once, at
+     * end-of-stream — padding every chunk would inject audible 20ms gaps.
+     */
+    public static final class StreamSession {
+        private final Entity entity;
+        private final EntityState state;
+        private byte[] carry = new byte[0];
+        private boolean ended;
+
+        private StreamSession(Entity entity, EntityState state) {
+            this.entity = entity;
+            this.state = state;
+        }
     }
 
     /**
@@ -106,16 +135,9 @@ public final class SvcVoiceBridgeImpl {
                 state.queue.addLast(frame);
             }
 
-            if (state.channel == null || state.channel.isClosed()) {
-                state.channel = api.createEntityAudioChannel(ALL_NPCS_UUID, api.fromEntity(mcEntity));
-                if (state.channel == null) {
-                    Ironhold.LOGGER.warn("[Kangarude] SVC refused to create audio channel for {}", mcEntity.getUUID());
-                    state.queue.clear();
-                    return false;
-                }
-                // Tag the channel so SVC routes its volume through the
-                // "Voiced NPCs" slider in the client's volume menu.
-                state.channel.setCategory(IronholdVoicechatPlugin.NPC_VOICE_CATEGORY_ID);
+            if (!ensureChannelLocked(api, mcEntity, state)) {
+                state.queue.clear();
+                return false;
             }
 
             if (!state.playing) {
@@ -123,6 +145,117 @@ public final class SvcVoiceBridgeImpl {
             }
         }
         return true;
+    }
+
+    /** Caller must hold {@code state.lock}. Creates/refreshes the SVC channel. */
+    private static boolean ensureChannelLocked(VoicechatServerApi api, Entity mcEntity, EntityState state) {
+        if (state.channel != null && !state.channel.isClosed()) return true;
+        state.channel = api.createEntityAudioChannel(ALL_NPCS_UUID, api.fromEntity(mcEntity));
+        if (state.channel == null) {
+            Ironhold.LOGGER.warn("[Kangarude] SVC refused to create audio channel for {}", mcEntity.getUUID());
+            return false;
+        }
+        // Tag the channel so SVC routes its volume through the
+        // "Voiced NPCs" slider in the client's volume menu.
+        state.channel.setCategory(IronholdVoicechatPlugin.NPC_VOICE_CATEGORY_ID);
+        return true;
+    }
+
+    // ── Incremental streaming playback ───────────────────────────────────────
+
+    /**
+     * Open an incremental playback stream for the entity. Audio fed via
+     * {@link #feedStream} starts playing as soon as a small prebuffer fills,
+     * instead of waiting for the whole clip. Returns null when SVC isn't ready.
+     */
+    public static Object beginStream(Entity mcEntity) {
+        VoicechatServerApi api = IronholdVoicechatPlugin.getApi();
+        if (api == null) {
+            Ironhold.LOGGER.debug("[Kangarude] SVC server API not ready; stream refused");
+            return null;
+        }
+        if (mcEntity instanceof NpcChatPartner partner) {
+            ENTITY_TAGS.put(mcEntity.getUUID(), partner.tag());
+        }
+        EntityState state = STATES.computeIfAbsent(mcEntity.getUUID(), id -> new EntityState());
+        synchronized (state.lock) {
+            state.openStreams++;
+        }
+        return new StreamSession(mcEntity, state);
+    }
+
+    /** Feed a PCM-S16LE @ 24kHz chunk into an open stream. Any chunk size is fine. */
+    public static boolean feedStream(Object sessionObj, byte[] pcmChunk) {
+        if (!(sessionObj instanceof StreamSession session)) return false;
+        if (pcmChunk == null || pcmChunk.length == 0) return true;
+        VoicechatServerApi api = IronholdVoicechatPlugin.getApi();
+        if (api == null) return false;
+
+        EntityState state = session.state;
+        synchronized (state.lock) {
+            if (session.ended) return false;
+
+            byte[] merged = new byte[session.carry.length + pcmChunk.length];
+            System.arraycopy(session.carry, 0, merged, 0, session.carry.length);
+            System.arraycopy(pcmChunk, 0, merged, session.carry.length, pcmChunk.length);
+
+            int usable = (merged.length / FRAME_INPUT_BYTES) * FRAME_INPUT_BYTES;
+            session.carry = new byte[merged.length - usable];
+            System.arraycopy(merged, usable, session.carry, 0, session.carry.length);
+            if (usable == 0) return true;
+
+            if (!ensureChannelLocked(api, session.entity, state)) return false;
+            enqueueFramesLocked(state, merged, usable);
+            maybeStartPlayerLocked(api, session.entity, state);
+        }
+        return true;
+    }
+
+    /** Close a stream: pad + flush the sub-frame remainder and let playback drain. */
+    public static void endStream(Object sessionObj) {
+        if (!(sessionObj instanceof StreamSession session)) return;
+        EntityState state = session.state;
+        synchronized (state.lock) {
+            if (session.ended) return;
+            session.ended = true;
+            state.openStreams = Math.max(0, state.openStreams - 1);
+
+            VoicechatServerApi api = IronholdVoicechatPlugin.getApi();
+            if (api == null) return;
+            if (session.carry.length > 0) {
+                byte[] padded = new byte[FRAME_INPUT_BYTES];
+                System.arraycopy(session.carry, 0, padded, 0, session.carry.length);
+                session.carry = new byte[0];
+                if (ensureChannelLocked(api, session.entity, state)) {
+                    enqueueFramesLocked(state, padded, FRAME_INPUT_BYTES);
+                }
+            }
+            maybeStartPlayerLocked(api, session.entity, state);
+        }
+    }
+
+    /**
+     * Caller must hold {@code state.lock}. Converts {@code usable} bytes of
+     * 24kHz PCM (a multiple of {@link #FRAME_INPUT_BYTES}) into 48kHz frames
+     * on the queue.
+     */
+    private static void enqueueFramesLocked(EntityState state, byte[] pcm, int usable) {
+        for (int off = 0; off < usable; off += FRAME_INPUT_BYTES) {
+            byte[] slice = new byte[FRAME_INPUT_BYTES];
+            System.arraycopy(pcm, off, slice, 0, FRAME_INPUT_BYTES);
+            state.queue.addLast(upsample2x(bytesToShortsLE(slice)));
+        }
+    }
+
+    /**
+     * Caller must hold {@code state.lock}. Starts a player once enough audio is
+     * buffered — or immediately if no stream is still open (nothing more is
+     * coming, so waiting would only add latency).
+     */
+    private static void maybeStartPlayerLocked(VoicechatServerApi api, Entity mcEntity, EntityState state) {
+        if (state.playing || state.queue.isEmpty()) return;
+        if (state.openStreams > 0 && state.queue.size() < MIN_START_FRAMES) return;
+        startPlayer(api, mcEntity, state);
     }
 
     /**

@@ -8,8 +8,8 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import kingdom.smp.rpg.PlayerKingdomRpgData;
@@ -275,9 +275,7 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
     // First-meeting line — static so it always lands the same and the kit-reveal
     // moment is consistent.
     private static final String FIRST_DIALOGUE =
-        "Stand easy, traveler. I am Warden Halric, keeper of this gate. " +
-        "The lands beyond are contested, and the Kingdom needs every able hand. " +
-        "I've had your kit prepared — take it. The road is yours from here.";
+        "Stand easy, traveler — your kit is ready; take it.";
 
     /**
      * Return-visit openers. Each is a {@link String#format} template with a single
@@ -485,7 +483,7 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
         UUID expectedPartner = partnerId;
         MinecraftServer server = level().getServer();
 
-        MicGate.muteFor(expectedPartner, 4_000L);
+        MicGate.muteFor(expectedPartner, 2_000L);
 
         PacketDistributor.sendToPlayer(player,
             new UpdateWardenScreenPayload(getId(),
@@ -640,16 +638,10 @@ public class WardenHalricEntity extends PathfinderMob implements NpcChatPartner 
             && NpcMuteRegistry.get(sl).isMuted(partnerPlayer.getUUID(), tag())) {
             return; // muted — text only, no voice
         }
-        UUID partner = partnerId;
         String spoken = line.replaceAll("(?i)\\bHalric\\b", "Hal-rik");
-        ElevenLabsClient.speak(spoken, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS, pcm -> {
-            if (pcm == null) return;
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        // Streamed: playback starts on the first ElevenLabs chunk; the helper
+        // keeps the partner's mic gated for the audio duration + echo grace.
+        NpcSpeech.speak(this, partnerId, spoken, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS);
     }
 
     /** Strip stage directions/markdown like Kanga does — small models slip them in. */

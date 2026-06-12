@@ -6,15 +6,9 @@
     "CCC"
   ],
   "key": {
-    "C": {
-      "item": "minecraft:crying_obsidian"
-    },
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "T": {
-      "item": "minecraft:totem_of_undying"
-    }
+    "C": "minecraft:crying_obsidian",
+    "E": "minecraft:ender_eye",
+    "T": "minecraft:totem_of_undying"
   },
   "result": {
     "id": "ironhold:ender_shrine",

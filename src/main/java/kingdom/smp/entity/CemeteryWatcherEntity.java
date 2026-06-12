@@ -8,8 +8,8 @@ import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
 import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import net.minecraft.network.chat.Component;
@@ -116,9 +116,7 @@ public class CemeteryWatcherEntity extends PathfinderMob implements NpcChatPartn
         """ + "\n\n" + IronholdLore.CONTENT;
     /** Static opener — players hear the same greeting the first time they speak with her. */
     private static final String FIRST_DIALOGUE =
-        "Steady, wanderer. You come to quiet ground, and quiet is what you'll find. " +
-        "I am Vesper; I watch over those who rest here. " +
-        "Speak if you must, or simply stand a while.";
+        "Steady, wanderer — welcome to quiet ground.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Welcome back, wanderer.",
@@ -271,7 +269,7 @@ public class CemeteryWatcherEntity extends PathfinderMob implements NpcChatPartn
         List<OpenRouterClient.Message> snapshot = List.copyOf(history);
         UUID expectedPartner = partnerId;
         MinecraftServer server = level().getServer();
-        MicGate.muteFor(expectedPartner, 4_000L);
+        MicGate.muteFor(expectedPartner, 2_000L);
 
         PacketDistributor.sendToPlayer(player,
             new UpdateWardenScreenPayload(getId(),
@@ -315,16 +313,10 @@ public class CemeteryWatcherEntity extends PathfinderMob implements NpcChatPartn
             && NpcMuteRegistry.get(sl).isMuted(partnerPlayer.getUUID(), tag())) {
             return;
         }
-        UUID partner = partnerId;
         String spoken = line.replaceAll("(?i)\\bVesper\\b", "Ves-purr");
-        ElevenLabsClient.speak(spoken, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS, pcm -> {
-            if (pcm == null) return;
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        // Streamed: playback starts on the first ElevenLabs chunk; the helper
+        // keeps the partner's mic gated for the audio duration + echo grace.
+        NpcSpeech.speak(this, partnerId, spoken, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS);
     }
 
     private static String sanitizeForSpeech(String s) {

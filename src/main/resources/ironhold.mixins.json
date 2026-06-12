@@ -60,7 +60,7 @@
     "CameraInvoker",
     "GameRendererMirrorHandMixin",
     "GameRendererPortalRendererMixin",
-    "MirrorTerrainCullMixin",
+    "LevelRendererAccessor",
     "ViewAreaInvoker",
     "PlayerInfoSkinMixin",
     "CompassEbonwoodMixin",

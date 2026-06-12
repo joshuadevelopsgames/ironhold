@@ -402,6 +402,58 @@ public final class IronholdGameEvents {
         }
     }
 
+    /** Statue entity type → the statue block that replaced it. */
+    private static net.minecraft.world.level.block.Block statueBlockFor(net.minecraft.world.entity.EntityType<?> type) {
+        if (type == ModEntities.KANGARUDE_STATUE.get())  return ModBlocks.KANGARUDE_STATUE_BLOCK.get();
+        if (type == ModEntities.HAALINA_STATUE.get())    return ModBlocks.HAALINA_STATUE_BLOCK.get();
+        if (type == ModEntities.FACELACES_STATUE.get())  return ModBlocks.FACELACES_STATUE_BLOCK.get();
+        if (type == ModEntities.RED_RAICHU_STATUE.get()) return ModBlocks.RED_RAICHU_STATUE_BLOCK.get();
+        if (type == ModEntities.TWOHRD_STATUE.get())     return ModBlocks.TWOHRD_STATUE_BLOCK.get();
+        if (type == ModEntities.ARCATHEONE_STATUE.get()) return ModBlocks.ARCATHEONE_STATUE_BLOCK.get();
+        if (type == ModEntities.CHEAKIE_STATUE.get())    return ModBlocks.CHEAKIE_STATUE_BLOCK.get();
+        return null;
+    }
+
+    /**
+     * Statues used to be frozen entities; they are blocks now. Convert any
+     * statue entity that tries to enter a server level into the matching
+     * {@link kingdom.smp.block.StatueBlock} and keep the entity out of the
+     * world. Legacy statues loaded from chunk data keep their snapped yaw
+     * (rounded to the nearest horizontal facing); freshly spawned ones (legacy
+     * spawn eggs, {@code /summon}) face the nearest player, like the old
+     * entity's grid-snap tick did.
+     *
+     * <p>If the statue's cell is somehow occupied by a non-replaceable block,
+     * we leave the entity alone rather than destroy either — better a stray
+     * legacy entity than a silently deleted memorial.
+     */
+    @SubscribeEvent
+    public static void onStatueJoin(EntityJoinLevelEvent event) {
+        if (!(event.getEntity() instanceof kingdom.smp.entity.StoneStatueEntity statue)) return;
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+        net.minecraft.world.level.block.Block block = statueBlockFor(statue.getType());
+        if (block == null) return;
+
+        net.minecraft.core.BlockPos pos = net.minecraft.core.BlockPos.containing(
+            statue.getX(), statue.getY() + 0.01, statue.getZ());
+        if (!level.getBlockState(pos).canBeReplaced()) return;
+
+        float yaw = statue.getYRot();
+        if (!event.loadedFromDisk()) {
+            net.minecraft.world.entity.player.Player placer = level.getNearestPlayer(statue, 16.0);
+            if (placer != null) {
+                yaw = (float) (net.minecraft.util.Mth.atan2(
+                    placer.getZ() - statue.getZ(), placer.getX() - statue.getX())
+                    * net.minecraft.util.Mth.RAD_TO_DEG) - 90.0F;
+            }
+        }
+
+        level.setBlock(pos, block.defaultBlockState()
+                .setValue(kingdom.smp.block.StatueBlock.FACING, net.minecraft.core.Direction.fromYRot(yaw)),
+            net.minecraft.world.level.block.Block.UPDATE_ALL);
+        event.setCanceled(true);
+    }
+
     /**
      * Watches for player-killed Mimics. If the killer has Halric's
      * "Quiet the Roads" quest in {@code OFFERED} state, mark it

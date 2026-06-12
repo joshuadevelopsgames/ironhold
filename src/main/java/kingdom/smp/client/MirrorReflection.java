@@ -9,14 +9,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import kingdom.smp.Ironhold;
 import kingdom.smp.entity.MirrorEntity;
 import kingdom.smp.mixin.CameraInvoker;
+import kingdom.smp.mixin.LevelRendererAccessor;
+import kingdom.smp.mixin.ViewAreaInvoker;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ViewArea;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -38,15 +46,13 @@ public final class MirrorReflection {
     private static final int MAX_DIM = 1024;
 
     /**
-     * Terrain cap for the reflection pass: while capturing, {@code MirrorTerrainCullMixin} draws every
-     * loaded section the mirror's view cone touches within this many chunks (sections) of the player —
-     * sourced straight from {@code ViewArea}, with no occlusion BFS, so no holes and no stale-graph snap.
-     * Bounds the cost and matches "show the N chunks behind you". 3–5 is the useful range. REVERTABLE: a
-     * large value widens the box back toward full render distance.
+     * Terrain cap for the reflection pass: each capture draws every loaded section the mirror's view cone
+     * touches within this many chunks (sections) of the player — sourced straight from {@code ViewArea},
+     * with no occlusion BFS, so no holes and no stale-graph snap. Bounds the cost and matches "show the
+     * N chunks behind you". 3–5 is the useful range. REVERTABLE: a large value widens the box back toward
+     * full render distance.
      */
     private static final int CAP_CHUNKS = 5;
-    /** The player's real eye for this capture; the cull box is centred on this section. */
-    private static Vec3 captureCenter = Vec3.ZERO;
 
     /**
      * Temporal staggering: when several mirrors are live, refresh just one per frame (round-robin)
@@ -89,16 +95,6 @@ public final class MirrorReflection {
 
     public static boolean isCapturing() {
         return capturing;
-    }
-
-    /** Center of the reflection terrain cap (the player's real eye for the active capture). */
-    public static Vec3 captureCenter() {
-        return captureCenter;
-    }
-
-    /** Half-extent of the reflection cull box, in chunks/sections. */
-    public static int capChunks() {
-        return CAP_CHUNKS;
     }
 
     /**
@@ -224,19 +220,87 @@ public final class MirrorReflection {
             "slot=%d near=%.2f far=%.1f l=%.2f r=%.2f b=%.2f t=%.2f eye=(%.1f,%.1f,%.1f)",
             slot.index, near, far, l, r, b, t, reflectedEye.x, reflectedEye.y, reflectedEye.z);
 
+        // Swap the level renderer's visible-section lists for the capture. Vanilla's cull only runs once
+        // per frame for the main camera (LevelRenderer.update), so by this point visibleSections holds the
+        // main view's frustum-culled set — everything in front of the player plus a ~1-chunk bubble around
+        // the camera, i.e. almost nothing the mirror should show. Replace it with the boxed set, rebuild
+        // the chunk-draw snapshot from it, render, then restore so the next main frame (which only re-culls
+        // when the occlusion graph or camera changes) never sees the mirror's set.
+        LevelRendererAccessor lr = (LevelRendererAccessor) mc.levelRenderer;
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> visible = lr.ironhold$getVisibleSections();
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> nearby = lr.ironhold$getNearbyVisibleSections();
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> savedVisible = new ObjectArrayList<>(visible);
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> savedNearby = new ObjectArrayList<>(nearby);
+
         activeTarget = slot.target;
-        captureCenter = savedPos; // measure the terrain cap from the real eye, not the reflected one
         capturing = true;
         try {
+            // Cull box centred on the player's real eye, kept to sections the mirror's cone touches.
+            fillReflectionSections(lr, cameraState, savedPos, reflectedEye, visible, nearby);
+            // Sections behind the player may have never been compiled — vanilla only schedules mesh
+            // builds for main-camera-visible sections — so schedule the boxed set's dirty ones now.
+            // They fill in asynchronously over the next few frames.
+            lr.ironhold$compileSections(cam);
+            // Re-snapshot the chunk draws: the snapshot taken in extract() above used the main view's set.
+            mc.gameRenderer.getGameRenderState().levelRenderState.chunkSectionsToRender =
+                mc.levelRenderer.prepareChunkRenders(cameraState.viewRotationMatrix);
             mc.gameRenderer.renderLevel(delta);
         } finally {
             capturing = false;
             activeTarget = null;
+            visible.clear();
+            visible.addAll(savedVisible);
+            nearby.clear();
+            nearby.addAll(savedNearby);
         }
 
         camMover.ironhold$setPosition(savedPos);
         camMover.ironhold$setRotation(savedYRot, savedXRot);
         camMover.ironhold$setDetached(savedDetached);
+    }
+
+    /**
+     * Replace the visible-section lists with every loaded section inside the reflection cull box that the
+     * mirror's view cone (the off-axis projection prepared at the reflected eye) touches. Sourced straight
+     * from {@link ViewArea} — always current, no occlusion BFS — so nothing in the box is dropped: seeded
+     * from the reflected eye (embedded behind the mirror's wall) vanilla's BFS would over-prune, and the
+     * box keeps the section count small without it.
+     */
+    private static void fillReflectionSections(
+        LevelRendererAccessor lr,
+        CameraRenderState cameraState,
+        Vec3 center,
+        Vec3 reflectedEye,
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> visible,
+        ObjectArrayList<SectionRenderDispatcher.RenderSection> nearby
+    ) {
+        ViewArea area = lr.ironhold$getViewArea();
+        if (area == null) {
+            return; // no level yet: leave the main view's lists in place
+        }
+        visible.clear();
+        nearby.clear();
+        Frustum cone = new Frustum(cameraState.viewRotationMatrix, cameraState.projectionMatrix);
+        cone.prepare(reflectedEye.x, reflectedEye.y, reflectedEye.z);
+        int cx = SectionPos.posToSectionCoord(center.x);
+        int cy = SectionPos.posToSectionCoord(center.y);
+        int cz = SectionPos.posToSectionCoord(center.z);
+        ViewAreaInvoker sections = (ViewAreaInvoker) area;
+        for (int sx = cx - CAP_CHUNKS; sx <= cx + CAP_CHUNKS; sx++) {
+            for (int sy = cy - CAP_CHUNKS; sy <= cy + CAP_CHUNKS; sy++) {
+                for (int sz = cz - CAP_CHUNKS; sz <= cz + CAP_CHUNKS; sz++) {
+                    SectionRenderDispatcher.RenderSection rs =
+                        sections.ironhold$getRenderSection(SectionPos.asLong(sx, sy, sz));
+                    if (rs == null || !cone.isVisible(rs.getBoundingBox())) {
+                        continue;
+                    }
+                    visible.add(rs);
+                    if (Math.abs(sx - cx) <= 1 && Math.abs(sy - cy) <= 1 && Math.abs(sz - cz) <= 1) {
+                        nearby.add(rs);
+                    }
+                }
+            }
+        }
     }
 
     /**

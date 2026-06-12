@@ -107,9 +107,7 @@ public class BramBardEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Oh — you walked in mid-verse. I'll forgive you. I'm Bram; the " +
-        "lute is mine, the stage is Mira's. Tell me you've got a story, " +
-        "traveler — the ballads have been starving for new bones.";
+        "Ah — welcome, welcome, traveler!";
 
     private static final String[] RETURN_DIALOGUES = {
         "Ah, %s!",

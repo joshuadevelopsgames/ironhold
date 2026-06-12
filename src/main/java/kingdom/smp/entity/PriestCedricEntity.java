@@ -79,9 +79,7 @@ public class PriestCedricEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Peace, child. You've come a long way to stand in a quiet room. " +
-        "I am Brother Cedric, of the Chapel of the Old Light. No tithe " +
-        "at this door — only a seat, and a candle if you need one.";
+        "Peace, child — be welcome.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Welcome back, %s.",

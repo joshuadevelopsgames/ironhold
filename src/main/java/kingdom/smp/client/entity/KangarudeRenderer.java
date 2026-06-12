@@ -74,8 +74,8 @@ public class KangarudeRenderer
         poseStack.translate(0.0, 0.3, 0.0);
         collector.submitNameTag(
             poseStack, Vec3.ZERO,
-            0x80000000,    // semi-transparent black bg
-            text, true,
+            0,             // text Y offset (NOT a bg colour — bg comes from options)
+            text, false,   // depth-tested: don't show through walls
             0xF000F0,      // full brightness
             64.0 * 64.0,   // render distance
             camera);

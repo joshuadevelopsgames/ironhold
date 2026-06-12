@@ -77,8 +77,7 @@ public class BlacksmithTobiasEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Door's open, but mind the sparks. I'm Tobias. The forge is mine, " +
-        "the prices are fair, and I don't haggle. What do you want?";
+        "Welcome to the forge — mind the sparks.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Mm. %s.",

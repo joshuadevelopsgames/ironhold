@@ -92,9 +92,7 @@ public class LoremasterEilanEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Ah — a reader. Mind the third shelf, the binding's gone soft. " +
-        "I'm Eilan, the village scribe. Whatever the rest of the Hollow " +
-        "says is 'beyond their watch' — most of that, I can find for you.";
+        "Ah — welcome, reader.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Welcome back, %s.",

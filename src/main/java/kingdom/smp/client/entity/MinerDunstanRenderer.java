@@ -1,60 +1,46 @@
 package kingdom.smp.client.entity;
 
+import kingdom.smp.Ironhold;
 import kingdom.smp.entity.MinerDunstanEntity;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.npc.VillagerModel;
-import net.minecraft.client.renderer.entity.AgeableMobRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.layers.VillagerProfessionLayer;
-import net.minecraft.client.renderer.entity.state.VillagerRenderState;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.ArmedEntityRenderState;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.npc.villager.VillagerData;
-import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerType;
 
 /**
- * Renderer for Foreman Dunstan the Miner — vanilla villager rig with the
- * MASON profession overlay (stone-worker apron + gloves read as a pit
- * foreman better than any other vanilla profession).
+ * Renderer for Foreman Dunstan's dedicated lamp-helmet miner model.
  */
 public class MinerDunstanRenderer
-    extends AgeableMobRenderer<MinerDunstanEntity, VillagerRenderState, VillagerModel> {
+    extends MobRenderer<MinerDunstanEntity, MinerDunstanRenderState, MinerDunstanModel> {
 
-    private static final Identifier VILLAGER_BASE_TEXTURE =
-        Identifier.withDefaultNamespace("textures/entity/villager/villager.png");
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
+        Ironhold.MODID, "textures/entity/miner_dunstan.png");
 
     public MinerDunstanRenderer(EntityRendererProvider.Context ctx) {
-        super(ctx,
-            new VillagerModel(ctx.bakeLayer(ModelLayers.VILLAGER)),
-            new VillagerModel(ctx.bakeLayer(ModelLayers.VILLAGER)),
-            0.5F);
-        this.addLayer(new VillagerProfessionLayer<>(
-            this, ctx.getResourceManager(), "villager",
-            new VillagerModel(ctx.bakeLayer(ModelLayers.VILLAGER)),
-            new VillagerModel(ctx.bakeLayer(ModelLayers.VILLAGER))));
+        super(ctx, new MinerDunstanModel(ctx.bakeLayer(MinerDunstanModel.LAYER_LOCATION)), 0.55F);
+        this.addLayer(new MinerDunstanGlowLayer(this));
+        this.addLayer(new ItemInHandLayer<>(this));
     }
 
     @Override
-    public Identifier getTextureLocation(VillagerRenderState state) {
-        return VILLAGER_BASE_TEXTURE;
+    public Identifier getTextureLocation(MinerDunstanRenderState state) {
+        return TEXTURE;
     }
 
     @Override
-    public VillagerRenderState createRenderState() {
-        return new VillagerRenderState();
+    public MinerDunstanRenderState createRenderState() {
+        return new MinerDunstanRenderState();
     }
 
     @Override
-    public void extractRenderState(MinerDunstanEntity entity, VillagerRenderState state, float partialTick) {
+    public void extractRenderState(
+        MinerDunstanEntity entity,
+        MinerDunstanRenderState state,
+        float partialTick
+    ) {
         super.extractRenderState(entity, state, partialTick);
-
-        var registryAccess = entity.registryAccess();
-        var typeRegistry = registryAccess.lookupOrThrow(Registries.VILLAGER_TYPE);
-        var profRegistry = registryAccess.lookupOrThrow(Registries.VILLAGER_PROFESSION);
-        state.villagerData = new VillagerData(
-            typeRegistry.getOrThrow(VillagerType.PLAINS),
-            profRegistry.getOrThrow(VillagerProfession.MASON),
-            1);
+        ArmedEntityRenderState.extractArmedEntityRenderState(
+            entity, state, this.itemModelResolver, partialTick);
     }
 }

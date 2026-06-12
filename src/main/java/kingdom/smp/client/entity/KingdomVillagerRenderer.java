@@ -92,8 +92,8 @@ public class KingdomVillagerRenderer
             poseStack.translate(0.0, 0.3, 0.0);
             collector.submitNameTag(
                 poseStack, Vec3.ZERO,
-                0x80000000,   // semi-transparent black bg
-                text, true,
+                0,            // text Y offset (NOT a bg colour — bg comes from options)
+                text, false,  // depth-tested: don't show through walls
                 0xF000F0,     // full brightness
                 64.0 * 64.0,  // render distance
                 camera);
@@ -111,8 +111,8 @@ public class KingdomVillagerRenderer
             poseStack.translate(0.0, 0.3, 0.0);
             collector.submitNameTag(
                 poseStack, Vec3.ZERO,
-                0x40000000,   // lighter bg for emotes
-                emoteText, true,
+                0,            // text Y offset (NOT a bg colour — bg comes from options)
+                emoteText, false,  // depth-tested: don't show through walls
                 0xF000F0,
                 48.0 * 48.0,
                 camera);

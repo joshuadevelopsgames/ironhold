@@ -6,6 +6,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8643", "--bind", "127.0.0.1", "--directory", "tools/isc_viewer"],
       "port": 8643
+    },
+    {
+      "name": "ironhold-website",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8644", "--bind", "127.0.0.1", "--directory", "website"],
+      "port": 8644
     }
   ]
 }

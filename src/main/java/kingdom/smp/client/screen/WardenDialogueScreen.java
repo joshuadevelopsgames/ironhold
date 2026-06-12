@@ -420,12 +420,17 @@ public class WardenDialogueScreen extends Screen {
                 // so a scale-50 render leaves only the top of their head in
                 // the visible scissor area. Bump the scale + tighten the
                 // render rect so the child's head ends up at roughly the
-                // same screen position as an adult's.
+                // same screen position as an adult's. The +28 (vs the +16 the
+                // villager screen uses) sits the head lower in the frame, and
+                // the scissor runs to 1px above the portrait's bottom edge —
+                // the frame fills with no black strip, but the body stops
+                // short of the 1px gold outline ring (which is drawn before
+                // the entity and would otherwise be painted over).
                 int scale = living.isBaby() ? 85 : 50;
                 int rectBottom = living.isBaby()
-                    ? py + PORTRAIT_W + (PORTRAIT_W / 2) + 16
-                    : py + PORTRAIT_W * 2 + 16;
-                gfx.enableScissor(px, py, px + PORTRAIT_W, py + PORTRAIT_W - 8);
+                    ? py + PORTRAIT_W + (PORTRAIT_W / 2) + 28
+                    : py + PORTRAIT_W * 2 + 28;
+                gfx.enableScissor(px, py, px + PORTRAIT_W, py + PORTRAIT_W - 1);
                 InventoryScreen.extractEntityInInventoryFollowsMouse(
                     gfx, px, py, px + PORTRAIT_W, rectBottom,
                     scale, 0.0F, (float) mouseX, (float) mouseY, living);

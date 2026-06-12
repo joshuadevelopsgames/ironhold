@@ -19,16 +19,20 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 /**
- * Async speech-to-text via OpenAI's Whisper transcription API.
+ * Async speech-to-text via OpenAI's transcription API (Whisper or the
+ * gpt-4o-*-transcribe family — the endpoint and multipart shape are identical).
  *
- * <p>Pipeline: PCM-S16LE @ 48 kHz mono → wrap in WAV → multipart POST to
- * /v1/audio/transcriptions → reply to {@code onResult} with the transcribed
- * text (or {@code null} on failure).
+ * <p>Pipeline: PCM-S16LE @ 48 kHz mono → downsample to 16 kHz (the model's
+ * native rate — uploading 48 kHz just triples upload time for zero accuracy)
+ * → wrap in WAV → multipart POST to /v1/audio/transcriptions → reply to
+ * {@code onResult} with the transcribed text (or {@code null} on failure).
  */
 public final class OpenAiWhisperClient {
 
     private static final String ENDPOINT = "https://api.openai.com/v1/audio/transcriptions";
     private static final int SAMPLE_RATE_HZ = 48_000;
+    /** Upload rate — speech models resample to 16 kHz internally anyway. */
+    private static final int UPLOAD_RATE_HZ = 16_000;
 
     private static final Executor EXECUTOR = Executors.newCachedThreadPool(r -> {
         Thread t = new Thread(r, "Kangarude-STT");
@@ -76,7 +80,7 @@ public final class OpenAiWhisperClient {
             return;
         }
 
-        byte[] wav = encodeWav(pcmS16le48kHz);
+        byte[] wav = encodeWav(downsampleTo16k(pcmS16le48kHz));
         String boundary = "----IronholdBoundary" + UUID.randomUUID();
         byte[] body = buildMultipart(boundary, wav, Config.OPENAI_WHISPER_MODEL.get());
 
@@ -112,7 +116,47 @@ public final class OpenAiWhisperClient {
             });
     }
 
+    // ── Connection pre-warming ───────────────────────────────────────────────
+
+    private static volatile long lastPrewarmMillis;
+
+    /**
+     * Fire a tiny request through the shared {@link HttpClient} so the TLS
+     * handshake is already done when the player's utterance is flushed.
+     * Throttled to once a minute; result is ignored.
+     */
+    public static void prewarm() {
+        String key = apiKey();
+        if (key.isEmpty()) return;
+        long now = System.currentTimeMillis();
+        if (now - lastPrewarmMillis < 60_000L) return;
+        lastPrewarmMillis = now;
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.openai.com/v1/models"))
+            .header("Authorization", "Bearer " + key)
+            .timeout(Duration.ofSeconds(10))
+            .GET()
+            .build();
+        HTTP.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+            .exceptionally(ex -> null);
+    }
+
     // ── WAV + multipart helpers ──────────────────────────────────────────────
+
+    /**
+     * 48 kHz → 16 kHz: average each group of three samples. The averaging is a
+     * crude low-pass that's plenty for speech, and the 3× smaller body is the
+     * difference between ~2.9 MB and ~1 MB for a 30 s utterance — real seconds
+     * saved on a home connection's upstream.
+     */
+    private static short[] downsampleTo16k(short[] in) {
+        short[] out = new short[in.length / 3];
+        for (int i = 0; i < out.length; i++) {
+            int base = i * 3;
+            out[i] = (short) ((in[base] + in[base + 1] + in[base + 2]) / 3);
+        }
+        return out;
+    }
 
     private static byte[] encodeWav(short[] samples) {
         int numBytes = samples.length * 2;
@@ -124,8 +168,8 @@ public final class OpenAiWhisperClient {
         buf.putInt(16);                // fmt chunk size
         buf.putShort((short) 1);       // PCM
         buf.putShort((short) 1);       // mono
-        buf.putInt(SAMPLE_RATE_HZ);
-        buf.putInt(SAMPLE_RATE_HZ * 2); // byte rate (16-bit mono)
+        buf.putInt(UPLOAD_RATE_HZ);
+        buf.putInt(UPLOAD_RATE_HZ * 2); // byte rate (16-bit mono)
         buf.putShort((short) 2);       // block align
         buf.putShort((short) 16);      // bits per sample
         buf.put((byte) 'd').put((byte) 'a').put((byte) 't').put((byte) 'a');

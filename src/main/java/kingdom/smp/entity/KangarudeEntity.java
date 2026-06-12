@@ -10,8 +10,8 @@ import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
 import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
 import kingdom.smp.net.VillagerDialoguePayload;
@@ -558,8 +558,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
 
     /** Short cheeky openers — picked on right-click so Kanga speaks instantly. */
     private static final String FIRST_DIALOGUE =
-        "Well well — look at you, walking around like you own the place. " +
-        "I'm Kangarude. Most call me Kanga. Pull up a stone.";
+        "Well well — hello there.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Oh hi, %s.",
@@ -694,7 +693,7 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         // with the actual playback duration in speakLine; merge() in MicGate
         // uses Math::max so the windows extend rather than shorten.
         if (expectedPartner != null) {
-            MicGate.muteFor(expectedPartner, 4_000L);
+            MicGate.muteFor(expectedPartner, 2_000L);
         }
 
         // Echo what the player said into their dialogue screen so they get
@@ -1667,20 +1666,11 @@ public class KangarudeEntity extends PathfinderMob implements NpcChatPartner {
         // of how the LLM wrote it. Word-boundary regex avoids touching the version
         // already hyphenated. Case-insensitive, preserves the original casing.
         line = line.replaceAll("(?i)\\bKangarude\\b", "Kanga-rude");
-        ElevenLabsClient.speak(line, pcm -> {
-            if (pcm == null) return;
-            // Suppress this partner's mic for the audio's duration plus a
-            // generous grace period so the player's open mic can't echo
-            // Kangarude's own voice back into Whisper. 750ms wasn't enough —
-            // SVC playback is queued, speakers have decode latency, and the
-            // acoustic path back to the mic adds more. 2s covers all of it.
-            // PCM-S16LE @ 24 kHz mono = 48 bytes/ms.
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        // Streamed: playback starts on the first ElevenLabs chunk. NpcSpeech
+        // keeps the partner's mic gated for the audio duration + 2s echo grace
+        // (same window the old buffered path used). Null voice/model fall back
+        // to the global Kangarude voice config.
+        NpcSpeech.speak(this, partner, line, null, null, ElevenLabsClient.VoiceSettings.DEFAULT);
     }
 
     // ── Static lookup for chat-event routing ─────────────────────────────────

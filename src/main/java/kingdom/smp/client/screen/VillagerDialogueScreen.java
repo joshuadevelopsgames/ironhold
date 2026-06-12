@@ -39,6 +39,9 @@ public class VillagerDialogueScreen extends Screen {
     private final float mood;
     private final int entityId;
 
+    /** World entity id of the villager this dialogue is with (see NpcNameTagHandler). */
+    public int entityId() { return entityId; }
+
     // ── Cached layout (computed in init) ─────────────────────────────────────
     private int boxX, boxY, boxW, boxH;
     private int textX, textY, textW;
@@ -129,11 +132,13 @@ public class VillagerDialogueScreen extends Screen {
         var level = Minecraft.getInstance().level;
         var entity = level != null ? level.getEntity(entityId) : null;
         if (entity instanceof LivingEntity living) {
-            // Scissor to portrait area, then extend the virtual bottom so the entity
-            // center drops below the frame — only the head/shoulders stay in view
+            // Scissor to portrait area (minus the mood-bar strip at the bottom),
+            // then extend the virtual bottom so the entity center drops below the
+            // frame — only the head/shoulders stay in view. +28 matches the
+            // lowered head framing of the voiced-NPC dialogue screen.
             gfx.enableScissor(px, py, px + PORTRAIT_W, py + PORTRAIT_W - 8);
             InventoryScreen.extractEntityInInventoryFollowsMouse(
-                gfx, px, py, px + PORTRAIT_W, py + PORTRAIT_W * 2 + 16,
+                gfx, px, py, px + PORTRAIT_W, py + PORTRAIT_W * 2 + 28,
                 50, 0.0F, (float) mouseX, (float) mouseY, living);
             gfx.disableScissor();
         } else {

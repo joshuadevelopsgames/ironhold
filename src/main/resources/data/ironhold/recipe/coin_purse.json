@@ -1,15 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:leather"
-    },
-    {
-      "item": "minecraft:string"
-    },
-    {
-      "item": "minecraft:string"
-    }
+    "minecraft:leather",
+    "minecraft:string",
+    "minecraft:string"
   ],
   "result": {
     "id": "ironhold:coin_purse",

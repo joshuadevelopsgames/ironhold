@@ -90,9 +90,7 @@ public class SisterWrenEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Oh — hello, friend. Mind the lavender, it's just starting. I'm Wren; " +
-        "I keep this garden. If you sit on that low wall, the bees won't bother " +
-        "you. What brings you out among the green things today?";
+        "Oh — hello, friend!";
 
     private static final String[] RETURN_DIALOGUES = {
         "Hello, %s.",

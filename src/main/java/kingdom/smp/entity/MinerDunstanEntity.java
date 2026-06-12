@@ -2,8 +2,12 @@ package kingdom.smp.entity;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import kingdom.smp.ai.ElevenLabsClient;
@@ -18,8 +22,8 @@ import kingdom.smp.ai.ElevenLabsClient;
  */
 public class MinerDunstanEntity extends AbstractVoicedNpcEntity {
 
-    /** TODO: replace with assigned ElevenLabs voice id (gravelly older male, slow). */
-    private static final String VOICE_ID = "REPLACE_ME_DUNSTAN";
+    /** ElevenLabs voice id (gravelly older male, slow). */
+    private static final String VOICE_ID = "Vs5CmVCVJwW4odQS2pVf";
 
     private static final String SYSTEM_PROMPT = """
         You are Foreman Dunstan, master miner and pit-foreman of the Old Shafts
@@ -81,10 +85,7 @@ public class MinerDunstanEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Hold up, greenhand. Nobody walks past my shaft without a word. " +
-        "Foreman Dunstan — forty years in the dark, and I know every seam this " +
-        "kingdom sits on. Questions about the trade, ask them here. And keep " +
-        "your torches lit.";
+        "Aye — welcome to the diggings, greenhand.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Back again, %s.",
@@ -94,10 +95,17 @@ public class MinerDunstanEntity extends AbstractVoicedNpcEntity {
 
     public MinerDunstanEntity(EntityType<? extends PathfinderMob> type, Level level) {
         super(type, level);
+        this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_PICKAXE));
+        this.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return voicedNpcAttributes();
+    }
+
+    @Override
+    public HumanoidArm getMainArm() {
+        return HumanoidArm.RIGHT;
     }
 
     @Override protected String voiceId() { return VOICE_ID; }

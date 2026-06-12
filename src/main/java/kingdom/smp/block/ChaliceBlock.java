@@ -24,7 +24,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * A placeable golden goblet you can pour any liquid into. Right-click with a
  * water / lava / milk / powder-snow bucket, a honey bottle, or any potion to fill
  * it; the {@code ChaliceRenderer} then draws that liquid's surface inside the cup,
- * tinted to match (lava even glows). Right-click with an empty hand to tip it out.
+ * tinted to match (lava even glows). Right-click to drink it (each liquid has a
+ * fitting effect — see {@link ChaliceLiquids}); sneak + right-click tips it out.
  *
  * <p>Filling hands back the appropriate empty container, exactly as the liquid's
  * normal use would. Breaking the chalice just drops the (empty) goblet — the
@@ -64,8 +65,11 @@ public class ChaliceBlock extends Block implements EntityBlock {
         }
         ChaliceLiquids.Fill fill = ChaliceLiquids.fromHeld(stack);
         if (fill == null) {
-            // Not a liquid container — let the item's own behaviour run (or nothing).
-            return InteractionResult.PASS;
+            // Not a liquid container — fall through to useWithoutItem (drink /
+            // sneak-tip-out). PASS would skip it: since 1.21.2 the engine only
+            // calls useWithoutItem when useItemOn returns TRY_WITH_EMPTY_HAND,
+            // so with PASS the chalice could never be drunk at all.
+            return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         // Already holds this exact liquid (potions may differ in colour, so always re-pour those):
         // swallow the click so we don't dump the liquid into the world, but change nothing.

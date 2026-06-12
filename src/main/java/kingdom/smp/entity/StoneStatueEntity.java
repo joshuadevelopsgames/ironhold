@@ -4,9 +4,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
@@ -50,7 +52,9 @@ public class StoneStatueEntity extends PathfinderMob {
     /**
      * On the first server tick after spawn/placement, snap to the block grid:
      * centre on the block column (x/z to .5) and align vertically to the nearest
-     * block line, keeping the spawn facing. Covers both spawn-egg placement and
+     * block line. Also turn to face the nearest player — when placed via spawn
+     * egg that's whoever just used it, so a statue always greets its placer
+     * instead of spawning at a random yaw. Covers both spawn-egg placement and
      * {@code /summon}. {@code setOldPosAndRot} avoids a one-frame visual slide.
      */
     @Override
@@ -61,9 +65,16 @@ public class StoneStatueEntity extends PathfinderMob {
             double sx = Math.floor(this.getX()) + 0.5;
             double sz = Math.floor(this.getZ()) + 0.5;
             double sy = Math.round(this.getY());
-            this.snapTo(sx, sy, sz, this.getYRot(), this.getXRot());
-            this.setYBodyRot(this.getYRot());
-            this.setYHeadRot(this.getYRot());
+            float yaw = this.getYRot();
+            Player placer = this.level().getNearestPlayer(this, 16.0);
+            if (placer != null) {
+                double dx = placer.getX() - sx;
+                double dz = placer.getZ() - sz;
+                yaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
+            }
+            this.snapTo(sx, sy, sz, yaw, 0.0F);
+            this.setYBodyRot(yaw);
+            this.setYHeadRot(yaw);
             this.setOldPosAndRot();
             this.setDeltaMovement(Vec3.ZERO);
         }

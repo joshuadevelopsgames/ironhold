@@ -267,6 +267,20 @@ public final class ModItems {
             props -> new SpawnEggItem(props.spawnEgg(ModEntities.CAPTAIN_ROSELIND.get()).stacksTo(64)));
 
 
+    // ── Statue block items ────────────────────────────────────────────────────
+    // Statues are blocks now; these are the placeable items. The spawn eggs
+    // below them are LEGACY — kept registered so old inventories don't break,
+    // but removed from the creative tabs. A legacy egg still "works": it spawns
+    // the old statue entity, which IronholdGameEvents immediately converts into
+    // the matching statue block.
+    public static final DeferredItem<BlockItem> KANGARUDE_STATUE_ITEM  = ITEMS.registerSimpleBlockItem("kangarude_statue",  ModBlocks.KANGARUDE_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> HAALINA_STATUE_ITEM    = ITEMS.registerSimpleBlockItem("haalina_statue",    ModBlocks.HAALINA_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> FACELACES_STATUE_ITEM  = ITEMS.registerSimpleBlockItem("facelaces_statue",  ModBlocks.FACELACES_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> RED_RAICHU_STATUE_ITEM = ITEMS.registerSimpleBlockItem("red_raichu_statue", ModBlocks.RED_RAICHU_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> TWOHRD_STATUE_ITEM     = ITEMS.registerSimpleBlockItem("twohrd_statue",     ModBlocks.TWOHRD_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> ARCATHEONE_STATUE_ITEM = ITEMS.registerSimpleBlockItem("arcatheone_statue", ModBlocks.ARCATHEONE_STATUE_BLOCK);
+    public static final DeferredItem<BlockItem> CHEAKIE_STATUE_ITEM    = ITEMS.registerSimpleBlockItem("cheakie_statue",    ModBlocks.CHEAKIE_STATUE_BLOCK);
+
     public static final DeferredItem<Item> KANGARUDE_STATUE_SPAWN_EGG =
         ITEMS.registerItem(
             "kangarude_statue_spawn_egg",
@@ -653,6 +667,18 @@ public final class ModItems {
         kingdom.smp.item.MasqueradeItem::new,
         props -> props.stacksTo(1).rarity(net.minecraft.world.item.Rarity.EPIC));
 
+
+    /**
+     * Admin Stick — gamemaster-only moderation tool: right-click deletes the block or
+     * entity in the crosshair (even persistent ones), left-click deletes entities.
+     * Inert for anyone without gamemaster permission.
+     */
+    public static final DeferredItem<Item> ADMIN_STICK = ITEMS.registerItem(
+        "admin_stick",
+        kingdom.smp.item.AdminStickItem::new,
+        props -> props.stacksTo(1)
+            .rarity(net.minecraft.world.item.Rarity.EPIC)
+            .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true));
 
     /**
      * Wizard Stick — entry-level wand. Power scales with the wielder's wizard class
@@ -1373,13 +1399,13 @@ public final class ModItems {
                 output.accept(OLD_HESTA_SPAWN_EGG.get());
                 output.accept(OLD_BEREN_SPAWN_EGG.get());
                 output.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
-                output.accept(KANGARUDE_STATUE_SPAWN_EGG.get());
-                output.accept(HAALINA_STATUE_SPAWN_EGG.get());
-                output.accept(FACELACES_STATUE_SPAWN_EGG.get());
-                output.accept(RED_RAICHU_STATUE_SPAWN_EGG.get());
-                output.accept(TWOHRD_STATUE_SPAWN_EGG.get());
-                output.accept(ARCATHEONE_STATUE_SPAWN_EGG.get());
-                output.accept(CHEAKIE_STATUE_SPAWN_EGG.get());
+                output.accept(KANGARUDE_STATUE_ITEM.get());
+                output.accept(HAALINA_STATUE_ITEM.get());
+                output.accept(FACELACES_STATUE_ITEM.get());
+                output.accept(RED_RAICHU_STATUE_ITEM.get());
+                output.accept(TWOHRD_STATUE_ITEM.get());
+                output.accept(ARCATHEONE_STATUE_ITEM.get());
+                output.accept(CHEAKIE_STATUE_ITEM.get());
                 output.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
                 output.accept(SISTER_WREN_SPAWN_EGG.get());
                 output.accept(BRAM_BARD_SPAWN_EGG.get());
@@ -1462,6 +1488,7 @@ public final class ModItems {
                 output.accept(SOLUNA_STAFF.get());
                 output.accept(WIZARD_STAFF.get());
                 output.accept(WIZARD_STICK.get());
+                output.accept(ADMIN_STICK.get());
                 output.accept(HALRIC_STAFF.get());
                 output.accept(CLASS_STONE_ITEM.get());
                 output.accept(PITCHFORK.get());
@@ -1590,13 +1617,6 @@ public final class ModItems {
             event.accept(OLD_HESTA_SPAWN_EGG.get());
             event.accept(OLD_BEREN_SPAWN_EGG.get());
             event.accept(CAPTAIN_ROSELIND_SPAWN_EGG.get());
-            event.accept(KANGARUDE_STATUE_SPAWN_EGG.get());
-            event.accept(HAALINA_STATUE_SPAWN_EGG.get());
-            event.accept(FACELACES_STATUE_SPAWN_EGG.get());
-            event.accept(RED_RAICHU_STATUE_SPAWN_EGG.get());
-            event.accept(TWOHRD_STATUE_SPAWN_EGG.get());
-            event.accept(ARCATHEONE_STATUE_SPAWN_EGG.get());
-            event.accept(CHEAKIE_STATUE_SPAWN_EGG.get());
             event.accept(LOREMASTER_EILAN_SPAWN_EGG.get());
             event.accept(SISTER_WREN_SPAWN_EGG.get());
             event.accept(BRAM_BARD_SPAWN_EGG.get());
@@ -1632,6 +1652,7 @@ public final class ModItems {
             event.accept(SOLUNA_STAFF.get());
             event.accept(WIZARD_STAFF.get());
             event.accept(WIZARD_STICK.get());
+            event.accept(ADMIN_STICK.get());
             event.accept(HALRIC_STAFF.get());
             event.accept(PITCHFORK.get());
             event.accept(CLUB.get());

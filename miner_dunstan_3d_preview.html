@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foreman Dunstan - 3D Model Preview</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(24, 21, 18, 0.93);
+      --panel-2: rgba(39, 33, 27, 0.9);
+      --line: #5b4938;
+      --gold: #f0ba43;
+      --text: #eee7dc;
+      --muted: #a99d8d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 45% 38%, #3a332c 0%, #201d1a 42%, #0f0e0d 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    #app {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      width: 100%;
+      height: 100%;
+    }
+
+    #viewport {
+      position: relative;
+      min-width: 0;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #viewport.dragging {
+      cursor: grabbing;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      outline: none;
+    }
+
+    #panel {
+      z-index: 2;
+      padding: 22px;
+      overflow-y: auto;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: -18px 0 40px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--gold);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .subtitle {
+      margin: 3px 0 20px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section {
+      margin-top: 22px;
+    }
+
+    .section-title {
+      margin-bottom: 9px;
+      color: #d7c6b1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 7px 10px;
+      color: var(--text);
+      background: linear-gradient(#493c30, #332a23);
+      border: 1px solid #655240;
+      border-radius: 5px;
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.07);
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      border-color: #8c7154;
+      background: linear-gradient(#554638, #3b3027);
+    }
+
+    button.active {
+      color: #21170a;
+      background: linear-gradient(#f3c75e, #c98a26);
+      border-color: #ffd77a;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .texture {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: contain;
+      image-rendering: pixelated;
+      background:
+        linear-gradient(45deg, #171412 25%, transparent 25%),
+        linear-gradient(-45deg, #171412 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #171412 75%),
+        linear-gradient(-45deg, transparent 75%, #171412 75%),
+        #26211d;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      background-size: 16px 16px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+
+    .facts {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 6px 12px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .facts dt {
+      color: #d6c8b7;
+    }
+
+    .facts dd {
+      margin: 0;
+      text-align: right;
+    }
+
+    .hint {
+      position: absolute;
+      left: 20px;
+      bottom: 18px;
+      padding: 9px 12px;
+      color: rgba(238, 231, 220, 0.72);
+      background: rgba(15, 14, 13, 0.58);
+      border: 1px solid rgba(117, 94, 70, 0.42);
+      border-radius: 6px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      background: rgba(15, 14, 13, 0.86);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      transition: opacity 180ms ease;
+    }
+
+    #loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #error {
+      display: none;
+      margin-top: 16px;
+      padding: 10px;
+      color: #ffc4b5;
+      background: #3a1e18;
+      border: 1px solid #814837;
+      border-radius: 5px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 760px) {
+      #app {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+
+      #panel {
+        max-height: 38vh;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+
+      .texture-section,
+      .facts-section {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="app">
+    <section id="viewport" aria-label="Interactive 3D model viewer">
+      <canvas id="canvas" tabindex="0"></canvas>
+      <div class="hint">Drag to rotate · Scroll to zoom · Double-click to reset</div>
+      <div id="loading">Lighting the headlamp...</div>
+    </section>
+
+    <aside id="panel">
+      <h1>Foreman Dunstan</h1>
+      <div class="subtitle">Miner · The Old Shafts</div>
+
+      <div class="section">
+        <div class="section-title">Camera</div>
+        <div class="button-grid">
+          <button type="button" data-view="front">Front</button>
+          <button type="button" data-view="three-quarter">3/4 View</button>
+          <button type="button" data-view="side">Side</button>
+          <button type="button" data-view="back">Back</button>
+          <button type="button" class="wide" id="reset">Reset Camera</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Display</div>
+        <div class="button-grid">
+          <button type="button" id="idle" class="active">Idle Motion</button>
+          <button type="button" id="spin">Auto Rotate</button>
+          <button type="button" id="grid" class="active">Floor Grid</button>
+          <button type="button" id="lamp" class="active">Lamp Glow</button>
+        </div>
+      </div>
+
+      <div class="section texture-section">
+        <div class="section-title">Texture Atlas</div>
+        <img
+          class="texture"
+          src="src/main/resources/assets/ironhold/textures/entity/miner_dunstan.png"
+          alt="Dunstan texture atlas"
+        >
+      </div>
+
+      <div class="section facts-section">
+        <div class="section-title">Model</div>
+        <dl class="facts">
+          <dt>Bones</dt><dd id="bone-count">-</dd>
+          <dt>Cuboids</dt><dd id="cube-count">-</dd>
+          <dt>Texture</dt><dd>128 × 128</dd>
+          <dt>Format</dt><dd>Bedrock geometry</dd>
+        </dl>
+      </div>
+
+      <div id="error"></div>
+    </aside>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    const MODEL_URL = "art/blockbench/miner_dunstan/miner_dunstan.geo.json";
+    const TEXTURE_URL = "src/main/resources/assets/ironhold/textures/entity/miner_dunstan.png";
+    const GLOW_URL = "src/main/resources/assets/ironhold/textures/entity/miner_dunstan_glow.png";
+    const IRON_PICKAXE_URL =
+      "art/blockbench/miner_dunstan/vanilla_iron_pickaxe.png";
+
+    const viewport = document.getElementById("viewport");
+    const canvas = document.getElementById("canvas");
+    const loading = document.getElementById("loading");
+    const errorBox = document.getElementById("error");
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x171411, 0.018);
+
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 300);
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.38;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    scene.add(new THREE.HemisphereLight(0xffedcf, 0x3a2e25, 1.55));
+
+    const keyLight = new THREE.DirectionalLight(0xffe2b8, 1.65);
+    keyLight.position.set(-12, 22, 16);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(1024, 1024);
+    keyLight.shadow.camera.left = -20;
+    keyLight.shadow.camera.right = 20;
+    keyLight.shadow.camera.top = 25;
+    keyLight.shadow.camera.bottom = -10;
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x9dbde0, 0.72);
+    rimLight.position.set(15, 10, -18);
+    scene.add(rimLight);
+
+    const floorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x181512,
+      roughness: 1,
+      metalness: 0
+    });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(70, 70), floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(70, 35, 0x745b40, 0x30271f);
+    grid.position.y = 0.015;
+    scene.add(grid);
+
+    const modelRoot = new THREE.Group();
+    scene.add(modelRoot);
+
+    let model;
+    let headBone;
+    let rightArmBone;
+    let lampLight;
+    let glowEnabled = true;
+    let idleEnabled = true;
+    let spinEnabled = false;
+    let yaw = Math.PI - 0.48;
+    let pitch = 0.08;
+    let cameraDistance = 60;
+    let targetYaw = yaw;
+    let targetPitch = pitch;
+    let targetDistance = cameraDistance;
+
+    function makeCanvasCrop(image, x, y, width, height) {
+      const crop = document.createElement("canvas");
+      crop.width = Math.max(1, width);
+      crop.height = Math.max(1, height);
+      const context = crop.getContext("2d");
+      context.imageSmoothingEnabled = false;
+      context.drawImage(image, x, y, width, height, 0, 0, crop.width, crop.height);
+      return crop;
+    }
+
+    function hasVisiblePixels(canvasElement) {
+      const context = canvasElement.getContext("2d");
+      const pixels = context.getImageData(0, 0, canvasElement.width, canvasElement.height).data;
+      for (let index = 3; index < pixels.length; index += 4) {
+        if (pixels[index] > 0) return true;
+      }
+      return false;
+    }
+
+    function faceRects(uv, size) {
+      const [u, v] = uv;
+      const [width, height, depth] = size;
+      return {
+        up: [u + depth, v, width, depth],
+        down: [u + depth + width, v, width, depth],
+        east: [u, v + depth, depth, height],
+        north: [u + depth, v + depth, width, height],
+        west: [u + depth + width, v + depth, depth, height],
+        south: [u + 2 * depth + width, v + depth, width, height]
+      };
+    }
+
+    function materialForFace(textureImage, glowImage, rect) {
+      const [x, y, width, height] = rect;
+      const baseCrop = makeCanvasCrop(textureImage, x, y, width, height);
+      const map = new THREE.CanvasTexture(baseCrop);
+      map.magFilter = THREE.NearestFilter;
+      map.minFilter = THREE.NearestFilter;
+      map.generateMipmaps = false;
+      map.encoding = THREE.sRGBEncoding;
+
+      const glowCrop = makeCanvasCrop(glowImage, x, y, width, height);
+      const materialOptions = {
+        map,
+        color: 0xffffff,
+        roughness: 0.86,
+        metalness: 0,
+        transparent: false
+      };
+
+      if (hasVisiblePixels(glowCrop)) {
+        const emissiveMap = new THREE.CanvasTexture(glowCrop);
+        emissiveMap.magFilter = THREE.NearestFilter;
+        emissiveMap.minFilter = THREE.NearestFilter;
+        emissiveMap.generateMipmaps = false;
+        emissiveMap.encoding = THREE.sRGBEncoding;
+        materialOptions.emissive = 0xffb52f;
+        materialOptions.emissiveIntensity = 1.75;
+        materialOptions.emissiveMap = emissiveMap;
+      }
+
+      return new THREE.MeshStandardMaterial(materialOptions);
+    }
+
+    function cubeMaterials(textureImage, glowImage, cube) {
+      const faces = faceRects(cube.uv, cube.size);
+      // BoxGeometry order: +X, -X, +Y, -Y, +Z, -Z.
+      return [
+        materialForFace(textureImage, glowImage, faces.east),
+        materialForFace(textureImage, glowImage, faces.west),
+        materialForFace(textureImage, glowImage, faces.up),
+        materialForFace(textureImage, glowImage, faces.down),
+        materialForFace(textureImage, glowImage, faces.south),
+        materialForFace(textureImage, glowImage, faces.north)
+      ];
+    }
+
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error(`Could not load ${url}`));
+        image.src = url;
+      });
+    }
+
+    function addVanillaPickaxe(rightArm, pickaxeImage) {
+      const texture = new THREE.Texture(pickaxeImage);
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      texture.generateMipmaps = false;
+      texture.encoding = THREE.sRGBEncoding;
+      texture.needsUpdate = true;
+
+      const material = new THREE.MeshStandardMaterial({
+        map: texture,
+        color: 0xffffff,
+        roughness: 0.72,
+        metalness: 0.08,
+        transparent: true,
+        alphaTest: 0.12,
+        side: THREE.DoubleSide
+      });
+
+      // Minecraft's generated handheld item is the vanilla sprite extruded
+      // slightly in depth. Layering three pixel-sharp planes gives the browser
+      // preview the same read without rebuilding the pickaxe as cuboids.
+      const item = new THREE.Group();
+      item.name = "vanilla_iron_pickaxe";
+      for (const z of [-0.12, 0, 0.12]) {
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(18, 18), material);
+        plane.position.z = z;
+        plane.castShadow = true;
+        item.add(plane);
+      }
+      item.position.set(-4, -9.4, -3.4);
+      item.rotation.set(0.04, -0.05, -0.24);
+      rightArm.add(item);
+    }
+
+    function buildModel(geometry, textureImage, glowImage, pickaxeImage) {
+      const bones = geometry["minecraft:geometry"][0].bones;
+      const groups = new Map();
+      let cubeCount = 0;
+
+      for (const bone of bones) {
+        const group = new THREE.Group();
+        group.name = bone.name;
+        group.userData.baseRotation = new THREE.Euler(
+          THREE.MathUtils.degToRad(bone.rotation?.[0] || 0),
+          THREE.MathUtils.degToRad(bone.rotation?.[1] || 0),
+          THREE.MathUtils.degToRad(bone.rotation?.[2] || 0)
+        );
+        group.rotation.copy(group.userData.baseRotation);
+        groups.set(bone.name, group);
+      }
+
+      for (const bone of bones) {
+        const group = groups.get(bone.name);
+        const parent = bone.parent ? groups.get(bone.parent) : modelRoot;
+        const parentBone = bone.parent ? bones.find(candidate => candidate.name === bone.parent) : null;
+        const parentPivot = parentBone?.pivot || [0, 0, 0];
+        group.position.set(
+          bone.pivot[0] - parentPivot[0],
+          bone.pivot[1] - parentPivot[1],
+          bone.pivot[2] - parentPivot[2]
+        );
+        parent.add(group);
+
+        for (const cube of bone.cubes || []) {
+          const geometryBox = new THREE.BoxGeometry(...cube.size);
+          const mesh = new THREE.Mesh(
+            geometryBox,
+            cubeMaterials(textureImage, glowImage, cube)
+          );
+          mesh.name = `${bone.name}_cube_${cubeCount}`;
+          mesh.position.set(
+            cube.origin[0] + cube.size[0] / 2 - bone.pivot[0],
+            cube.origin[1] + cube.size[1] / 2 - bone.pivot[1],
+            cube.origin[2] + cube.size[2] / 2 - bone.pivot[2]
+          );
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          group.add(mesh);
+          cubeCount++;
+        }
+      }
+
+      document.getElementById("bone-count").textContent = bones.length;
+      document.getElementById("cube-count").textContent = cubeCount;
+      headBone = groups.get("head");
+      rightArmBone = groups.get("right_arm");
+      addVanillaPickaxe(rightArmBone, pickaxeImage);
+
+      modelRoot.position.y = 0;
+      modelRoot.rotation.y = yaw;
+
+      lampLight = new THREE.PointLight(0xffb52f, 1.3, 16, 2);
+      lampLight.position.set(0, 11, -8);
+      headBone.add(lampLight);
+
+      return groups;
+    }
+
+    function setGlow(enabled) {
+      glowEnabled = enabled;
+      if (lampLight) lampLight.visible = enabled;
+      modelRoot.traverse(object => {
+        if (!object.isMesh) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        for (const material of materials) {
+          if (material.emissiveMap) {
+            material.emissiveIntensity = enabled ? 1.75 : 0;
+          }
+        }
+      });
+    }
+
+    function setButtonState(button, active) {
+      button.classList.toggle("active", active);
+    }
+
+    function setView(name) {
+      const views = {
+        front: [Math.PI, 0.03, 59],
+        "three-quarter": [Math.PI - 0.48, 0.08, 60],
+        side: [Math.PI / 2, 0.04, 59],
+        back: [0, 0.04, 59]
+      };
+      [targetYaw, targetPitch, targetDistance] = views[name];
+    }
+
+    function resetCamera() {
+      setView("three-quarter");
+    }
+
+    function resize() {
+      const width = viewport.clientWidth;
+      const height = viewport.clientHeight;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+
+    window.addEventListener("resize", resize);
+    resize();
+
+    let dragging = false;
+    let previousX = 0;
+    let previousY = 0;
+
+    viewport.addEventListener("pointerdown", event => {
+      dragging = true;
+      previousX = event.clientX;
+      previousY = event.clientY;
+      viewport.classList.add("dragging");
+      viewport.setPointerCapture(event.pointerId);
+    });
+
+    viewport.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      targetYaw += (event.clientX - previousX) * 0.009;
+      targetPitch += (event.clientY - previousY) * 0.007;
+      targetPitch = THREE.MathUtils.clamp(targetPitch, -0.65, 0.65);
+      previousX = event.clientX;
+      previousY = event.clientY;
+    });
+
+    function stopDragging(event) {
+      dragging = false;
+      viewport.classList.remove("dragging");
+      if (event.pointerId !== undefined && viewport.hasPointerCapture(event.pointerId)) {
+        viewport.releasePointerCapture(event.pointerId);
+      }
+    }
+
+    viewport.addEventListener("pointerup", stopDragging);
+    viewport.addEventListener("pointercancel", stopDragging);
+
+    viewport.addEventListener("wheel", event => {
+      event.preventDefault();
+      targetDistance = THREE.MathUtils.clamp(
+        targetDistance + Math.sign(event.deltaY) * 3,
+        25,
+        80
+      );
+    }, { passive: false });
+
+    viewport.addEventListener("dblclick", resetCamera);
+
+    for (const button of document.querySelectorAll("[data-view]")) {
+      button.addEventListener("click", () => setView(button.dataset.view));
+    }
+    document.getElementById("reset").addEventListener("click", resetCamera);
+
+    document.getElementById("idle").addEventListener("click", event => {
+      idleEnabled = !idleEnabled;
+      setButtonState(event.currentTarget, idleEnabled);
+    });
+
+    document.getElementById("spin").addEventListener("click", event => {
+      spinEnabled = !spinEnabled;
+      setButtonState(event.currentTarget, spinEnabled);
+    });
+
+    document.getElementById("grid").addEventListener("click", event => {
+      grid.visible = !grid.visible;
+      setButtonState(event.currentTarget, grid.visible);
+    });
+
+    document.getElementById("lamp").addEventListener("click", event => {
+      setGlow(!glowEnabled);
+      setButtonState(event.currentTarget, glowEnabled);
+    });
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      if (spinEnabled && !dragging) targetYaw += 0.004;
+
+      yaw = THREE.MathUtils.lerp(yaw, targetYaw, 0.12);
+      pitch = THREE.MathUtils.lerp(pitch, targetPitch, 0.12);
+      cameraDistance = THREE.MathUtils.lerp(cameraDistance, targetDistance, 0.12);
+
+      modelRoot.rotation.y = yaw;
+      modelRoot.rotation.x = pitch;
+
+      if (headBone && rightArmBone) {
+        const idle = idleEnabled ? Math.sin(elapsed * 1.35) : 0;
+        headBone.rotation.y = headBone.userData.baseRotation.y + idle * 0.025;
+        headBone.rotation.x = headBone.userData.baseRotation.x + idle * 0.01;
+        rightArmBone.rotation.x = rightArmBone.userData.baseRotation.x - 0.30 + idle * 0.018;
+        rightArmBone.rotation.y = rightArmBone.userData.baseRotation.y - 0.08;
+        rightArmBone.rotation.z = rightArmBone.userData.baseRotation.z + 0.16;
+      }
+
+      camera.position.set(0, 18, cameraDistance);
+      camera.lookAt(0, 17, 0);
+      renderer.render(scene, camera);
+    }
+
+    Promise.all([
+      fetch(MODEL_URL).then(response => {
+        if (!response.ok) throw new Error(`Could not load model (${response.status})`);
+        return response.json();
+      }),
+      loadImage(TEXTURE_URL),
+      loadImage(GLOW_URL),
+      loadImage(IRON_PICKAXE_URL)
+    ]).then(([geometry, textureImage, glowImage, pickaxeImage]) => {
+      model = buildModel(geometry, textureImage, glowImage, pickaxeImage);
+      setGlow(true);
+      loading.classList.add("hidden");
+      animate();
+    }).catch(error => {
+      console.error(error);
+      loading.textContent = "Preview failed to load";
+      errorBox.style.display = "block";
+      errorBox.textContent =
+        `${error.message}. Open this page through the local preview server, not directly as a file.`;
+    });
+  </script>
+</body>
+</html>

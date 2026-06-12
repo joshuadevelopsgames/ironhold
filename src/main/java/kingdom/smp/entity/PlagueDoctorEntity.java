@@ -11,8 +11,8 @@ import kingdom.smp.ai.MicGate;
 import kingdom.smp.ai.NpcChatPartner;
 import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.entity.goal.AlwaysLookNearestPlayerGoal;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
@@ -162,9 +162,7 @@ public class PlagueDoctorEntity extends PathfinderMob implements NpcChatPartner 
 
     // First-meeting line — static, theatrical.
     private static final String FIRST_DIALOGUE =
-        "Ahh. Another set of warm lungs wanders into my shadow. I am Doctor Corvus, "
-        + "and I keep the company death prefers. Speak, child — are you here to buy a "
-        + "morsel of the pestilence, or to be cleansed of some lesser blight?";
+        "Ahh — greetings, warm lungs.";
 
     private static final String[] RETURN_DIALOGUES = {
         "Still breathing, %s? How stubborn.",
@@ -308,7 +306,7 @@ public class PlagueDoctorEntity extends PathfinderMob implements NpcChatPartner 
         List<OpenRouterClient.Message> snapshot = List.copyOf(history);
         UUID expectedPartner = partnerId;
         MinecraftServer server = level().getServer();
-        MicGate.muteFor(expectedPartner, 4_000L);
+        MicGate.muteFor(expectedPartner, 2_000L);
 
         PacketDistributor.sendToPlayer(player,
             new UpdateWardenScreenPayload(getId(),
@@ -523,15 +521,9 @@ public class PlagueDoctorEntity extends PathfinderMob implements NpcChatPartner 
             && NpcMuteRegistry.get(sl).isMuted(partnerPlayer.getUUID(), tag())) {
             return;
         }
-        UUID partner = partnerId;
-        ElevenLabsClient.speak(line, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS, pcm -> {
-            if (pcm == null) return;
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        // Streamed: playback starts on the first ElevenLabs chunk; the helper
+        // keeps the partner's mic gated for the audio duration + echo grace.
+        NpcSpeech.speak(this, partnerId, line, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS);
     }
 
     private static String sanitizeForSpeech(String s) {

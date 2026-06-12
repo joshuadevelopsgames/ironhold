@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRONHOLD — A Kingdom-Scale RPG Overhaul for Minecraft</title>
+<meta name="description" content="Ironhold turns Minecraft survival into a living kingdom RPG — voiced AI NPCs, class warfare, sealed dimensions, dynamic light, and bosses that remember you.">
+<meta property="og:title" content="IRONHOLD — The Kingdom Era Begins">
+<meta property="og:description" content="A kingdom-scale RPG overhaul for Minecraft. Classes. Sealed dimensions. NPCs that talk back — out loud.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#060509">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='2' width='12' height='12' fill='%23ff7a18'/%3E%3Crect x='2' y='2' width='12' height='4' fill='%23ffc83d'/%3E%3Crect x='10' y='6' width='4' height='8' fill='%23c4470a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@700;900&family=VT323&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+} }
+</script>
+</head>
+<body>
+
+<!-- ============ PRELOADER ============ -->
+<div class="loader" id="loader" aria-hidden="true">
+  <div class="loader-sigil">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="loader-word">FORGING</div>
+</div>
+
+<!-- custom cursor -->
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<!-- scroll progress -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- fixed nav -->
+<nav class="nav" id="nav">
+  <a class="nav-logo" href="#top">
+    <span class="nav-logo-mark"></span>
+    IRONHOLD
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#keep">The Keep</a>
+    <a href="#npcs">The Voiced</a>
+    <a href="#bosses">Bosses</a>
+    <a class="nav-cta" href="#download">Download</a>
+  </div>
+</nav>
+
+<!-- ============ HERO (pinned) ============ -->
+<div class="pin-wrap pin-hero" id="top">
+<header class="hero" id="hero">
+  <canvas id="stars" class="hero-layer" data-depth="0.05"></canvas>
+
+  <div class="hero-layer moon-wrap" data-depth="0.12" data-mouse="6">
+    <div class="moon"></div>
+  </div>
+
+  <div class="hero-layer" data-depth="0.2" data-mouse="10">
+    <svg class="ridge ridge-far" viewBox="0 0 1440 420" preserveAspectRatio="none">
+      <path d="M0,420 L0,260 L90,250 L120,180 L150,250 L260,240 L300,150 L330,165 L360,120 L385,165 L420,150 L470,235 L560,230 L600,300 L700,210 L740,225 L760,170 L800,225 L880,215 L920,140 L950,155 L975,110 L1000,155 L1030,140 L1090,230 L1180,220 L1260,280 L1320,200 L1360,260 L1440,250 L1440,420 Z"/>
+    </svg>
+  </div>
+
+  <div class="hero-layer" data-depth="0.38" data-mouse="18">
+    <svg class="ridge ridge-mid" viewBox="0 0 1440 420" preserveAspectRatio="none">
+      <path d="M0,420 L0,330 L60,325 L60,290 L80,290 L80,325 L150,320 L210,250 L240,250 L240,205 L250,205 L250,185 L262,185 L262,205 L272,205 L272,250 L300,250 L300,225 L312,225 L312,250 L340,250 L360,320 L470,315 L540,260 L560,260 L560,232 L575,232 L575,260 L640,255 L640,225 L652,225 L652,200 L660,190 L668,200 L668,225 L680,225 L680,255 L720,260 L760,320 L900,315 L960,235 L980,235 L980,205 L992,205 L992,235 L1060,240 L1120,320 L1230,315 L1290,255 L1310,255 L1310,225 L1325,225 L1325,255 L1360,260 L1400,330 L1440,325 L1440,420 Z"/>
+    </svg>
+  </div>
+
+  <div class="hero-layer fog fog-1" data-depth="0.5"></div>
+
+  <div class="hero-layer" data-depth="0.62" data-mouse="30">
+    <svg class="ridge ridge-near" viewBox="0 0 1440 420" preserveAspectRatio="none">
+      <path d="M0,420 L0,360 L100,355 L160,300 L160,260 L175,260 L175,240 L188,240 L188,260 L203,260 L203,300 L260,305 L330,360 L520,355 L600,280 L600,235 L618,235 L618,210 L630,196 L642,210 L642,235 L660,235 L660,280 L700,285 L700,255 L715,255 L715,285 L745,285 L800,355 L1010,360 L1080,300 L1080,265 L1095,265 L1095,242 L1108,242 L1108,265 L1123,265 L1123,300 L1180,305 L1250,360 L1440,355 L1440,420 Z"/>
+    </svg>
+  </div>
+
+  <div class="hero-layer fog fog-2" data-depth="0.75"></div>
+  <div class="hero-layer voxel-field" data-depth="0.45" data-mouse="24" id="voxelField"></div>
+  <canvas id="embers" class="hero-layer" data-depth="0.55"></canvas>
+
+  <div class="hero-content" id="heroContent" data-depth="0.3" data-mouse="14">
+    <p class="hero-kicker">A NEOFORGE OVERHAUL &nbsp;·&nbsp; MINECRAFT 26.1</p>
+    <h1 class="hero-title" id="heroTitle" aria-label="IRONHOLD"></h1>
+    <p class="hero-sub">Survival is over. <em>The Kingdom era begins.</em><br>
+    Classes. Sealed dimensions. Bosses with grudges — and NPCs that talk back.</p>
+    <div class="hero-actions">
+      <a href="#download" class="btn btn-primary magnetic"><span>⛏ Download the Mod</span></a>
+      <a href="#features" class="btn btn-ghost magnetic"><span>Descend ↓</span></a>
+    </div>
+  </div>
+
+  <div class="scroll-cue">
+    <span class="scroll-cue-box"></span>
+    SCROLL TO ENTER THE KEEP
+  </div>
+
+  <div class="hero-bottom-fade"></div>
+</header>
+</div>
+
+<!-- ============ MARQUEE ============ -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>CLAIM YOUR KINGDOM ✦ FORGE YOUR LEGEND ✦ THE NETHER IS SEALED ✦ THE END IS EARNED ✦ SPEAK WITH THE VOICED ✦ LIGHT THE DARK ✦&nbsp;</span>
+    <span>CLAIM YOUR KINGDOM ✦ FORGE YOUR LEGEND ✦ THE NETHER IS SEALED ✦ THE END IS EARNED ✦ SPEAK WITH THE VOICED ✦ LIGHT THE DARK ✦&nbsp;</span>
+  </div>
+</div>
+
+<!-- ============ STATS ============ -->
+<section class="stats">
+  <div class="stat reveal"><div class="stat-num" data-count="14">0</div><div class="stat-label">Voiced AI NPCs</div></div>
+  <div class="stat reveal"><div class="stat-num" data-count="60" data-suffix="+">0</div><div class="stat-label">Custom Mobs &amp; Knights</div></div>
+  <div class="stat reveal"><div class="stat-num" data-count="23">0</div><div class="stat-label">Butterfly Species</div></div>
+  <div class="stat reveal"><div class="stat-num" data-count="2">0</div><div class="stat-label">Dimensions, Sealed</div></div>
+</section>
+
+<!-- ============ FEATURES ============ -->
+<section class="section features-section" id="features">
+  <div class="section-bg-glyph" data-plx="0.15">✦</div>
+  <div class="section-head reveal">
+    <p class="section-kicker">// THE OVERHAUL</p>
+    <h2 class="section-title">Vanilla survival,<br><span class="grad-ember">rewritten as an RPG.</span></h2>
+  </div>
+
+  <div class="feature-grid">
+    <article class="feature-card reveal" data-glow="#ffc83d">
+      <div class="ficon"><img src="assets/icons/filcher_crown.png" alt="" width="48" height="48"></div>
+      <h3>Classes &amp; Kingdoms</h3>
+      <p>Pledge to one of four kingdoms. Pick Knight, Ranger, Rogue, or stay a Peasant and suffer. Your class sets your health, damage, and speed — and a reskinned XP bar tracks your <em>class</em> level, not vanilla scraps.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#ff7a18">
+      <div class="ficon"><img src="assets/icons/key.png" alt="" width="48" height="48"></div>
+      <h3>Kingdom Gates</h3>
+      <p>The Nether and the End are <strong>sealed</strong>. They open only when your kingdom's pooled class XP crosses the threshold. Progression is a server-wide war effort — nobody speedruns alone.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#ffc83d">
+      <div class="ficon"><svg viewBox="0 0 12 12" width="48" height="48"><g fill="#ffc83d"><rect x="1" y="2" width="8" height="5"/><rect x="2" y="7" width="2" height="2"/><rect x="9" y="3" width="1" height="3" fill="#ff7a18"/></g><g fill="#0d0b14"><rect x="3" y="4" width="1" height="1"/><rect x="5" y="4" width="1" height="1"/><rect x="7" y="4" width="1" height="1"/></g></svg></div>
+      <h3>Voiced AI NPCs</h3>
+      <p>Fourteen characters with LLM brains and ElevenLabs voices. Walk up, press talk, and <em>speak</em> — they answer out loud, hold grudges, remember favors, and hand out quests in real conversation.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#ff7a18">
+      <div class="ficon"><svg viewBox="0 0 12 12" width="48" height="48"><rect x="5" y="5" width="2" height="6" fill="#7a5a30"/><rect x="4" y="2" width="4" height="3" fill="#ff7a18"/><rect x="5" y="1" width="2" height="2" fill="#ffc83d"/><rect x="5" y="0" width="1" height="1" fill="#fff2c8"/></svg></div>
+      <h3>Ironglow Dynamic Light</h3>
+      <p>A built-in dynamic lighting engine. Torches burn in your fist, spells flare across cave walls, will-o'-wisps drag pools of light through the dark. No shader pack required.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#c97b4a">
+      <div class="ficon"><img src="assets/icons/battle_hammer.png" alt="" width="48" height="48"></div>
+      <h3>Gear Quality &amp; Forging</h3>
+      <p>Every tool, blade, and ingot rolls a quality tier and wears down with condition. Master the blacksmithing minigame to forge masterwork steel — or swing a peasant's bent shovel forever.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#ffc83d">
+      <div class="ficon"><svg viewBox="0 0 12 12" width="48" height="48"><g fill="#ffc83d"><rect x="7" y="1" width="2" height="7"/><rect x="5" y="7" width="3" height="3"/><rect x="9" y="1" width="2" height="2"/></g></svg></div>
+      <h3>Reactive Music</h3>
+      <p>An adaptive score that listens to the world. Calm hamlet themes collapse into PvP climax stingers the instant blades cross. The soundtrack knows you're losing before you do.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#c97b4a">
+      <div class="ficon"><svg viewBox="0 0 12 12" width="48" height="48"><g fill="#c97b4a"><rect x="2" y="8" width="8" height="3"/><rect x="3" y="6" width="6" height="2"/><rect x="5" y="3" width="2" height="3"/><rect x="4" y="2" width="4" height="1"/></g></svg></div>
+      <h3>Encumbrance &amp; Weight</h3>
+      <p>Items have weight. Exceed your class carry cap and you crawl home under Slowness like the greedy wretch you are. The HUD tracks every kilogram of loot-lust.</p>
+    </article>
+    <article class="feature-card reveal" data-glow="#ff7a18">
+      <div class="ficon"><img src="assets/icons/butterfly_crimson_monarch.png" alt="" width="48" height="48"></div>
+      <h3>Seasons, Fishing &amp; Bait</h3>
+      <p>Living seasons, a fishing minigame with real loot tables, and 23 catchable butterfly species that double as Terraria-style bait. No bait, no bites.</p>
+    </article>
+  </div>
+</section>
+
+<div class="seam" aria-hidden="true"></div>
+
+<!-- ============ THE KEEP (pinned WebGL) ============ -->
+<div class="pin-wrap pin-keep" id="keep">
+<section class="keep-section">
+  <canvas id="keepCanvas"></canvas>
+  <div class="keep-overlay">
+    <div class="keep-copy">
+      <p class="section-kicker">// RENDERED LIVE</p>
+      <h2 class="section-title">Built in-game.<br><span class="grad-ember">Raised as you scroll.</span></h2>
+      <p class="keep-note">This is a real Ironhold structure — <code>dark_castle_v3.isc</code>, scanned block-for-block from the game — rebuilding itself in your browser. Keep scrolling to raise the keep.</p>
+    </div>
+    <div class="keep-hud">
+      <span id="keepBlocks">0</span> / <span id="keepTotal">0</span> BLOCKS PLACED
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="seam" aria-hidden="true"></div>
+
+<!-- ============ NPCS ============ -->
+<section class="section npcs-section" id="npcs">
+  <div class="npc-bg" data-plx="0.2"></div>
+  <div class="section-head reveal">
+    <p class="section-kicker">// THE VOICED</p>
+    <h2 class="section-title">They have voices.<br><span class="grad-ember">They have opinions.</span></h2>
+    <p class="section-sub">Every character runs a live LLM brain with its own ElevenLabs voice — these are the <em>actual voices from the mod</em>. Tap a card to hear one speak.</p>
+  </div>
+
+  <div class="npc-rail" id="npcRail">
+    <article class="npc-card reveal" data-npc="halric" data-voice="1" style="--accent:#c9b8ff">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Warden Halric</h3>
+      <p class="npc-role">Keeper of the Gates</p>
+      <p class="npc-quote">"The seal holds because I hold it. Prove your kingdom worthy."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="kangarude" data-voice="1" style="--accent:#7be3a0">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Kangarude</h3>
+      <p class="npc-role">Insolent Marsupial</p>
+      <p class="npc-quote">"Oh look. A peasant. Tracked mud AND disappointment in here."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="mira" data-voice="1" style="--accent:#ff8181">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Mira the Innkeeper</h3>
+      <p class="npc-role">Hearth of the Realm</p>
+      <p class="npc-quote">"Sit. Drink. Tell me which knight is lying about the dragon."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HER</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="roselind" data-voice="1" style="--accent:#86c5ff">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Captain Roselind</h3>
+      <p class="npc-role">Blade of the Crown</p>
+      <p class="npc-quote">"Discipline wins wars. Heroes just die louder."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HER</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="tobias" style="--accent:#ffae34">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Blacksmith Tobias</h3>
+      <p class="npc-role">Master of the Forge</p>
+      <p class="npc-quote">"Bring me ore worth my fire, or get out of my smoke."</p>
+      <div class="voice-chip casting"><span class="voice-label">VOICE IN CASTING</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="eilan" data-voice="1" style="--accent:#e0d36b">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Loremaster Eilan</h3>
+      <p class="npc-role">Memory of the Kingdom</p>
+      <p class="npc-quote">"History repeats. I simply take attendance."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="dunstan" data-voice="1" style="--accent:#9fffe0">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Foreman Dunstan</h3>
+      <p class="npc-role">Mentor of the Deep Shafts</p>
+      <p class="npc-quote">"The mountain pays in ore or in funerals. Mind your bracing."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="bram" data-voice="1" style="--accent:#caff7c">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Bram the Bard</h3>
+      <p class="npc-role">Rumor with a Lute</p>
+      <p class="npc-quote">"Every ballad's true, friend. Some just haven't happened yet."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="beren" data-voice="1" style="--accent:#d8c8a8">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Old Beren</h3>
+      <p class="npc-role">Elder of the Square</p>
+      <p class="npc-quote">"I've buried three kings and one bad idea. You smell like the second."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HIM</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="hesta" data-voice="1" style="--accent:#b8e69a">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Old Hesta</h3>
+      <p class="npc-role">Hedge-Witch of the Outskirts</p>
+      <p class="npc-quote">"Chew this. Don't ask what it is. Asking makes it work less."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HER</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="pippa" data-voice="1" style="--accent:#ffd27c">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Pippa the Urchin</h3>
+      <p class="npc-role">Eyes of the Alleys</p>
+      <p class="npc-quote">"Psst. For a coin I'll tell you which guard sleeps standing up."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HER</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="wren" data-voice="1" style="--accent:#f0e6c8">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>Sister Wren</h3>
+      <p class="npc-role">Voice of the Chapel</p>
+      <p class="npc-quote">"The light keeps what it loves. Try to be worth keeping."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR HER</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="watcher" data-voice="1" style="--accent:#8fa8ff">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>The Cemetery Watcher</h3>
+      <p class="npc-role">Counts the Graves. Twice.</p>
+      <p class="npc-quote">"You're not on my list yet. Keep it that way — I hate revisions."</p>
+      <div class="voice-chip"><span class="voice-play">▶</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-label">HEAR IT</span></div>
+    </article>
+    <article class="npc-card reveal" data-npc="plague" style="--accent:#d78cff">
+      <div class="npc-frame"><canvas class="npc-portrait" width="14" height="14"></canvas></div>
+      <h3>The Plague Doctor</h3>
+      <p class="npc-role">Physician. Probably.</p>
+      <p class="npc-quote">"The mask is for your protection. Mostly mine. Cough toward the warden."</p>
+      <div class="voice-chip casting"><span class="voice-label">VOICE IN CASTING</span></div>
+    </article>
+  </div>
+  <p class="npc-hint reveal">⟵ drag to meet the rest of the court ⟶</p>
+</section>
+
+<div class="seam seam-blood" aria-hidden="true"></div>
+
+<!-- ============ BOSSES ============ -->
+<section class="section bosses-section" id="bosses">
+  <div class="boss-haze" data-plx="0.12"></div>
+  <div class="section-head reveal">
+    <p class="section-kicker red">// THE THREATS</p>
+    <h2 class="section-title">Some doors<br><span class="grad-blood">should stay sealed.</span></h2>
+  </div>
+
+  <div class="boss-list">
+    <article class="boss-row reveal">
+      <div class="boss-num">01</div>
+      <div class="boss-info">
+        <h3>The King Enderman</h3>
+        <p>A sovereign of the void with a court of black shulkers and a combat doctrine all his own. Meeting his gaze is a declaration of war you cannot retract.</p>
+      </div>
+      <div class="boss-tag">END TYRANT</div>
+    </article>
+    <article class="boss-row reveal">
+      <div class="boss-num">02</div>
+      <div class="boss-info">
+        <h3>The Void Invoker</h3>
+        <p>An arcane warlord hurling hex bolts and arcane orbs from behind a wall of summoned mages. Kill the casters first — if it lets you.</p>
+      </div>
+      <div class="boss-tag">ARCHMAGE</div>
+    </article>
+    <article class="boss-row reveal">
+      <div class="boss-num">03</div>
+      <div class="boss-info">
+        <h3>The Gargoyle</h3>
+        <p>Cathedral stone that decided it was done holding still. It perches. It watches. Then the masonry comes off the roof at forty blocks a second.</p>
+      </div>
+      <div class="boss-tag">STONE TERROR</div>
+    </article>
+    <article class="boss-row reveal">
+      <div class="boss-num">04</div>
+      <div class="boss-info">
+        <h3>Possessed Armor &amp; Mimics</h3>
+        <p>The empty plate in the corridor isn't empty. The treasure chest grew teeth. Ironhold's dungeons punish optimism as a matter of policy.</p>
+      </div>
+      <div class="boss-tag">DUNGEON HORRORS</div>
+    </article>
+  </div>
+</section>
+
+<div class="seam seam-arcane" aria-hidden="true"></div>
+
+<!-- ============ KINGDOM GATES (pinned) ============ -->
+<div class="pin-wrap pin-gates" id="gates">
+<section class="gates-section">
+  <div class="gate-portal" id="gatePortal">
+    <div class="portal-ring r1"></div>
+    <div class="portal-ring r2"></div>
+    <div class="portal-ring r3"></div>
+    <div class="portal-core"></div>
+  </div>
+  <div class="gates-content">
+    <p class="section-kicker arcane">// SHARED FATE</p>
+    <h2 class="section-title">One kingdom.<br><span class="grad-arcane">One pooled destiny.</span></h2>
+    <p class="gates-text">Every class level any citizen earns flows into the kingdom's pool. The Nether gate cracks open only when the pool crosses the threshold — and the End demands far more. Keep scrolling to charge the gate.</p>
+    <div class="gate-meter">
+      <div class="gate-meter-label"><span>KINGDOM XP POOL</span><span id="gateMeterPct">0%</span></div>
+      <div class="gate-meter-track"><div class="gate-meter-fill" id="gateMeterFill"></div></div>
+      <div class="gate-meter-marks"><span>⛓ NETHER SEAL</span><span>⛓ END SEAL</span></div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ============ DOWNLOAD / FOOTER ============ -->
+<footer class="footer" id="download">
+  <canvas id="footerEmbers"></canvas>
+  <div class="footer-inner reveal">
+    <h2 class="footer-title">THE GATES ARE WAITING.</h2>
+    <p class="footer-sub">Drop the jar in <code>mods/</code>. Pick a kingdom. Try not to embarrass it.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="#"><span>⬇ ironhold-latest.jar</span></a>
+      <a class="btn btn-ghost magnetic" href="#"><span>Read the Field Manual</span></a>
+    </div>
+    <div class="footer-meta">
+      <span>Minecraft 26.1.2 · NeoForge 26.1.2.48 · Java 21</span>
+      <span>IRONHOLD © 2026 — forged, not crafted</span>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+<script type="module" src="castle.js"></script>
+</body>
+</html>

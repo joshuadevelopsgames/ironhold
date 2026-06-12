@@ -8,8 +8,8 @@ import kingdom.smp.ai.NpcChatRegistry;
 import kingdom.smp.npc.NpcSessionGreetings;
 import kingdom.smp.npc.NpcRapport;
 import kingdom.smp.ai.NpcMuteRegistry;
+import kingdom.smp.ai.NpcSpeech;
 import kingdom.smp.ai.OpenRouterClient;
-import kingdom.smp.ai.SvcVoiceBridge;
 import kingdom.smp.entity.goal.AlwaysLookNearestPlayerGoal;
 import kingdom.smp.net.OpenWardenScreenPayload;
 import kingdom.smp.net.UpdateWardenScreenPayload;
@@ -136,9 +136,7 @@ public class PippaUrchinEntity extends PathfinderMob implements NpcChatPartner {
         OUTPUT: just the spoken reply. No JSON, no formatting.
         """ + "\n\n" + IronholdLore.CONTENT;
     private static final String FIRST_DIALOGUE =
-        "Oh — hi. New, aren't you. I can tell. Walking like you don't know " +
-        "where the loose stones are. I'm Pippa. I know things. Mostly small " +
-        "things, but small things add up. You looking for somebody?";
+        "Oh — hi there!";
 
     private static final String[] RETURN_DIALOGUES = {
         "Hi, %s!",
@@ -289,7 +287,7 @@ public class PippaUrchinEntity extends PathfinderMob implements NpcChatPartner {
         List<OpenRouterClient.Message> snapshot = List.copyOf(history);
         UUID expectedPartner = partnerId;
         MinecraftServer server = level().getServer();
-        MicGate.muteFor(expectedPartner, 4_000L);
+        MicGate.muteFor(expectedPartner, 2_000L);
 
         PacketDistributor.sendToPlayer(player,
             new UpdateWardenScreenPayload(getId(),
@@ -333,15 +331,9 @@ public class PippaUrchinEntity extends PathfinderMob implements NpcChatPartner {
             && NpcMuteRegistry.get(sl).isMuted(partnerPlayer.getUUID(), tag())) {
             return;
         }
-        UUID partner = partnerId;
-        ElevenLabsClient.speak(line, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS, pcm -> {
-            if (pcm == null) return;
-            if (partner != null) {
-                long durationMs = pcm.length / 48L;
-                MicGate.muteFor(partner, durationMs + 2_000L);
-            }
-            SvcVoiceBridge.speakAs(this, pcm);
-        });
+        // Streamed: playback starts on the first ElevenLabs chunk; the helper
+        // keeps the partner's mic gated for the audio duration + echo grace.
+        NpcSpeech.speak(this, partnerId, line, VOICE_ID, ELEVENLABS_MODEL, VOICE_SETTINGS);
     }
 
     private static String sanitizeForSpeech(String s) {

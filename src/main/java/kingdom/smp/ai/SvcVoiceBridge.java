@@ -4,6 +4,7 @@ import kingdom.smp.Ironhold;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.fml.ModList;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -56,13 +57,83 @@ public final class SvcVoiceBridge {
             return false;
         }
         try {
-            Class<?> impl = Class.forName("kingdom.smp.ai.svc.SvcVoiceBridgeImpl");
-            Object result = impl.getMethod("speakAs", Entity.class, byte[].class)
-                .invoke(null, entity, pcmS16le24kHz);
+            Method m = implMethod("speakAs", Entity.class, byte[].class);
+            Object result = m == null ? null : m.invoke(null, entity, pcmS16le24kHz);
             return result instanceof Boolean b && b;
         } catch (Throwable t) {
             Ironhold.LOGGER.warn("[Kangarude] SVC bridge dispatch failed: {}", t.getMessage());
             return false;
         }
+    }
+
+    // ── Streaming playback ───────────────────────────────────────────────────
+    // Mirrors SvcVoiceBridgeImpl.beginStream/feedStream/endStream. The handle is
+    // an opaque Object so SVC types never leak through this facade.
+
+    /** Open an incremental playback stream. Null when SVC is absent/not ready. */
+    public static Object beginStreamAs(Entity entity) {
+        if (!isAvailable()) {
+            if (WARNED_MISSING.compareAndSet(false, true)) {
+                Ironhold.LOGGER.warn(
+                    "[Kangarude] Simple Voice Chat is not loaded — voice output is disabled."
+                  + " Install SVC for the current MC version to hear NPC dialogue.");
+            }
+            return null;
+        }
+        try {
+            Method m = implMethod("beginStream", Entity.class);
+            return m == null ? null : m.invoke(null, entity);
+        } catch (Throwable t) {
+            Ironhold.LOGGER.warn("[Kangarude] SVC bridge beginStream failed: {}", t.getMessage());
+            return null;
+        }
+    }
+
+    /** Feed a PCM-S16LE @ 24kHz chunk into a stream from {@link #beginStreamAs}. */
+    public static boolean feedStream(Object handle, byte[] pcmChunk) {
+        if (handle == null) return false;
+        try {
+            Method m = implMethod("feedStream", Object.class, byte[].class);
+            Object result = m == null ? null : m.invoke(null, handle, pcmChunk);
+            return result instanceof Boolean b && b;
+        } catch (Throwable t) {
+            Ironhold.LOGGER.warn("[Kangarude] SVC bridge feedStream failed: {}", t.getMessage());
+            return false;
+        }
+    }
+
+    /** Close a stream; buffered audio drains normally. */
+    public static void endStream(Object handle) {
+        if (handle == null) return;
+        try {
+            Method m = implMethod("endStream", Object.class);
+            if (m != null) m.invoke(null, handle);
+        } catch (Throwable t) {
+            Ironhold.LOGGER.warn("[Kangarude] SVC bridge endStream failed: {}", t.getMessage());
+        }
+    }
+
+    // Cached per-signature Method handles — feedStream runs once per network
+    // chunk, so repeating Class.forName/getMethod there would be pure waste.
+    private static volatile Method speakAsMethod, beginStreamMethod, feedStreamMethod, endStreamMethod;
+
+    private static Method implMethod(String name, Class<?>... params) throws Exception {
+        Method cached = switch (name) {
+            case "speakAs" -> speakAsMethod;
+            case "beginStream" -> beginStreamMethod;
+            case "feedStream" -> feedStreamMethod;
+            case "endStream" -> endStreamMethod;
+            default -> null;
+        };
+        if (cached != null) return cached;
+        Class<?> impl = Class.forName("kingdom.smp.ai.svc.SvcVoiceBridgeImpl");
+        Method m = impl.getMethod(name, params);
+        switch (name) {
+            case "speakAs" -> speakAsMethod = m;
+            case "beginStream" -> beginStreamMethod = m;
+            case "feedStream" -> feedStreamMethod = m;
+            case "endStream" -> endStreamMethod = m;
+        }
+        return m;
     }
 }

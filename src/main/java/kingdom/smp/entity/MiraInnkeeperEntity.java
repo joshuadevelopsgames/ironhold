@@ -79,9 +79,7 @@ public class MiraInnkeeperEntity extends AbstractVoicedNpcEntity {
         """ + "\n\n" + IronholdLore.CONTENT;
 
     private static final String FIRST_DIALOGUE =
-        "Well, come in, come in — you're letting the cold in. I'm Mira; this is " +
-        "The Wandering Wolf, and I keep it clean and the ale honest. Pull up a " +
-        "stool and tell me what's brought you to our gate.";
+        "Come in, come in — welcome to The Wandering Wolf!";
 
     private static final String[] RETURN_DIALOGUES = {
         "Welcome back, %s.",

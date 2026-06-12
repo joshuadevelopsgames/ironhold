@@ -580,6 +580,42 @@ public final class ModBlocks {
             )
         );
 
+    // ── Stone statues (player-skin memorials; formerly entities) ─────────────
+    // One block id per variant so the renderer can resolve the skin from the
+    // Block instance; all share the STATUE_BLOCK_ENTITY type below.
+    private static DeferredBlock<Block> statueBlock(String name) {
+        return BLOCKS.register(name,
+            id -> new kingdom.smp.block.StatueBlock(
+                BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .strength(1.5f, 6.0f)
+                    .sound(SoundType.STONE)
+                    .noOcclusion()
+                    .setId(ResourceKey.create(Registries.BLOCK, id))
+            )
+        );
+    }
+
+    public static final DeferredBlock<Block> KANGARUDE_STATUE_BLOCK  = statueBlock("kangarude_statue");
+    public static final DeferredBlock<Block> HAALINA_STATUE_BLOCK    = statueBlock("haalina_statue");
+    public static final DeferredBlock<Block> FACELACES_STATUE_BLOCK  = statueBlock("facelaces_statue");
+    public static final DeferredBlock<Block> RED_RAICHU_STATUE_BLOCK = statueBlock("red_raichu_statue");
+    public static final DeferredBlock<Block> TWOHRD_STATUE_BLOCK     = statueBlock("twohrd_statue");
+    public static final DeferredBlock<Block> ARCATHEONE_STATUE_BLOCK = statueBlock("arcatheone_statue");
+    public static final DeferredBlock<Block> CHEAKIE_STATUE_BLOCK    = statueBlock("cheakie_statue");
+
+    @SuppressWarnings("unchecked")
+    public static final DeferredHolder<net.minecraft.world.level.block.entity.BlockEntityType<?>, net.minecraft.world.level.block.entity.BlockEntityType<kingdom.smp.block.StatueBlockEntity>> STATUE_BLOCK_ENTITY =
+        (DeferredHolder) BLOCK_ENTITY_TYPES.register("statue",
+            () -> new net.minecraft.world.level.block.entity.BlockEntityType<>(
+                kingdom.smp.block.StatueBlockEntity::new,
+                KANGARUDE_STATUE_BLOCK.get(), HAALINA_STATUE_BLOCK.get(),
+                FACELACES_STATUE_BLOCK.get(), RED_RAICHU_STATUE_BLOCK.get(),
+                TWOHRD_STATUE_BLOCK.get(), ARCATHEONE_STATUE_BLOCK.get(),
+                CHEAKIE_STATUE_BLOCK.get()
+            )
+        );
+
     // ── Chorus Wardheart (force-field shield generator) ───────────────────────
     public static final DeferredBlock<kingdom.smp.block.wardheart.WardheartBlock> WARDHEART_BLOCK =
         BLOCKS.register("wardheart",
